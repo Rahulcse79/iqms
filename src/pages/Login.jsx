@@ -4,6 +4,7 @@ import "./login.css";
 import logo from "../assets/Images/login-logo.png";
 
 const Login = () => {
+
   const [category, setCategory] = useState("Civilian");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +37,7 @@ const Login = () => {
             >
               <option value="Civilian">Civilian</option>
               <option value="Officer">Officer</option>
-              <option value="Airmen">Airmen</option>
+              <option value="Airmen">Airmen/ NCS(E)</option>
             </select>
           </div>
           <div className="form-group">

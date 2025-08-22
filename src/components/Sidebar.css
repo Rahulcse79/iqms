@@ -1,36 +1,94 @@
 .sidebar {
-  width: 250px;
-  background-color: #2c3e50;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  position: fixed;
+    width: 260px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1a1a1a, #0d0d0d);
+    color: #fff;
+    padding: 20px 15px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
 }
 
-.sidebar-header {
-  padding: 20px;
-  text-align: center;
-  background-color: #1a242f;
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
 }
 
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
+.logo-icon {
+    font-size: 2.5rem;
+    color: #61dafb;
+    margin-right: 10px;
+    animation: spin 10s linear infinite;
 }
 
-.sidebar-nav a {
-  padding: 15px 20px;
-  color: white;
-  text-decoration: none;
-  transition: background-color 0.3s;
+.sidebar-logo h2 {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #61dafb;
 }
 
-.sidebar-nav a:hover {
-  background-color: #34495e;
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    flex: 1;
 }
 
-.sidebar-nav a.active {
-  background-color: #1abc9c;
+.sidebar-menu li {
+    padding: 12px 10px;
+    margin: 6px 0;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.menu-icon {
+    margin-right: 10px;
+    font-size: 1.2rem;
+    color: #bbb;
+    transition: color 0.3s;
+}
+
+.sidebar-menu li:hover {
+    background: #262626;
+    color: #61dafb;
+    transform: translateX(4px);
+}
+
+.sidebar-menu li:hover .menu-icon {
+    color: #61dafb;
+}
+
+.sidebar-submenu {
+    list-style: none;
+    padding-left: 34px;
+    margin-top: 6px;
+}
+
+.sidebar-submenu li {
+    padding: 8px;
+    font-size: 0.9rem;
+    color: #bbb;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+.sidebar-submenu li:hover {
+    background: #333;
+    color: #61dafb;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
