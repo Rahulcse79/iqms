@@ -5,10 +5,11 @@ import Dashboard from "./pages/Dashboard";
 import ViewIncomeQueries from "./components/Queries/View_Income_Queries";
 import SideBar from "./components/SideBar";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
+import SearchQuery from "./components/SearchQuery";
 
 function Layout() {
   const location = useLocation();
-
   const hideSidebar = location.pathname === "/login";
 
   return (
@@ -17,8 +18,32 @@ function Layout() {
       <div className="main-content">
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Dashboard />} />
-          <Route path="view/income/queries" element={<ViewIncomeQueries />} />
+
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="search-query"
+            element={
+              <ProtectedRoute>
+                <SearchQuery />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="view/income/queries"
+            element={
+              <ProtectedRoute>
+                <ViewIncomeQueries />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
