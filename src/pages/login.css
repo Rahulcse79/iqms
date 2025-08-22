@@ -1,0 +1,109 @@
+/* login.css - CRM Login Page Styles */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  background: linear-gradient(120deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.login-box {
+  background: #fff;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
+  width: 100%;
+  max-width: 370px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-logo {
+  width: 100%;
+  object-fit: cover;
+  margin-bottom: 1.2rem;
+}
+
+.login-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.5px;
+}
+
+.login-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  color: #34495e;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+
+.login-select,
+.login-input {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #dfe6e9;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  background: #f9fafb;
+  transition: border-color 0.2s;
+}
+
+.login-select:focus,
+.login-input:focus {
+  border-color: #6c63ff;
+  outline: none;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 0.8rem 0;
+  background: #6c63ff;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  margin-top: 0.5rem;
+}
+
+.login-btn:hover,
+.login-btn:focus {
+  background: #574fd6;
+  box-shadow: 0 4px 16px rgba(44, 62, 80, 0.10);
+}
+
+@media (max-width: 900px) {
+  .login-box {
+    max-width: 90vw;
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .login-box {
+    max-width: 98vw;
+    padding: 1.2rem 0.5rem;
+  }
+  .login-title {
+    font-size: 1.2rem;
+  }
+}
