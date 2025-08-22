@@ -1,0 +1,10 @@
+.footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #ecf0f1;
+  padding: 20px;
+  text-align: center;
+  position: absolute;
+  bottom: 0;
+  width: calc(100% - 250px); /* Adjust for sidebar */
+  left: 250px;
+}

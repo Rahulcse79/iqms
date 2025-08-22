@@ -1,0 +1,75 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./login.css";
+import logo from "../assets/Images/login-logo.png";
+
+const Login = () => {
+  const [category, setCategory] = useState("Civilian");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (username === "admin" && password === "admin") {
+      navigate("/");
+    } else {
+      alert("Invalid credentials");
+    }
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-header">
+        <img src={logo} alt="CRM Logo" className="login-logo" />
+      </div>
+      <div className="login-box">
+        <h2 className="login-title">IQMS Login</h2>
+        <form className="login-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="category">Select Category</label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="login-select"
+            >
+              <option value="Civilian">Civilian</option>
+              <option value="Officer">Officer</option>
+              <option value="Airmen">Airmen</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="login-input"
+              autoComplete="username"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="login-input"
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          <button type="submit" className="login-btn">
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
