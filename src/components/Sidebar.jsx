@@ -6,24 +6,27 @@ import { IconContext } from "react-icons";
 
 const SidebarNav = styled.nav`
   background-color: #0a0a0a;
-  width: 200px;
+  /* Change width based on collapsed state */
+  width: ${({ isCollapsed }) => (isCollapsed ? "80px" : "200px")};
   height: 100vh;
   display: flex;
   flex-direction: column;
   position: fixed;
   top: 0;
+  left: 0;
+  transition: width 350ms ease-in-out; /* Animate the width change */
   z-index: 10;
-  left: ${({ isCollapsed }) => (isCollapsed ? "-240px" : "0")};
-  transition: left 350ms ease-in-out;
+  overflow-x: hidden; /* Hide overflowing content */
 `;
 
 const SidebarHeader = styled.div`
-  padding: 20px;
+  padding: 16px;
   text-align: center;
   font-size: 20px;
   font-weight: bold;
   color: #ffffff;
   border-bottom: 1px solid #222;
+  white-space: nowrap; /* Prevent title from wrapping */
 `;
 
 const SidebarWrap = styled.div`
@@ -44,7 +47,7 @@ const Sidebar = ({ isCollapsed }) => {
   return (
     <IconContext.Provider value={{ color: "#fff" }}>
       <SidebarNav isCollapsed={isCollapsed}>
-        <SidebarHeader>IQMS</SidebarHeader>
+        <SidebarHeader>{isCollapsed ? "IQMS" : "IQMS"}</SidebarHeader>
         <SidebarWrap>
           {SidebarData.map((item, index) => (
             <SubMenu
@@ -52,6 +55,7 @@ const Sidebar = ({ isCollapsed }) => {
               key={index}
               isOpen={openMenu === index}
               onToggle={() => toggleMenu(index)}
+              isCollapsed={isCollapsed} /* Pass down the state */
             />
           ))}
         </SidebarWrap>

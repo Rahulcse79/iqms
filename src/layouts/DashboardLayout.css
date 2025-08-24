@@ -15,7 +15,7 @@
 
 /* Adjust margin when the sidebar is collapsed */
 .dashboard-layout.sidebar-collapsed .main-content {
-  margin-left: 0px; 
+  margin-left: 80px; 
 }
 
 .content {

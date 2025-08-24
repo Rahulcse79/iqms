@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SearchQuery from "./pages/SearchQuery";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Comparision from "./pages/Comparison";
+import ProfileView from "./pages/ProfileView";
 
 function App() {
   document.body.style.backgroundColor = "#f4f6f9";
@@ -33,7 +34,8 @@ function App() {
           <Route path="view/queries/incoming" element={<IncomingQueries />} />
           <Route path="view/queries/transferred" element={<TransferredQueries />} />
           <Route path="view/queries/replied" element={<RepliedQueries />} />
-          <Route path="view/query/:id" element = {<QueryView />} />
+          <Route path="view/query/:id" element={<QueryView />} />
+          <Route path="view/profile" element={<ProfileView />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
