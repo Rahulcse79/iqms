@@ -1,0 +1,142 @@
+.freq-page {
+    padding: 20px;
+    font-family: "Segoe UI", sans-serif;
+    color: #222;
+}
+
+/* ---------- HEADER ---------- */
+.page-header {
+    margin-bottom: 16px;
+}
+
+.page-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+/* ---------- FILTER ROW ---------- */
+.filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap; /* responsive */
+}
+
+.filter-row label {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    color: #444;
+}
+
+.filter-row input {
+    margin-top: 5px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 160px;
+}
+
+.search-btn {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    color: #fff;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    background: linear-gradient(135deg, #357abd, #2d5aa7);
+    transform: translateY(-2px);
+}
+
+/* ---------- EXPORT BUTTONS ---------- */
+.export-row {
+    margin-bottom: 12px;
+}
+
+.export-row button {
+    margin-right: 6px;
+    padding: 6px 14px;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.export-row button:hover {
+    background: #444;
+}
+
+/* ---------- TABLE ---------- */
+.table-wrap {
+    overflow-x: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+}
+
+.freq-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.freq-table th,
+.freq-table td {
+    border: 1px solid #e0e0e0;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.freq-table th {
+    background: #f7f7f7;
+    font-weight: 600;
+    color: #333;
+}
+
+.freq-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+/* ---------- FOOTER + PAGINATION ---------- */
+.footer-row {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    margin: 0 3px;
+    padding: 6px 10px;
+    border: 1px solid #bbb;
+    background: #fff;
+    color: #000;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination button:hover {
+    background: #eee;
+}
+
+.pagination .active {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+}
