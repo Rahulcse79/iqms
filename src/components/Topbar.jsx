@@ -5,7 +5,11 @@ import './Topbar.css';
 const Topbar = ({ toggleSidebar }) => {
   const [selectedRole, setSelectedRole] = useState('Admin');
   const [searchValue, setSearchValue] = useState('');
-  const [selectedSection, setSelectedSection] = useState('Airman');
+  
+  // State for the first dropdown
+  const [searchCategory, setSearchCategory] = useState('Airman');
+  // State for the second dropdown (Service No. vs Query)
+  const [searchType, setSearchType] = useState('Service');
 
   const roles = [
     'Admin', 'Manager', 'Operator', 'Viewer', 'Supervisor',
@@ -17,8 +21,21 @@ const Topbar = ({ toggleSidebar }) => {
     console.log('Switched to role:', e.target.value);
   };
 
+  // This function now contains the auto-detection logic
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+
+    // Use regex to check for exactly 6 or 8 digits
+    if (/^\d{6}$/.test(value)) {
+      setSearchType('Service'); // It's a 6-digit Service Number
+    } else if (/^\d{8}$/.test(value)) {
+      setSearchType('Query'); // It's an 8-digit Query Number
+    }
+  };
+
   const handleSearch = () => {
-    console.log(`Searching for "${searchValue}" in ${selectedSection}`);
+    console.log(`Searching for ${searchType}: "${searchValue}" in Category: ${searchCategory}`);
   };
 
   return (
@@ -44,20 +61,28 @@ const Topbar = ({ toggleSidebar }) => {
         {/* Center: Search */}
         <div className="topbar-center">
           <select
-            value={selectedSection}
-            onChange={(e) => setSelectedSection(e.target.value)}
+            value={searchCategory}
+            onChange={(e) => setSearchCategory(e.target.value)}
           >
             <option value="Airman">Airman</option>
+            {/* Add other categories here if needed */}
+          </select>
+          <select
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value)}
+          >
+            <option value="Service">Service No.</option>
+            <option value="Query">Query</option>
           </select>
           <input
             type="text"
-            placeholder="Search by Service/Query ID"
+            // The placeholder is now dynamic based on the 'searchType' state
+            placeholder={searchType === 'Query' ? 'Enter Query ID' : 'Enter Service No.'}
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            onChange={handleSearchInputChange}
           />
           <button onClick={handleSearch}>Search</button>
         </div>
-
       </div>
     </header>
   );
