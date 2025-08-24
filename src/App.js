@@ -11,7 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SearchQuery from "./pages/SearchQuery";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Comparision from "./pages/Comparison";
-import ProfileView from "./pages/ProfileView";
+import ProfileView from "./pages/ProfileView/ProfileView";
 
 function App() {
   document.body.style.backgroundColor = "#f4f6f9";
