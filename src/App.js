@@ -34,6 +34,7 @@ function App() {
           <Route path="comparision" element={<Comparision />} />
           <Route path="iqms-mis" element={<Iqmsmsi />} />
           <Route path="view/queries/incoming" element={<IncomingQueries />} />
+          
           <Route path="view/queries/transferred" element={<TransferredQueries />} />
           <Route path="view/queries/replied" element={<RepliedQueries />} />
           <Route path="view/query/:id" element={<QueryView />} />
