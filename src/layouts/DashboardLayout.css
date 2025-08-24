@@ -1,19 +1,24 @@
 .dashboard-layout {
   display: flex;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  background-color: #f4f7fa;
 }
 
 .main-content {
   flex-grow: 1;
+  /* This is the key change */
+  margin-left: 250px; /* Match this value to your sidebar's width */
+  transition: margin-left 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow-y: auto;
+}
+
+/* Adjust margin when the sidebar is collapsed */
+.dashboard-layout.sidebar-collapsed .main-content {
+  margin-left: 80px; /* Match this to your collapsed sidebar's width */
 }
 
 .content {
-  padding: 20px;
-  flex-grow: 1;
-  background-color: #f4f6f9;
+  padding: 24px;
+  flex-grow: 1; /* Ensures the content area fills the space and pushes the footer down */
 }
