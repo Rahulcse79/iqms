@@ -1,3 +1,4 @@
+/* Page container */
 .comparison-container {
     padding: 40px 20px;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -6,50 +7,53 @@
     align-items: center;
 }
 
+/* Heading */
 .comparison-container h2 {
-    margin-bottom: 25px;
+    margin-bottom: 18px;
     font-size: 22px;
     color: #2c3e50;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
 }
 
+/* Form */
 .comparison-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 14px;
     background: #fff;
-    padding: 30px 25px;
+    padding: 20px 22px;
     border: 1px solid #e1e1e1;
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
     width: 100%;
-    max-width: 480px;
+    max-width: 920px;
+    /* make room for result columns under it */
 }
 
 .comparison-form label {
     display: flex;
     flex-direction: column;
-    font-weight: 500;
+    font-weight: 600;
     color: #444;
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .comparison-form input,
 .comparison-form select {
-    margin-top: 6px;
-    padding: 12px 14px;
+    margin-top: 8px;
+    padding: 10px 12px;
     font-size: 14px;
-    border: 1px solid #ccc;
+    border: 1px solid #cfcfcf;
     border-radius: 6px;
     outline: none;
-    transition: all 0.3s ease;
+    transition: all 0.18s ease;
 }
 
 .comparison-form input:focus,
 .comparison-form select:focus {
     border-color: #007bff;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.18);
 }
 
 .search-btn {
@@ -57,15 +61,140 @@
     background-color: #007bff;
     color: #fff;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.18s ease;
 }
 
 .search-btn:hover {
     background-color: #0056b3;
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Results container */
+.comparison-results {
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 26px;
+}
+
+/* Results header */
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.results-header h3 {
+    margin: 0;
+    font-size: 15px;
+    color: #333;
+    background: #f3f3f3;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+/* Print button */
+.print-btn {
+    padding: 8px 12px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Cards wrapper */
+.cards {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+}
+
+/* Each card */
+.card {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* colored top bar */
+.card-top {
+    background: #f6f6f6;
+    padding: 10px 14px;
+    font-weight: 700;
+    color: #222;
+    border-bottom: 1px solid #ececec;
+}
+
+/* card body */
+.card-body {
+    padding: 12px 14px 18px;
+}
+
+/* Title inside card */
+.card-title {
+    font-weight: 800;
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #111;
+}
+
+/* Info table styling */
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+}
+
+.info-table td {
+    padding: 8px 10px;
+    border: 1px solid #f0f0f0;
+    font-size: 13px;
+    color: #333;
+}
+
+.section-title {
+    margin-top: 8px;
+    font-weight: 700;
+    color: #333;
+    font-size: 13px;
+}
+
+/* Rank history table */
+.rank-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+}
+
+.rank-table th,
+.rank-table td {
+    padding: 8px 10px;
+    border: 1px solid #f0f0f0;
+    font-size: 13px;
+}
+
+.rank-table thead {
+    background: #fafafa;
+    font-weight: 700;
+}
+
+/* Responsive: stack cards on small screens */
+@media (max-width: 900px) {
+    .cards {
+        flex-direction: column;
+    }
+
+    .comparison-form {
+        max-width: 720px;
+    }
 }
