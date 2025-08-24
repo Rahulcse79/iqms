@@ -16,7 +16,7 @@ const SidebarDataPage = () => {
   const SidebarData = [
     {
       title: 'Dashboard',
-      path: '/view/dashboard',
+      path: '/',
       icon: <FaTachometerAlt style={{ color: '#4CAF50' }} />
     },
     {
