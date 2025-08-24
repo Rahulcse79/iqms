@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";   // ✅ correct import
 import "./FreqQuery.css";
 
 function FreqQuery() {
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
+    const [searchText, setSearchText] = useState("");
     const [filteredData, setFilteredData] = useState([]);
 
     const data = [
@@ -33,7 +34,12 @@ function FreqQuery() {
         { id: 20, details: "Alok Pandey", queries: 9, date: "2025-08-13" },
     ];
 
-    // filter handler
+    // initially show all data
+    useEffect(() => {
+        setFilteredData(data);
+    }, []);
+
+    // filter by date
     const handleSearch = () => {
         let result = data.filter((row) => {
             if (fromDate && row.date < fromDate) return false;
@@ -43,44 +49,43 @@ function FreqQuery() {
         setFilteredData(result);
     };
 
+    // 🔹 Inner search (filter by S.No or Person Details)
+    const searchedData = filteredData.filter((row) => {
+        if (!searchText) return true;
+        return (
+            row.id.toString().includes(searchText.toLowerCase()) ||
+            row.details.toLowerCase().includes(searchText.toLowerCase())
+        );
+    });
+
     const columns = [
-        {
-            name: "S.No",
-            selector: (row) => row.id,
-            sortable: true,
-            width: "80px",
-        },
-        {
-            name: "Person Details",
-            selector: (row) => row.details,
-            sortable: true,
-        },
-        {
-            name: "No. of Queries",
-            selector: (row) => row.queries,
-            sortable: true,
-        }
+        { name: "S.No", selector: (row) => row.id, sortable: true, width: "80px" },
+        { name: "Person Details", selector: (row) => row.details, sortable: true },
+        { name: "No. of Queries", selector: (row) => row.queries, sortable: true },
+        { name: "Date", selector: (row) => row.date, sortable: true },
     ];
 
     // Print as PDF
     const handlePrint = () => {
         const doc = new jsPDF();
         doc.text("Frequency Queries Report", 14, 10);
-        doc.autoTable({
+
+        autoTable(doc, {
             head: [["S.No", "Person Details", "No. of Queries", "Date"]],
-            body: filteredData.map((row) => [
+            body: searchedData.map((row) => [
                 row.id,
                 row.details,
                 row.queries,
                 row.date,
             ]),
         });
+
         doc.save("FreqQueries.pdf");
     };
 
     // Copy to clipboard
     const handleCopy = () => {
-        const text = filteredData
+        const text = searchedData
             .map((row) => `${row.id}\t${row.details}\t${row.queries}\t${row.date}`)
             .join("\n");
         navigator.clipboard.writeText(text);
@@ -123,7 +128,7 @@ function FreqQuery() {
             <div className="export-row">
                 <button onClick={handleCopy}>Copy</button>
                 <CSVLink
-                    data={filteredData}
+                    data={searchedData}
                     headers={csvHeaders}
                     filename={"FreqQueries.csv"}
                 >
@@ -132,11 +137,24 @@ function FreqQuery() {
                 <button onClick={handlePrint}>Print</button>
             </div>
 
+            {/* 🔹 Inner Table Search */}
+            <div className="filter-row">
+                <label>
+                    Search
+                    <input
+                        type="text"
+                        placeholder="By S.No or Person Details"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                </label>
+            </div>
+
             {/* Data Table */}
             <div className="table-wrap">
                 <DataTable
                     columns={columns}
-                    data={filteredData}
+                    data={searchedData}
                     pagination
                     highlightOnHover
                     striped
