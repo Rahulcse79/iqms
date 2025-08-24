@@ -1,35 +1,38 @@
 import React, { useState } from "react";
+import "./SearchQuery.css";
 
 const SearchQuery = () => {
   const [activeTab, setActiveTab] = useState("serviceNumber");
+  const [serviceNumber, setServiceNumber] = useState("");
+  const [queryID, setQueryID] = useState("");
+
+  // 🔹 Function to handle search
+  const handleSearch = (e) => {
+    e.preventDefault(); // stop page refresh
+
+    if (activeTab === "serviceNumber") {
+      console.log("Searching by Service Number:", serviceNumber);
+      alert(`Searching for Service Number: ${serviceNumber}`);
+    } else if (activeTab === "queryID") {
+      console.log("Searching by Query ID:", queryID);
+      alert(`Searching for Query ID: ${queryID}`);
+    }
+  };
 
   return (
-    <div style={{ padding: "20px" }}>
-        
-      <div style={{ display: "flex", marginBottom: "20px" }}>
+    <div className="search-query-container">
+      <div className="tab-buttons">
         <button
           onClick={() => setActiveTab("serviceNumber")}
-          style={{
-            flex: 1,
-            padding: "10px",
-            backgroundColor: activeTab === "serviceNumber" ? "#007bff" : "#f1f1f1",
-            color: activeTab === "serviceNumber" ? "#fff" : "#000",
-            border: "1px solid #ccc",
-            cursor: "pointer",
-          }}
+          className={`tab-button ${
+            activeTab === "serviceNumber" ? "active" : ""
+          }`}
         >
           Search by Service Number
         </button>
         <button
           onClick={() => setActiveTab("queryID")}
-          style={{
-            flex: 1,
-            padding: "10px",
-            backgroundColor: activeTab === "queryID" ? "#007bff" : "#f1f1f1",
-            color: activeTab === "queryID" ? "#fff" : "#000",
-            border: "1px solid #ccc",
-            cursor: "pointer",
-          }}
+          className={`tab-button ${activeTab === "queryID" ? "active" : ""}`}
         >
           Search by Query ID
         </button>
@@ -37,37 +40,47 @@ const SearchQuery = () => {
 
       {/* Tab Content */}
       {activeTab === "serviceNumber" && (
-        <div>
+        <div className="tab-content">
           <h3>Search by Service Number</h3>
-          <form>
+          <form className="search-form" onSubmit={handleSearch}>
             <label>
               Category:
               <select>
-                <option value="airmen">Airmen</option>
-                <option value="ncs">NCS(E)</option>
+                <option value="airmen">Airmen/ NCS(E)</option>
               </select>
             </label>
-            <br />
             <label>
               Service Number:
-              <input type="text" placeholder="Enter Service Number" />
+              <input
+                type="text"
+                placeholder="Enter Service Number"
+                value={serviceNumber}
+                onChange={(e) => setServiceNumber(e.target.value)}
+              />
             </label>
-            <br />
-            <button type="submit">Search</button>
+            <button type="submit" className="search-btn">
+              Search
+            </button>
           </form>
         </div>
       )}
 
       {activeTab === "queryID" && (
-        <div>
+        <div className="tab-content">
           <h3>Search by Query ID</h3>
-          <form>
+          <form className="search-form" onSubmit={handleSearch}>
             <label>
               Query ID:
-              <input type="text" placeholder="Enter Query ID" />
+              <input
+                type="text"
+                placeholder="Enter Query ID"
+                value={queryID}
+                onChange={(e) => setQueryID(e.target.value)}
+              />
             </label>
-            <br />
-            <button type="submit">Search</button>
+            <button type="submit" className="search-btn">
+              Search
+            </button>
           </form>
         </div>
       )}
