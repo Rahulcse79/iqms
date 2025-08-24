@@ -7,13 +7,6 @@ const Topbar = ({ toggleSidebar }) => {
   const [searchValue, setSearchValue] = useState('');
   const [selectedSection, setSelectedSection] = useState('Airman');
 
-  // Hardcoded user info (replace with real data later)
-  const userInfo = {
-    name: 'John Doe',
-    designation: 'System Admin',
-    email: 'john.doe@example.com'
-  };
-
   const roles = [
     'Admin', 'Manager', 'Operator', 'Viewer', 'Supervisor',
     'Coordinator', 'Technician', 'Guest'
@@ -65,14 +58,6 @@ const Topbar = ({ toggleSidebar }) => {
           <button onClick={handleSearch}>Search</button>
         </div>
 
-        {/* Right: User Info */}
-        <div className="topbar-right">
-          <div className="user-info">
-            <span className="user-name">{userInfo.name}</span>
-            <span className="user-designation">{userInfo.designation}</span>
-            <span className="user-email">{userInfo.email}</span>
-          </div>
-        </div>
       </div>
     </header>
   );

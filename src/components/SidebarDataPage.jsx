@@ -7,7 +7,6 @@ import {
   FaChartBar,
   FaChartLine,
   FaBalanceScale,
-  FaCheckCircle,
   FaChevronDown,
   FaChevronUp
 } from 'react-icons/fa';
@@ -63,11 +62,6 @@ const SidebarDataPage = () => {
       title: 'Senior/Junior Comparision',
       path: '/comparision',
       icon: <FaBalanceScale style={{ color: '#009688' }} />
-    },
-    {
-      title: 'Validation',
-      path: '/validation',
-      icon: <FaCheckCircle style={{ color: '#F44336' }} />
     }
   ];
 
