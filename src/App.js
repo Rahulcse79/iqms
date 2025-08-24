@@ -12,7 +12,7 @@ import SearchQuery from "./pages/SearchQuery";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Comparision from "./pages/Comparison";
 import Iqmsmsi from "./pages/IQMSMSI";
-import ProfileView from "./pages/ProfileView";
+import ProfileView from "./pages/ProfileView/ProfileView";
 import FreqQuery from "./pages/FreqQuery";
 
 function App() {
