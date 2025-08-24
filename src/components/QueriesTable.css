@@ -1,0 +1,68 @@
+.queries-container {
+  background: #fff;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: 1200px;
+}
+
+.queries-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.queries-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn.export-btn {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.btn.export-btn:hover {
+  background-color: #1565c0;
+}
+
+.search-box .search-bar {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 250px;
+}
+
+.action-btn {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.action-btn:hover {
+  background-color: #218838;
+}

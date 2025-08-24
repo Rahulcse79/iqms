@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import IncomingQueries from "./pages/Queries/IncomingQueries";
 import RepliedQueries from "./pages/Queries/RepliedQueries";
 import TransferredQueries from "./pages/Queries/TransferredQueries";
+import QueryView from "./pages/Queries/QueryView";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SearchQuery from "./pages/SearchQuery";
@@ -32,6 +33,7 @@ function App() {
           <Route path="view/queries/incoming" element={<IncomingQueries />} />
           <Route path="view/queries/transferred" element={<TransferredQueries />} />
           <Route path="view/queries/replied" element={<RepliedQueries />} />
+          <Route path="view/query/:id" element = {<QueryView />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

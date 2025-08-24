@@ -1,23 +1,36 @@
 // src/components/QueriesTable.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import jsPDF from "jspdf";
+import "./QueriesTable.css";
 
 const QueriesTable = ({ title, data }) => {
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+
+  const handleView = (row) => {
+    // navigate to view page, pass the row in state for instant render
+    navigate(`/view/query/${encodeURIComponent(row.queryId)}`, { state: { row } });
+  };
 
   const columns = [
-    { name: "S.No", selector: (row, index) => index + 1, width: "80px" },
+    { name: "S.No", selector: (row, index) => index + 1, width: "80px", sortable: true },
     { name: "Service No (Pers)", selector: (row) => row.serviceNo, sortable: true },
     { name: "Query Type", selector: (row) => row.type, sortable: true },
     { name: "Query ID", selector: (row) => row.queryId, sortable: true },
     { name: "Query Received (AFCAAD Date)", selector: (row) => row.date, sortable: true },
     {
       name: "Action",
-      cell: () => <button className="action-btn">View</button>,
+      // pass row into closure so each button opens the right detail
+      cell: (row) => (
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="action-btn" onClick={() => handleView(row)}>View</button>
+        </div>
+      ),
       ignoreRowClick: true,
       allowOverflow: true,
-      button: true
+      button: true,
     }
   ];
 
@@ -28,7 +41,7 @@ const QueriesTable = ({ title, data }) => {
       item.type.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Export Functions
+  // Export Actions (unchanged)
   const CopyAction = () => {
     const text = filteredData
       .map((row, i) => `${i + 1}\t${row.serviceNo}\t${row.type}\t${row.queryId}\t${row.date}`)
@@ -69,23 +82,29 @@ const QueriesTable = ({ title, data }) => {
   };
 
   return (
-    <div className="view-queries-page">
-      <h2>{title}</h2>
-
-      <div className="export-buttons">
-        <button onClick={CopyAction}>Copy</button>
-        <button onClick={CSVAction}>CSV</button>
-        <button onClick={PrintAction}>Print</button>
-        <button onClick={PDFAction}>PDF</button>
+    <div className="queries-container">
+      <div className="queries-header">
+        <h2>{title}</h2>
       </div>
 
-      <input
-        type="text"
-        placeholder="Search..."
-        className="search-bar"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div className="queries-toolbar">
+        <div className="export-buttons">
+          <button onClick={CopyAction} className="btn export-btn">Copy</button>
+          <button onClick={CSVAction} className="btn export-btn">CSV</button>
+          <button onClick={PrintAction} className="btn export-btn">Print</button>
+          <button onClick={PDFAction} className="btn export-btn">PDF</button>
+        </div>
+
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Search..."
+            className="search-bar"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
 
       <DataTable
         columns={columns}
@@ -94,6 +113,10 @@ const QueriesTable = ({ title, data }) => {
         highlightOnHover
         striped
         responsive
+        customStyles={{
+          headCells: { style: { backgroundColor: "#f4f6f8", fontWeight: "bold", fontSize: "14px", color: "#333" } },
+          rows: { style: { fontSize: "14px" } }
+        }}
       />
     </div>
   );

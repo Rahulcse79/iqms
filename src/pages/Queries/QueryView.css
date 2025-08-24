@@ -1,0 +1,148 @@
+.qview-container {
+  max-width: 1100px;
+  margin: auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.page-title {
+  font-size: 20px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.tab-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  padding: 10px 15px;
+  background: #f4f6f8;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 6px;
+}
+
+.tab-btn.active {
+  background: #007bff;
+  color: #fff;
+}
+
+.header-card {
+  display: flex;
+  justify-content: space-between;
+  background: #f9f9f9;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.details-card {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px 20px;
+  background: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+}
+
+.query-message {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  text-align: justify; /* Justified text for better readability */
+  line-height: 1.6;
+}
+
+.remarks-card {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.remarks-card h4 {
+  margin-bottom: 10px;
+}
+
+.remark-row {
+  border-left: 4px solid #007bff;
+  padding-left: 10px;
+  margin-bottom: 12px;
+}
+
+.remark-role {
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.remark-text {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+.remark-date {
+  font-weight: bold;
+  color: #555;
+  display: block;
+}
+
+.form-section {
+  background: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.btn.primary {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn {
+  background: #eee;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.subject{
+    font-size : 1.5rem;
+    font-weight: 600;
+}
