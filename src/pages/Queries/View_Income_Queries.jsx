@@ -6,7 +6,6 @@ import "./View_Income_Queries.css";
 import jsPDF from "jspdf";
 
 function View_Income_Queries() {
-
     const [search, setSearch] = useState("");
 
     const data = [
@@ -162,14 +161,43 @@ function View_Income_Queries() {
                 </TabPanel>
 
                 <TabPanel>
-                    <p>Transferred Queries Table</p>
+                <input
+                        type="text"
+                        placeholder="Search..."
+                        className="search-bar"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+
+                    <DataTable
+                        columns={columns}
+                        data={filteredData}
+                        pagination
+                        highlightOnHover
+                        striped
+                        responsive
+                    />
                 </TabPanel>
 
                 <TabPanel>
-                    <p>Replied Queries Table</p>
+                <input
+                        type="text"
+                        placeholder="Search..."
+                        className="search-bar"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+
+                    <DataTable
+                        columns={columns}
+                        data={filteredData}
+                        pagination
+                        highlightOnHover
+                        striped
+                        responsive
+                    />
                 </TabPanel>
             </Tabs>
-
         </div>
     );
 }
