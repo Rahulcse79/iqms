@@ -13,6 +13,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import Comparision from "./pages/Comparison";
 import Iqmsmsi from "./pages/IQMSMSI";
 import ProfileView from "./pages/ProfileView";
+import FreqQuery from "./pages/FreqQuery";
 
 function App() {
   document.body.style.backgroundColor = "#f4f6f9"; 
@@ -34,7 +35,7 @@ function App() {
           <Route path="comparision" element={<Comparision />} />
           <Route path="iqms-mis" element={<Iqmsmsi />} />
           <Route path="view/queries/incoming" element={<IncomingQueries />} />
-          
+          <Route path="freq-query" element={<FreqQuery />} />
           <Route path="view/queries/transferred" element={<TransferredQueries />} />
           <Route path="view/queries/replied" element={<RepliedQueries />} />
           <Route path="view/query/:id" element={<QueryView />} />

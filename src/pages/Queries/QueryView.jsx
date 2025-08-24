@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./QueryView.css";
 
 const QueryView = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const params = useParams();
   const row = location.state?.row || null;
 
   const [activeTab, setActiveTab] = useState("details");

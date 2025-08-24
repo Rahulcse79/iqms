@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import './ProfileView.css';
 
 // --- DUMMY DATA ---
@@ -68,8 +67,6 @@ const ProfileView = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (serviceNo.trim()) {
-      // In a real app, you would fetch data here.
-      // For this demo, we'll just set a flag to show the profile.
       setShowProfile(true);
     } else {
       alert('Please enter a service number.');
