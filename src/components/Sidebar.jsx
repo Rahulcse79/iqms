@@ -6,15 +6,15 @@ import { IconContext } from "react-icons";
 
 const SidebarNav = styled.nav`
   background-color: #0a0a0a;
-  width: 240px;
+  width: 200px;
   height: 100vh;
   display: flex;
   flex-direction: column;
   position: fixed;
   top: 0;
-  left: 0;
-  transition: 350ms;
   z-index: 10;
+  left: ${({ isCollapsed }) => (isCollapsed ? "-240px" : "0")};
+  transition: left 350ms ease-in-out;
 `;
 
 const SidebarHeader = styled.div`
@@ -33,7 +33,7 @@ const SidebarWrap = styled.div`
   padding-top: 10px;
 `;
 
-const Sidebar = () => {
+const Sidebar = ({ isCollapsed }) => {
   const SidebarData = SidebarDataPage();
   const [openMenu, setOpenMenu] = useState(null); // Track open dropdown
 
@@ -43,7 +43,7 @@ const Sidebar = () => {
 
   return (
     <IconContext.Provider value={{ color: "#fff" }}>
-      <SidebarNav>
+      <SidebarNav isCollapsed={isCollapsed}>
         <SidebarHeader>IQMS</SidebarHeader>
         <SidebarWrap>
           {SidebarData.map((item, index) => (
