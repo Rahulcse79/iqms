@@ -38,7 +38,7 @@ function App() {
           <Route path="view/queries/replied" element={<RepliedQueries />} />
           <Route path="view/query/:id" element={<QueryView />} />
           <Route path="view/profile" element={<ProfileView />} />
-        </Route>
+        </Route> 
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
