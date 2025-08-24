@@ -2,10 +2,10 @@ import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import ViewIncomeQueries from "./components/Queries/View_Income_Queries";
+import ViewIncomeQueries from "./pages/Queries/View_Income_Queries";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SearchQuery from "./components/SearchQuery";
+import SearchQuery from "./pages/SearchQuery";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 function App() {
