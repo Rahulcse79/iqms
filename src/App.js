@@ -15,7 +15,7 @@ import ProfileView from "./pages/ProfileView";
 import Iqmsmsi from "./pages/IQMSMSI";
 
 function App() {
-  document.body.style.backgroundColor = "#f4f6f9";
+  document.body.style.backgroundColor = "#f4f6f9"; 
 
   return (
     <BrowserRouter>
