@@ -1,0 +1,71 @@
+.comparison-container {
+    padding: 40px 20px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.comparison-container h2 {
+    margin-bottom: 25px;
+    font-size: 22px;
+    color: #2c3e50;
+    font-weight: 600;
+    text-align: center;
+}
+
+.comparison-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #fff;
+    padding: 30px 25px;
+    border: 1px solid #e1e1e1;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 480px;
+}
+
+.comparison-form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    color: #444;
+    font-size: 15px;
+}
+
+.comparison-form input,
+.comparison-form select {
+    margin-top: 6px;
+    padding: 12px 14px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.comparison-form input:focus,
+.comparison-form select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+}
+
+.search-btn {
+    padding: 12px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
