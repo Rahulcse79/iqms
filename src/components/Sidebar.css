@@ -1,94 +1,82 @@
 .sidebar {
-    width: 260px;
+    width: 250px;
     height: 100vh;
-    background: linear-gradient(180deg, #1a1a1a, #0d0d0d);
-    color: #fff;
-    padding: 20px 15px;
-    position: fixed;
-    left: 0;
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 20px;
+    position: sticky;
     top: 0;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.6);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
 .sidebar-logo {
     display: flex;
     align-items: center;
     margin-bottom: 30px;
+    padding: 0 10px;
 }
 
 .logo-icon {
-    font-size: 2.5rem;
-    color: #61dafb;
-    margin-right: 10px;
-    animation: spin 10s linear infinite;
+    font-size: 2rem;
+    color: #38bdf8;
 }
 
 .sidebar-logo h2 {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #61dafb;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-left: 10px;
 }
 
 .sidebar-menu {
     list-style: none;
     padding: 0;
-    flex: 1;
+    margin: 0;
+    flex-grow: 1;
 }
 
 .sidebar-menu li {
-    padding: 12px 10px;
-    margin: 6px 0;
-    cursor: pointer;
-    border-radius: 8px;
+    margin: 5px 0;
+}
+
+.sidebar-menu a {
     display: flex;
     align-items: center;
-    transition: all 0.3s;
+    padding: 12px 15px;
+    color: #cbd5e1;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+    background-color: #334155;
+    color: #f8fafc;
 }
 
 .menu-icon {
-    margin-right: 10px;
-    font-size: 1.2rem;
-    color: #bbb;
-    transition: color 0.3s;
-}
-
-.sidebar-menu li:hover {
-    background: #262626;
-    color: #61dafb;
-    transform: translateX(4px);
-}
-
-.sidebar-menu li:hover .menu-icon {
-    color: #61dafb;
+    margin-right: 15px;
+    font-size: 1.1rem;
 }
 
 .sidebar-submenu {
     list-style: none;
-    padding-left: 34px;
-    margin-top: 6px;
+    padding-left: 25px;
+    margin-top: 8px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
 }
 
-.sidebar-submenu li {
-    padding: 8px;
-    font-size: 0.9rem;
-    color: #bbb;
-    border-radius: 6px;
-    transition: all 0.3s;
+.sidebar-submenu.open {
+    max-height: 500px; /* Adjust as needed */
 }
 
-.sidebar-submenu li:hover {
-    background: #333;
-    color: #61dafb;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
+.sidebar-submenu li a {
+    padding: 10px 15px;
+    font-size: 0.95rem;
 }

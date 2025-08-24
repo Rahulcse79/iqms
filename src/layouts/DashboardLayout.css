@@ -1,20 +1,19 @@
 .dashboard-layout {
   display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .main-content {
   flex-grow: 1;
-  margin-left: 250px; /* Same as sidebar width */
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   position: relative;
-  padding-top: 70px; /* Space for topbar */
-  padding-bottom: 60px; /* Space for footer */
+  overflow-y: auto;
 }
 
 .content {
-  padding: 30px;
+  padding: 20px;
   flex-grow: 1;
   background-color: #f4f6f9;
 }

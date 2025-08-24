@@ -3,6 +3,11 @@ import { FaInbox, FaSearch, FaChartBar, FaListAlt, FaCheckCircle } from 'react-i
 
 const SidebarDataPage = () => {
   const SidebarData = [
+        {
+      title: 'Dashboard',
+      path: '/view/dashboard',
+      icon: <FaInbox style={{ color: '#4CAF50' }} />
+    },
     {
       title: 'View Incoming Queries',
       path: '/view/income/queries',
@@ -11,6 +16,11 @@ const SidebarDataPage = () => {
     {
       title: 'Search Query',
       path: '/search-query',
+      icon: <FaSearch style={{ color: '#2196F3' }} />
+    },
+    {
+      title: 'Profile View',
+      path: '/view/profile',
       icon: <FaSearch style={{ color: '#2196F3' }} />
     },
     {
