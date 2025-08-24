@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
@@ -39,24 +39,19 @@ const DropdownLink = styled(Link)`
   }
 `;
 
-const SubMenu = ({ item }) => {
-  const [subnav, setSubnav] = useState(false);
-
-  const showSubnav = () => setSubnav(!subnav);
-
+const SubMenu = ({ item, isOpen, onToggle }) => {
   return (
     <>
-      <SidebarLink to={item.path || "#"} onClick={item.subNav && showSubnav}>
+      <SidebarLink to={item.path || "#"} onClick={item.subNav ? onToggle : null}>
         {item.icon}
         <SidebarLabel>{item.title}</SidebarLabel>
         <div style={{ marginLeft: "auto" }}>
-          {item.subNav && (subnav ? item.iconOpened : item.iconClosed)}
+          {item.subNav && (isOpen ? item.iconOpened : item.iconClosed)}
         </div>
       </SidebarLink>
-      {subnav &&
-        item.subNav.map((subItem, index) => (
+      {isOpen &&
+        item.subNav?.map((subItem, index) => (
           <DropdownLink to={subItem.path} key={index}>
-            {subItem.icon}
             <SidebarLabel>{subItem.title}</SidebarLabel>
           </DropdownLink>
         ))}

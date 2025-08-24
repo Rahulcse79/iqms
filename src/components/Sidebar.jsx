@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import SidebarDataPage from "./SidebarDataPage";
 import SubMenu from "./SubMenu";
@@ -33,39 +33,28 @@ const SidebarWrap = styled.div`
   padding-top: 10px;
 `;
 
-const SidebarTextContainer = styled.div`
-  margin-top: auto;
-  padding: 15px;
-  text-align: center;
-  color: #e1e9fc;
-`;
-
-const SidebarText = styled.p`
-  margin: 4px 0;
-  font-size: 12px;
-`;
-
 const Sidebar = () => {
   const SidebarData = SidebarDataPage();
+  const [openMenu, setOpenMenu] = useState(null); // Track open dropdown
+
+  const toggleMenu = (index) => {
+    setOpenMenu(openMenu === index ? null : index);
+  };
 
   return (
     <IconContext.Provider value={{ color: "#fff" }}>
       <SidebarNav>
-        {/* Top Heading */}
         <SidebarHeader>IQMS</SidebarHeader>
-
-        {/* Menu Items */}
         <SidebarWrap>
           {SidebarData.map((item, index) => (
-            <SubMenu item={item} key={index} />
+            <SubMenu
+              item={item}
+              key={index}
+              isOpen={openMenu === index}
+              onToggle={() => toggleMenu(index)}
+            />
           ))}
         </SidebarWrap>
-
-        {/* Footer Text */}
-        <SidebarTextContainer>
-          <SidebarText>IQMS System</SidebarText>
-          <SidebarText>Version - 1.0</SidebarText>
-        </SidebarTextContainer>
       </SidebarNav>
     </IconContext.Provider>
   );
