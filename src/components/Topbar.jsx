@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { RiMenuFill } from 'react-icons/ri';
 import './Topbar.css';
 
-const Topbar = () => {
+const Topbar = ({ toggleSidebar }) => {
   const [selectedRole, setSelectedRole] = useState('Admin');
   const [searchValue, setSearchValue] = useState('');
   const [selectedSection, setSelectedSection] = useState('Airman');
@@ -30,8 +31,11 @@ const Topbar = () => {
   return (
     <header className="topbar">
       <div className="topbar-content">
-        {/* Left: Switch Role */}
+        {/* Left: Toggle Sidebar & Title */}
         <div className="topbar-left">
+          <button className="sidebar-toggle" onClick={toggleSidebar}>
+            <RiMenuFill />
+          </button>
           <label htmlFor="roleDropdown">Switch Role: </label>
           <select
             id="roleDropdown"
