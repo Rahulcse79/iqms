@@ -11,8 +11,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SearchQuery from "./pages/SearchQuery";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Comparision from "./pages/Comparison";
-import ProfileView from "./pages/ProfileView";
 import Iqmsmsi from "./pages/IQMSMSI";
+import ProfileView from "./pages/ProfileView";
 
 function App() {
   document.body.style.backgroundColor = "#f4f6f9"; 
