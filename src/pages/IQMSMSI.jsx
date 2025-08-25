@@ -134,26 +134,49 @@ const ConsolidatedQueries = () => {
 
     return (
         <div className="consolidated-page">
-            <div className="filter-row">
-                <div className="date-range">
-                    <label>
-                        From
-                        <input
-                            type="date"
-                            value={fromDate}
-                            onChange={(e) => setFromDate(e.target.value)}
-                        />
-                    </label>
-                    <label>
-                        To
-                        <input
-                            type="date"
-                            value={toDate}
-                            onChange={(e) => setToDate(e.target.value)}
-                        />
-                    </label>
-                    <button onClick={handleSearch}>Search</button>
-                </div>
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginBottom: "15px",
+                }}
+            >
+                <label style={{ display: "flex", flexDirection: "column", fontSize: "14px" }}>
+                    From
+                    <input
+                        type="date"
+                        value={fromDate}
+                        onChange={(e) => setFromDate(e.target.value)}
+                        style={{ padding: "5px", fontSize: "14px" }}
+                    />
+                </label>
+
+                <label style={{ display: "flex", flexDirection: "column", fontSize: "14px" }}>
+                    To
+                    <input
+                        type="date"
+                        value={toDate}
+                        onChange={(e) => setToDate(e.target.value)}
+                        style={{ padding: "5px", fontSize: "14px" }}
+                    />
+                </label>
+
+                <button
+                    onClick={handleSearch}
+                    style={{
+                        marginTop: "20px",
+                        padding: "6px 12px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        border: "1px solid #ccc",
+                        borderRadius: "4px",
+                        backgroundColor: "#007bff",
+                        color: "white",
+                    }}
+                >
+                    Search
+                </button>
             </div>
 
             <div className="summary-table-wrap">
