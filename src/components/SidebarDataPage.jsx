@@ -10,6 +10,7 @@ import {
   FaChevronDown,
   FaChevronUp
 } from 'react-icons/fa';
+import { RiLogoutBoxRLine } from "react-icons/ri";
 
 const SidebarDataPage = () => {
   const SidebarData = [
@@ -62,6 +63,11 @@ const SidebarDataPage = () => {
       title: 'Senior/Junior Comparision',
       path: '/comparision',
       icon: <FaBalanceScale style={{ color: '#009688' }} />
+    },
+        {
+      title: 'Logout',
+      path: '/logout',
+      icon: <RiLogoutBoxRLine style={{ color: '#009688' }} />
     }
   ];
 
