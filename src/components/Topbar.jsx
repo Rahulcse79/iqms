@@ -1,24 +1,35 @@
-import React, { useState } from 'react';
-import { RiMenuFill } from 'react-icons/ri';
-import './Topbar.css';
+import React, { useState } from "react";
+import { RiMenuFill } from "react-icons/ri";
+import "./Topbar.css";
 
 const Topbar = ({ toggleSidebar }) => {
-  const [selectedRole, setSelectedRole] = useState('Admin');
-  const [searchValue, setSearchValue] = useState('');
-  
+  const [selectedRole, setSelectedRole] = useState("Admin");
+  const [searchValue, setSearchValue] = useState("");
+
   // State for the first dropdown
-  const [searchCategory, setSearchCategory] = useState('Airman');
+  const [searchCategory, setSearchCategory] = useState("Airmen");
   // State for the second dropdown (Service No. vs Query)
-  const [searchType, setSearchType] = useState('Service');
+  const [searchType, setSearchType] = useState("Service");
 
   const roles = [
-    'Admin', 'Manager', 'Operator', 'Viewer', 'Supervisor',
-    'Coordinator', 'Technician', 'Guest'
+    "Admin",
+    "Manager",
+    "Operator",
+    "Viewer",
+    "Supervisor",
+    "Coordinator",
+    "Technician",
+    "Guest",
   ];
+  const userInfo = {
+    name: "John Doe",
+    designation: "System Admin",
+    email: "123456",
+  };
 
   const handleRoleChange = (e) => {
     setSelectedRole(e.target.value);
-    console.log('Switched to role:', e.target.value);
+    console.log("Switched to role:", e.target.value);
   };
 
   // This function now contains the auto-detection logic
@@ -28,14 +39,16 @@ const Topbar = ({ toggleSidebar }) => {
 
     // Use regex to check for exactly 6 or 8 digits
     if (/^\d{6}$/.test(value)) {
-      setSearchType('Service'); // It's a 6-digit Service Number
+      setSearchType("Service"); // It's a 6-digit Service Number
     } else if (/^\d{8}$/.test(value)) {
-      setSearchType('Query'); // It's an 8-digit Query Number
+      setSearchType("Query"); // It's an 8-digit Query Number
     }
   };
 
   const handleSearch = () => {
-    console.log(`Searching for ${searchType}: "${searchValue}" in Category: ${searchCategory}`);
+    console.log(
+      `Searching for ${searchType}: "${searchValue}" in Category: ${searchCategory}`
+    );
   };
 
   return (
@@ -53,7 +66,9 @@ const Topbar = ({ toggleSidebar }) => {
             onChange={handleRoleChange}
           >
             {roles.map((role, index) => (
-              <option key={index} value={role}>{role}</option>
+              <option key={index} value={role}>
+                {role}
+              </option>
             ))}
           </select>
         </div>
@@ -64,7 +79,7 @@ const Topbar = ({ toggleSidebar }) => {
             value={searchCategory}
             onChange={(e) => setSearchCategory(e.target.value)}
           >
-            <option value="Airman">Airman</option>
+            <option value="Airmen">Airmen</option>
             {/* Add other categories here if needed */}
           </select>
           <select
@@ -77,11 +92,21 @@ const Topbar = ({ toggleSidebar }) => {
           <input
             type="text"
             // The placeholder is now dynamic based on the 'searchType' state
-            placeholder={searchType === 'Query' ? 'Enter Query ID' : 'Enter Service No.'}
+            placeholder={
+              searchType === "Query" ? "Enter Query ID" : "Enter Service No."
+            }
             value={searchValue}
             onChange={handleSearchInputChange}
           />
           <button onClick={handleSearch}>Search</button>
+        </div>
+
+        <div className="topbar-right">
+          <div className="user-info">
+            <span className="user-name">{userInfo.name}</span>
+            <span className="user-designation">{userInfo.designation}</span>
+            <span className="user-id">{userInfo.email}</span>
+          </div>
         </div>
       </div>
     </header>
