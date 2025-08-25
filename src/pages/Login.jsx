@@ -6,6 +6,7 @@ import "./login.css";
 import logo from "../assets/Images/login-logo.png";
 
 const Login = () => {
+  const [category, setCategory] = useState("Civilian");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -35,6 +36,19 @@ const Login = () => {
         {error && <p className="error-text">{error}</p>}
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
+            <div className="form-group">
+              <label htmlFor="category">Select Category</label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="login-select"
+              >
+                <option value="Civilian">Civilian</option>
+                <option value="Officer">Officer</option>
+                <option value="Airmen">Airmen/ NCS(E)</option>
+              </select>
+            </div>
             <label htmlFor="username">Username</label>
             <input
               type="text"
@@ -58,7 +72,9 @@ const Login = () => {
               required
             />
           </div>
-          <button type="submit" className="login-btn">Login</button>
+          <button type="submit" className="login-btn">
+            Login
+          </button>
         </form>
       </div>
     </div>
