@@ -3,30 +3,44 @@ import styled from "styled-components";
 import SidebarDataPage from "./SidebarDataPage";
 import SubMenu from "./SubMenu";
 import { IconContext } from "react-icons";
+import SidebarLogo from '../assets/Images/sidebar-logo.png'; // 1. Import the logo
 
 const SidebarNav = styled.nav`
   background-color: #0a0a0a;
-  /* Change width based on collapsed state */
-  width: ${({ isCollapsed }) => (isCollapsed ? "80px" : "200px")};
+  width: ${({ isCollapsed }) => (isCollapsed ? "80px" : "220px")}; /* Adjusted width */
   height: 100vh;
   display: flex;
   flex-direction: column;
   position: fixed;
   top: 0;
   left: 0;
-  transition: width 350ms ease-in-out; /* Animate the width change */
+  transition: width 350ms ease-in-out;
   z-index: 10;
-  overflow-x: hidden; /* Hide overflowing content */
+  overflow-x: hidden;
 `;
 
+// 2. Update SidebarHeader styles for alignment
 const SidebarHeader = styled.div`
-  padding: 16px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: bold;
-  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  height: 64px; /* Match topbar height for alignment */
   border-bottom: 1px solid #222;
-  white-space: nowrap; /* Prevent title from wrapping */
+  white-space: nowrap;
+`;
+
+const LogoImg = styled.img`
+  height: 32px;
+  width: 32px;
+  flex-shrink: 0; /* Prevent logo from shrinking */
+`;
+
+const HeaderTitle = styled.span`
+  margin-left: 12px;
+  font-weight: bold;
+  font-size: 22px;
+  color: #ffffff;
 `;
 
 const SidebarWrap = styled.div`
@@ -38,7 +52,7 @@ const SidebarWrap = styled.div`
 
 const Sidebar = ({ isCollapsed }) => {
   const SidebarData = SidebarDataPage();
-  const [openMenu, setOpenMenu] = useState(null); // Track open dropdown
+  const [openMenu, setOpenMenu] = useState(null);
 
   const toggleMenu = (index) => {
     setOpenMenu(openMenu === index ? null : index);
@@ -47,7 +61,11 @@ const Sidebar = ({ isCollapsed }) => {
   return (
     <IconContext.Provider value={{ color: "#fff" }}>
       <SidebarNav isCollapsed={isCollapsed}>
-        <SidebarHeader>{isCollapsed ? "IQMS" : "IQMS"}</SidebarHeader>
+        {/* 3. Conditionally render logo and title */}
+        <SidebarHeader>
+          <LogoImg src={SidebarLogo} alt="IQMS Logo" />
+          {!isCollapsed && <HeaderTitle>IQMS</HeaderTitle>}
+        </SidebarHeader>
         <SidebarWrap>
           {SidebarData.map((item, index) => (
             <SubMenu
@@ -55,7 +73,7 @@ const Sidebar = ({ isCollapsed }) => {
               key={index}
               isOpen={openMenu === index}
               onToggle={() => toggleMenu(index)}
-              isCollapsed={isCollapsed} /* Pass down the state */
+              isCollapsed={isCollapsed}
             />
           ))}
         </SidebarWrap>
