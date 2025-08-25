@@ -21,10 +21,21 @@
 
 .right-panel {
   background: #f4f6f8;
-  display: flex;
   justify-content: center;
   align-items: flex-start; /* Align top instead of center for dynamic content */
   padding: 20px;
+}
+
+.right-panel .form-group {
+  width: 100%;
+  margin-bottom: 16px;
+}
+.right-panel select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.9rem;
 }
 
 .page-title {
@@ -163,6 +174,6 @@ textarea {
 }
 
 .subject {
-  font-size: 1.5rem;
+  font-size: 1.0rem;
   font-weight: 600;
 }

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./QueryView.css";
 import Comparison from "../Comparison";
 import ProfileView from "../ProfileView/ProfileView";
+import PostingHistoryTab from "../ProfileView/components/PostingHistoryTab";
 
 const QueryView = () => {
   const location = useLocation();
@@ -10,7 +11,7 @@ const QueryView = () => {
   const row = location.state?.row || null;
 
   const [activeTab, setActiveTab] = useState("details");
-  const [queryType, setQueryType] = useState("");
+  const [queryType, setQueryType] = useState("Personal Data Issue"); // Default value
   const [replyText, setReplyText] = useState("");
   const [forwardOption, setForwardOption] = useState(""); // Reply / Forward to
   const [transferSection, setTransferSection] = useState(""); // Only if sub-section selected
@@ -52,7 +53,7 @@ const QueryView = () => {
       case "Allowance Related Issue":
         return <h2>Allowance Related Issue Page</h2>;
       case "POR Issue":
-        return <h2>POR Issue Page</h2>;
+        return <PostingHistoryTab />;
       case "Profile View":
         return <ProfileView />;
       default:
@@ -61,7 +62,7 @@ const QueryView = () => {
   };
 
   return (
-    <div className={`qview-container ${queryType ? "split-active" : ""}`}>
+    <div className="qview-container split-active">
       {/* Left Section */}
       <div className="left-panel">
         <h2 className="page-title">View Query Status</h2>
@@ -158,27 +159,6 @@ const QueryView = () => {
 
             {/* Form Section */}
             <div className="form-section">
-              {/* Query Type */}
-              <div className="form-group">
-                <label>Type of Query</label>
-                <select
-                  value={queryType}
-                  onChange={(e) => setQueryType(e.target.value)}
-                >
-                  <option value="">--Select Query Type--</option>
-                  <option value="Personal Data Issue">
-                    Personal Data Issue
-                  </option>
-                  <option value="Pay Related Issue">Pay Related Issue</option>
-                  <option value="Comparison Issue">Comparison Issue</option>
-                  <option value="Allowance Related Issue">
-                    Allowance Related Issue
-                  </option>
-                  <option value="POR Issue">POR Issue</option>
-                  <option value="Profile View">Profile View</option>
-                </select>
-              </div>
-
               {/* Reply Box */}
               <div className="form-group">
                 <label>Reply</label>
@@ -251,8 +231,27 @@ const QueryView = () => {
           </div>
         )}
       </div>
-      {/* Right Panel (Dynamic) */}
-      {queryType && <div className="right-panel">{renderRightPanel()}</div>}
+
+      {/* Right Panel */}
+      <div className="right-panel">
+        <div className="form-group">
+          <label>Type of Query</label>
+          <select
+            value={queryType}
+            onChange={(e) => setQueryType(e.target.value)}
+          >
+            <option value="Personal Data Issue">Personal Data Issue</option>
+            <option value="Pay Related Issue">Pay Related Issue</option>
+            <option value="Comparison Issue">Comparison Issue</option>
+            <option value="Allowance Related Issue">
+              Allowance Related Issue
+            </option>
+            <option value="POR Issue">POR Issue</option>
+            <option value="Profile View">Profile View</option>
+          </select>
+        </div>
+        {renderRightPanel()}
+      </div>
     </div>
   );
 };
