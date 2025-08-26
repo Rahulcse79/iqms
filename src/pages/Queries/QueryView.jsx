@@ -29,6 +29,10 @@ const QueryView = () => {
     );
   }
 
+  const handleClose = () => {
+    navigate(-1);
+  };
+
   const handleSubmit = () => {
     if (window.confirm("Are you sure you want to submit this reply?")) {
       alert(`
@@ -63,6 +67,8 @@ const QueryView = () => {
 
   return (
     <div className="qview-container split-active">
+            {/* ✅ Floating Close Button */}
+      <button className="close-btn" onClick={handleClose}>✕</button>
       {/* Left Section */}
       <div className="left-panel">
         <h2 className="page-title">View Query Status</h2>
@@ -207,9 +213,6 @@ const QueryView = () => {
               <div className="form-actions">
                 <button className="btn primary" onClick={handleSubmit}>
                   Submit
-                </button>
-                <button className="btn" onClick={() => navigate(-1)}>
-                  Back
                 </button>
               </div>
             </div>
