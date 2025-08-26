@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { RiMenuFill } from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
 import "./Topbar.css";
 
 const Topbar = ({ toggleSidebar }) => {
+  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState("Admin");
   const [searchValue, setSearchValue] = useState("");
-
-  // State for the first dropdown
   const [searchCategory, setSearchCategory] = useState("Airmen");
-  // State for the second dropdown (Service No. vs Query)
   const [searchType, setSearchType] = useState("Service");
 
   const roles = [
@@ -46,8 +45,12 @@ const Topbar = ({ toggleSidebar }) => {
   };
 
   const handleSearch = () => {
-    console.log(
-      `Searching for ${searchType}: "${searchValue}" in Category: ${searchCategory}`
+    if (!searchValue.trim()) {
+      alert("Please enter a value to search");
+      return;
+    }
+    navigate(
+      `/search-results?category=${searchCategory}&type=${searchType}&q=${searchValue}`
     );
   };
 
@@ -73,14 +76,13 @@ const Topbar = ({ toggleSidebar }) => {
           </select>
         </div>
 
-        {/* Center: Search */}
+        {/* Center */}
         <div className="topbar-center">
           <select
             value={searchCategory}
             onChange={(e) => setSearchCategory(e.target.value)}
           >
             <option value="Airmen">Airmen</option>
-            {/* Add other categories here if needed */}
           </select>
           <select
             value={searchType}
@@ -91,12 +93,11 @@ const Topbar = ({ toggleSidebar }) => {
           </select>
           <input
             type="text"
-            // The placeholder is now dynamic based on the 'searchType' state
             placeholder={
               searchType === "Query" ? "Enter Query ID" : "Enter Service No."
             }
             value={searchValue}
-            onChange={handleSearchInputChange}
+            onChange={(e) => setSearchValue(e.target.value)}
           />
           <button onClick={handleSearch}>Search</button>
         </div>

@@ -1,0 +1,163 @@
+.search-container {
+  background: #fff;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: 1200px;
+}
+
+.search-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.search-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn.export-btn {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.btn.export-btn:hover {
+  background-color: #1565c0;
+}
+
+.search-box .search-bar {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 250px;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+.styled-table th, .styled-table td {
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.styled-table th {
+  background-color: #f4f6f8;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.open {
+  background-color: #d1f7d6;
+  color: #1e7d34;
+}
+
+.status-badge.closed {
+  background-color: #f8d7da;
+  color: #842029;
+}
+
+.action-btn {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.action-btn:hover {
+  background-color: #218838;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pagination select {
+  margin: 0 8px;
+}
+
+.pagination-buttons button {
+  background-color: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  margin: 0 4px;
+  cursor: pointer;
+}
+
+.pagination-buttons button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.close-btn {
+  background: #f44336;
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.close-btn:hover {
+  background: #d32f2f;
+}
+
