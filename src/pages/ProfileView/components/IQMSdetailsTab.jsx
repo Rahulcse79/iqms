@@ -27,7 +27,7 @@ const IQMSdetailsTab = () => {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h2>IQMS History</h2>
+
       <table
         style={{
           width: "100%",
