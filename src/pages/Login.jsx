@@ -1,8 +1,9 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext , useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import { USERS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import "./login.css";
+import Cookies from "js-cookie"; 
 import logo from "../assets/Images/login-logo.png";
 
 const Login = () => {
@@ -12,6 +13,14 @@ const Login = () => {
   const [error, setError] = useState("");
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const authUser = Cookies.get("authUser"); 
+    if (authUser) {
+      navigate("/"); 
+      window.location.reload()
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
