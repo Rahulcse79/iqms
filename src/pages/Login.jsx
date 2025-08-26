@@ -1,21 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { USERS } from "../utils/constants";
+import { AuthContext } from "../context/AuthContext";
 import "./login.css";
 import logo from "../assets/Images/login-logo.png";
 
 const Login = () => {
-
   const [category, setCategory] = useState("Civilian");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (username === "admin" && password === "admin") {
+    const foundUser = USERS.find(
+      (u) => u.username === username && u.password === password
+    );
+    if (foundUser) {
+      login(foundUser);
       navigate("/");
     } else {
-      alert("Invalid credentials");
+      setError("Invalid username or password");
     }
   };
 
@@ -26,21 +33,22 @@ const Login = () => {
       </div>
       <div className="login-box">
         <h2 className="login-title">IQMS Login</h2>
+        {error && <p className="error-text">{error}</p>}
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="category">Select Category</label>
-            <select
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="login-select"
-            >
-              <option value="Civilian">Civilian</option>
-              <option value="Officer">Officer</option>
-              <option value="Airmen">Airmen/ NCS(E)</option>
-            </select>
-          </div>
-          <div className="form-group">
+            <div className="form-group">
+              <label htmlFor="category">Select Category</label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="login-select"
+              >
+                <option value="Civilian">Civilian</option>
+                <option value="Officer">Officer</option>
+                <option value="Airmen">Airmen/ NCS(E)</option>
+              </select>
+            </div>
             <label htmlFor="username">Username</label>
             <input
               type="text"

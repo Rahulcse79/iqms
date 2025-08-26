@@ -6,8 +6,8 @@ import { IconContext } from "react-icons";
 import SidebarLogo from '../assets/Images/sidebar-logo.png'; // 1. Import the logo
 
 const SidebarNav = styled.nav`
-  background-color: #0a0a0a;
-  width: ${({ isCollapsed }) => (isCollapsed ? "80px" : "220px")}; /* Adjusted width */
+  background-color: #ffffff; /* Light theme background */
+  width: ${({ isCollapsed }) => (isCollapsed ? "80px" : "220px")};
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -17,30 +17,30 @@ const SidebarNav = styled.nav`
   transition: width 350ms ease-in-out;
   z-index: 10;
   overflow-x: hidden;
+  border-right: 1px solid #e5e7eb; /* Separator for light theme */
 `;
 
-// 2. Update SidebarHeader styles for alignment
 const SidebarHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 16px;
-  height: 64px; /* Match topbar height for alignment */
-  border-bottom: 1px solid #222;
+  height: 64px;
+  border-bottom: 1px solid #e5e7eb; /* Light theme border */
   white-space: nowrap;
 `;
 
 const LogoImg = styled.img`
   height: 32px;
   width: 32px;
-  flex-shrink: 0; /* Prevent logo from shrinking */
+  flex-shrink: 0;
 `;
 
 const HeaderTitle = styled.span`
   margin-left: 12px;
   font-weight: bold;
   font-size: 22px;
-  color: #ffffff;
+  color: #1f2937; /* Dark text for light theme */
 `;
 
 const SidebarWrap = styled.div`
@@ -49,6 +49,7 @@ const SidebarWrap = styled.div`
   overflow-y: auto;
   padding-top: 10px;
 `;
+
 
 const Sidebar = ({ isCollapsed }) => {
   const SidebarData = SidebarDataPage();
@@ -59,7 +60,7 @@ const Sidebar = ({ isCollapsed }) => {
   };
 
   return (
-    <IconContext.Provider value={{ color: "#fff" }}>
+    <IconContext.Provider value={{ color: "#374151" }}>
       <SidebarNav isCollapsed={isCollapsed}>
         {/* 3. Conditionally render logo and title */}
         <SidebarHeader>

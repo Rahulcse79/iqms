@@ -5,32 +5,30 @@ import styled from "styled-components";
 // A styled NavLink for actual navigation items
 const SidebarNavLink = styled(NavLink)`
   display: flex;
-  color: #e1e9fc;
+  color: #2c3e50; /* Dark text */
   align-items: center;
   padding: 12px 10px;
   text-decoration: none;
   font-size: 14px;
   transition: 0.3s;
   white-space: nowrap;
-  border-left: 4px solid transparent; /* Default state */
+  border-left: 4px solid transparent;
 
   &:hover {
-    background: #252831;
-    border-left: 4px solid #61dafb;
+    background: #f5f6fa; /* Light hover background */
+    border-left: 4px solid #3498db; /* Light theme accent color */
     cursor: pointer;
   }
 
-  /* This class is applied by NavLink on an active route */
   &.active {
-    background: #252831;
-    border-left: 4px solid #61dafb;
+    background: #ecf0f1;
+    border-left: 4px solid #3498db;
   }
 `;
 
-// A styled div for items that are just dropdown toggles
 const SidebarToggle = styled.div`
   display: flex;
-  color: #e1e9fc;
+  color: #2c3e50;
   align-items: center;
   padding: 12px 10px;
   text-decoration: none;
@@ -38,39 +36,38 @@ const SidebarToggle = styled.div`
   transition: 0.3s;
   white-space: nowrap;
   cursor: pointer;
-  border-left: 4px solid transparent; /* Default state */
+  border-left: 4px solid transparent;
 
   &:hover {
-    background: #252831;
-    border-left: 4px solid #61dafb;
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
   }
 `;
 
 const SidebarLabel = styled.span`
   margin-left: 16px;
-  /* Hide the label when collapsed */
   display: ${({ isCollapsed }) => (isCollapsed ? "none" : "inline-block")};
 `;
 
 const DropdownLink = styled(NavLink)`
-  background: #1a1a1a;
+  background: #f8f9fa;
   height: 40px;
   padding-left: 3rem;
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: #b1b1b1;
+  color: #555;
   font-size: 12px;
   transition: 0.3s;
 
   &:hover {
-    background: #252831;
-    color: #61dafb;
+    background: #e9ecef;
+    color: #3498db;
   }
 
   &.active {
-    background: #252831;
-    color: #61dafb;
+    background: #e9ecef;
+    color: #3498db;
   }
 `;
 
