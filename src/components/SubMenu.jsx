@@ -5,7 +5,7 @@ import styled from "styled-components";
 // A styled NavLink for actual navigation items
 const SidebarNavLink = styled(NavLink)`
   display: flex;
-  color: #2c3e50; /* Dark text */
+  color: #2c3e50;
   align-items: center;
   padding: 12px 10px;
   text-decoration: none;
@@ -15,8 +15,8 @@ const SidebarNavLink = styled(NavLink)`
   border-left: 4px solid transparent;
 
   &:hover {
-    background: #f5f6fa; /* Light hover background */
-    border-left: 4px solid #3498db; /* Light theme accent color */
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
     cursor: pointer;
   }
 
@@ -26,13 +26,35 @@ const SidebarNavLink = styled(NavLink)`
   }
 `;
 
+// Styled div for toggleable menus (with subNav)
 const SidebarToggle = styled.div`
   display: flex;
   color: #2c3e50;
   align-items: center;
   padding: 12px 10px;
-  text-decoration: none;
   font-size: 14px;
+  transition: 0.3s;
+  white-space: nowrap;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+
+  &:hover {
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
+  }
+`;
+
+// Styled button for actions like Logout
+const SidebarButton = styled.button`
+  display: flex;
+  color: #2c3e50;
+  align-items: center;
+  padding: 12px 10px;
+  font-size: 14px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
   transition: 0.3s;
   white-space: nowrap;
   cursor: pointer;
@@ -77,7 +99,7 @@ const SubMenu = ({ item, isOpen, onToggle, isCollapsed }) => {
     return str?.length > n ? str.substr(0, n - 1) + "..." : str;
   };
 
-  // If the item has a submenu, render it as a toggle button (div)
+  // 1. If item has a submenu (collapsible group)
   if (item.subNav) {
     return (
       <>
@@ -87,9 +109,7 @@ const SubMenu = ({ item, isOpen, onToggle, isCollapsed }) => {
             {truncate(item.title, 20)}
           </SidebarLabel>
           <div style={{ marginLeft: "auto" }}>
-            {item.subNav &&
-              !isCollapsed &&
-              (isOpen ? item.iconOpened : item.iconClosed)}
+            {!isCollapsed && (isOpen ? item.iconOpened : item.iconClosed)}
           </div>
         </SidebarToggle>
         {isOpen &&
@@ -105,7 +125,19 @@ const SubMenu = ({ item, isOpen, onToggle, isCollapsed }) => {
     );
   }
 
-  // Otherwise, render it as a standard navigation link
+  // 2. If item has an onClick (e.g., Logout)
+  if (item.onClick) {
+    return (
+      <SidebarButton onClick={item.onClick}>
+        {item.icon}
+        <SidebarLabel isCollapsed={isCollapsed}>
+          {truncate(item.title, 20)}
+        </SidebarLabel>
+      </SidebarButton>
+    );
+  }
+
+  // 3. Otherwise, standard navigation link
   return (
     <SidebarNavLink to={item.path || "#"} end>
       {item.icon}

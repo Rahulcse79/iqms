@@ -13,18 +13,26 @@ const Login = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const foundUser = USERS.find(
-      (u) => u.username === username && u.password === password
-    );
-    if (foundUser) {
-      login(foundUser);
-      navigate("/");
-    } else {
-      setError("Invalid username or password");
+
+    try {
+      const foundUser = USERS.find(
+        (u) => u.username === username && u.password === password
+      );
+      if (foundUser) {
+        await login(foundUser);
+        navigate("/");
+        window.location.reload();
+      } else {
+        setError("Invalid username or password");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
     }
   };
+
 
   return (
     <div className="login-container">
