@@ -7,7 +7,7 @@
 .main-content {
   flex-grow: 1;
   /* This is the key change */
-  margin-left: 210px; /* Match this value to your sidebar's width */
+  margin-left: 220px; /* Match this value to your sidebar's width */
   transition: margin-left 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
