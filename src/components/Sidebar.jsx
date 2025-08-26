@@ -3,10 +3,10 @@ import styled from "styled-components";
 import SidebarDataPage from "./SidebarDataPage";
 import SubMenu from "./SubMenu";
 import { IconContext } from "react-icons";
-import SidebarLogo from '../assets/Images/sidebar-logo.png'; // 1. Import the logo
+import SidebarLogo from '../assets/Images/sidebar-logo.png';
 
 const SidebarNav = styled.nav`
-  background-color: #ffffff; /* Light theme background */
+  background-color: #ffffff;
   width: ${({ isCollapsed }) => (isCollapsed ? "80px" : "220px")};
   height: 100vh;
   display: flex;
@@ -17,7 +17,7 @@ const SidebarNav = styled.nav`
   transition: width 350ms ease-in-out;
   z-index: 10;
   overflow-x: hidden;
-  border-right: 1px solid #e5e7eb; /* Separator for light theme */
+  border-right: 1px solid #e5e7eb;
 `;
 
 const SidebarHeader = styled.div`
@@ -25,8 +25,8 @@ const SidebarHeader = styled.div`
   align-items: center;
   justify-content: center;
   padding: 0 16px;
-  height: 90px;
-  border-bottom: 1px solid #e5e7eb; /* Light theme border */
+  height: 64px;
+  border-bottom: 1px solid #e5e7eb;
   white-space: nowrap;
 `;
 
@@ -36,11 +36,11 @@ const LogoImg = styled.img`
   flex-shrink: 0;
 `;
 
-const HeaderTitle = styled.span`
+const HeaderTitle = styled.span` 
   margin-left: 12px;
   font-weight: bold;
   font-size: 22px;
-  color: #1f2937; /* Dark text for light theme */
+  color: #1f2937;
 `;
 
 const SidebarWrap = styled.div`
@@ -49,7 +49,6 @@ const SidebarWrap = styled.div`
   overflow-y: auto;
   padding-top: 10px;
 `;
-
 
 const Sidebar = ({ isCollapsed }) => {
   const SidebarData = SidebarDataPage();
@@ -62,7 +61,6 @@ const Sidebar = ({ isCollapsed }) => {
   return (
     <IconContext.Provider value={{ color: "#374151" }}>
       <SidebarNav isCollapsed={isCollapsed}>
-        {/* 3. Conditionally render logo and title */}
         <SidebarHeader>
           <LogoImg src={SidebarLogo} alt="IQMS Logo" />
           {!isCollapsed && <HeaderTitle>IQMS</HeaderTitle>}
