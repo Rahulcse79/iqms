@@ -16,11 +16,11 @@ const DashboardLayout = () => {
     <div className={`dashboard-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <Sidebar isCollapsed={isSidebarCollapsed} />
       <div className="main-content">
-        <Topbar toggleSidebar={toggleSidebar} />
+        <Topbar className= "topbar" toggleSidebar={toggleSidebar} />
         <main className="content">
           <Outlet />
         </main>
-        <Footer />
+        <Footer className="footer" />
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import SearchResults from "./pages/Queries/SearchResults";
+import Loader from "./components/Loader";
 
 function AppRoutes() {
   const { user } = useContext(AuthContext);
@@ -51,6 +52,7 @@ function AppRoutes() {
         <Route path="view/query/:id" element={<QueryView />} />
         <Route path="view/profile" element={<ProfileView />} />
         <Route path="search-results" element={<SearchResults />} />
+        <Route path="loader" element={<Loader />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
