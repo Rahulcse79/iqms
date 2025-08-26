@@ -36,7 +36,7 @@ const LogoImg = styled.img`
   flex-shrink: 0;
 `;
 
-const HeaderTitle = styled.span`
+const HeaderTitle = styled.span` 
   margin-left: 12px;
   font-weight: bold;
   font-size: 22px;
