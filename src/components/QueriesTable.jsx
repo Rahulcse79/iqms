@@ -82,7 +82,7 @@ const QueriesTable = ({ title, data }) => {
   };
 
   return (
-    <div className="queries-container">
+    <div className="queries-container">    
       <div className="queries-header">
         <h2>{title}</h2>
       </div>
