@@ -20,7 +20,6 @@ const RankHistory = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>Rank History</h2>
       <table
         border="1"
         cellPadding="10"

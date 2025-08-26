@@ -22,7 +22,6 @@ export default function PORDataTable() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>POR Data</h2>
       <table border="1" cellPadding="8" cellSpacing="0" style={{ width: '100%', textAlign: 'left' }}>
         <thead style={{ backgroundColor: '#f2f2f2' }}>
           <tr>

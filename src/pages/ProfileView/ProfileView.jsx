@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './ProfileView.css';
 import GCIHistoryTab from './components/GCIHistoryTab';
 import RankHistoryTab from './components/RankHistoryTab';
@@ -10,21 +10,41 @@ import IRLAHistoryTab from './components/IRLAHistoryTab';
 import IQMSDetailsTab from './components/IQMSdetailsTab';
 import SearchSection from './components/SearchSection';
 
-const profileData = {
-  serviceNo: '789123-A',
-  rank: 'Sgt',
-  name: 'John Doe',
-  trade: 'Air-Frame Fitter',
+// Lazy Loader Component
+const LazyComponent = ({ Component }) => {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return <div ref={ref}>{visible ? <Component /> : <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>}</div>;
 };
 
-const TABS = [
-  'GCI History', 'Rank History', 'Trade History', 'Posting History',
-  'POR Data Bank', 'MVR History', 'IRLA History', 'IQMS details'
+const SECTIONS = [
+  { id: 'gci', label: 'GCI History', Component: GCIHistoryTab },
+  { id: 'rank', label: 'Rank History', Component: RankHistoryTab },
+  { id: 'trade', label: 'Trade History', Component: TradeHistoryTab },
+  { id: 'posting', label: 'Posting History', Component: PostingHistoryTab },
+  { id: 'por', label: 'POR Data Bank', Component: PORDataBankTab },
+  { id: 'mvr', label: 'MVR History', Component: MVRHistoryTab },
+  { id: 'irla', label: 'IRLA History', Component: IRLAHistoryTab },
+  { id: 'iqms', label: 'IQMS details', Component: IQMSDetailsTab },
 ];
+
 export default function ProfileView() {
-  const [activeTab, setActiveTab] = useState(TABS[0]);
   const [serviceNo, setServiceNo] = useState('');
   const [showProfile, setShowProfile] = useState(false);
+
+  const sectionRefs = useRef({});
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -35,15 +55,9 @@ export default function ProfileView() {
     }
   };
 
-  const tabComponents = {
-    'GCI History': <GCIHistoryTab />,
-    'Rank History': <RankHistoryTab />,
-    'Trade History': <TradeHistoryTab />,
-    'Posting History': <PostingHistoryTab />,
-    'POR Data Bank': <PORDataBankTab />,
-    'MVR History': <MVRHistoryTab />,
-    'IRLA History': <IRLAHistoryTab />,
-    'IQMS details': <IQMSDetailsTab />,
+  const handleDropdownChange = (e) => {
+    const sectionId = e.target.value;
+    sectionRefs.current[sectionId]?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -56,23 +70,31 @@ export default function ProfileView() {
 
       {showProfile && (
         <div className="result-section">
-          {/* Removed static profile header */}
-
-          <div className="tabs-container">
-            {TABS.map(tab => (
-              <button
-                key={tab}
-                className={`tab-button ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab}
-              </button>
-            ))}
+          {/* Dropdown Navigation */}
+          <div className="dropdown-container">
+            <select onChange={handleDropdownChange} defaultValue="">
+              <option value="" disabled>Select a section</option>
+              {SECTIONS.map(({ id, label }) => (
+                <option key={id} value={id}>{label}</option>
+              ))}
+            </select>
           </div>
 
-          {/* Display tab's component UI only */}
-          <div className="tab-content">
-            {tabComponents[activeTab] || null}
+          {/* Scrollable Sections with Lazy Loading */}
+          <div className="sections-container">
+            {SECTIONS.map(({ id, Component, label }) => (
+              <div
+                key={id}
+                id={id}
+                ref={el => (sectionRefs.current[id] = el)}
+                className="profile-section"
+              >
+                <h2 className="section-title">{label}</h2>
+                <div className="section-content">
+                  <LazyComponent Component={Component} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
