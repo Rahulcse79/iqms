@@ -7,10 +7,6 @@ const api = {
   post: (url, data) => {
     console.log(`Posting data to ${url}`, data);
     return Promise.resolve({ data: { success: true } });
-  },
-  put: (url, data) => {
-    console.log(`Putting data to ${url}`, data);
-    return Promise.resolve({ data: { success: true } });
   }
 };
 

@@ -1,25 +1,12 @@
-import { createStore, combineReducers, applyMiddleware } from "redux";
-import { thunk } from "redux-thunk";
-import { composeWithDevTools } from "redux-devtools-extension";
-import { allReducer } from "../reducers/allReducers";
+// This is a placeholder for your state management setup (e.g., Redux Toolkit or Zustand)
+// For now, we'll just export a simple object.
 
-const initialState = {
+const store = {
+  // Example state
   user: {
-    name: "Admin",
-    role: "Administrator",
-  },
+    name: 'Admin',
+    role: 'Administrator'
+  }
 };
-
-const reducer = combineReducers({
-  login_user: allReducer,
-});
-
-const middleware = [thunk];
-
-const store = createStore(
-  reducer,
-  initialState,
-  composeWithDevTools(applyMiddleware(...middleware))
-);
 
 export default store;
