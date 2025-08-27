@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import logo from "../assets/Images/login-logo.png";
 
 const Login = () => {
+  
   const [category, setCategory] = useState("Civilian");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
