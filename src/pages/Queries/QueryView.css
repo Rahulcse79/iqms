@@ -1,13 +1,14 @@
 .qview-container {
   display: grid;
-  height: 100%;
-  gap: 20px;
   grid-template-columns: 1fr;
-  position: relative; /* ✅ This makes the button stay inside the component */
-  background: #f4f6f8; /* optional for clarity */
-  border-radius: 10px; /* optional for visual distinction */
-  padding: 10px; /* to ensure button doesn't overlap edges */
+  position: relative;
+  background: #f4f6f8;
+  border-radius: 10px;
+  height: calc(100vh - 190px); /* ✅ Fill viewport minus topbar & footer */
+  overflow: hidden; /* Prevent page scroll */
 }
+
+
 .qview-container.split-active {
   grid-template-columns: 50% 50%; /* Split only when active */
 }
@@ -17,14 +18,16 @@
   background: #fff;
   padding: 20px;
   border-radius: 10px;
-  overflow-y: auto; /* Independent scroll */
-  max-height: 100vh; /* Limit height to viewport */
+  overflow-y: auto; /* ✅ Independent scroll */
+  height: 100%; /* ✅ Occupy full container height */
 }
 
+/* Right panel specific style */
 .right-panel {
   background: #f4f6f8;
-  justify-content: center;
-  align-items: flex-start; /* Align top instead of center for dynamic content */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   padding: 20px;
 }
 
@@ -179,8 +182,10 @@ textarea {
   font-size: 1.0rem;
   font-weight: 600;
 }
+
+/* Floating close button stays fixed in QueryView */
 .close-btn {
-  position: absolute; /* ✅ Anchors inside the component */
+  position: absolute;
   top: 15px;
   right: 15px;
   background: #f44336;
@@ -195,7 +200,7 @@ textarea {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  z-index: 10; /* ✅ Just to ensure it stays above component content */
+  z-index: 10;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
