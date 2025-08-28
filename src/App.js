@@ -20,6 +20,7 @@ import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import SearchResults from "./pages/Queries/SearchResults";
 import Loader from "./components/Loader";
+import DavHome from "./Dav/QueryRegistration";
 
 function AppRoutes() {
   const { user } = useContext(AuthContext);
@@ -35,7 +36,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        {/* ✅ Conditionally render based on role */}
         <Route
           index
           element={
@@ -52,6 +52,9 @@ function AppRoutes() {
         <Route path="view/query/:id" element={<QueryView />} />
         <Route path="view/profile" element={<ProfileView />} />
         <Route path="search-results" element={<SearchResults />} />
+
+        {/* DAV */}
+        <Route path="home" element={<DavHome />} />
         <Route path="loader" element={<Loader />} />
       </Route>
       <Route path="*" element={<NotFound />} />
