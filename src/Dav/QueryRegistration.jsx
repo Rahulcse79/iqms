@@ -32,20 +32,22 @@ const QueryRegistration = () => {
     forwardedSection: "",
     queryMessage: "",
     replyMessage: "",
+    modeOfQuery: "",
   });
 
   const [previousQueries, setPreviousQueries] = useState([]);
 
-  // handle generic field update
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleShow = () => {
-    if (!serviceNo) return alert("Enter Service No first");
+    if (!serviceNo.trim()) {
+      alert("Enter Service No first");
+      return;
+    }
 
-    // dummy API response
     const apiResponse = {
       queryNo: "1234",
       rank: "Captain",
@@ -70,240 +72,194 @@ const QueryRegistration = () => {
       docIssueNo: "DI-7788",
       queryMessage: "Requesting pension related documents.",
       replyMessage: "Your request is being processed.",
+      modeOfQuery: "Online",
     };
 
     setFormData((prev) => ({ ...prev, ...apiResponse }));
 
-    // dummy previous queries
     setPreviousQueries([
-      {
-        queryNo: "Q001",
-        queryDate: "2025-07-10",
-        category: "General",
-        queryMessage: "Asked about pension process.",
-        replyMessage: "Replied with guidelines.",
-        status: "Closed",
-      },
-      {
-        queryNo: "Q002",
-        queryDate: "2025-07-22",
-        category: "Documents",
-        queryMessage: "Requested ID verification.",
-        replyMessage: "Document issued.",
-        status: "Closed",
-      },
-      {
-        queryNo: "Q003",
-        queryDate: "2025-08-01",
-        category: "Pension",
-        queryMessage: "Asked about new rules.",
-        replyMessage: "Clarification sent.",
-        status: "Closed",
-      },
-      {
-        queryNo: "Q004",
-        queryDate: "2025-08-15",
-        category: "Service",
-        queryMessage: "Requested service record.",
-        replyMessage: "Under review.",
-        status: "In Progress",
-      },
-      {
-        queryNo: "Q005",
-        queryDate: "2025-08-20",
-        category: "General",
-        queryMessage: "Asked about holiday benefits.",
-        replyMessage: "Pending.",
-        status: "Open",
-      },
+      { queryNo: "Q001", queryDate: "2025-07-10", category: "General", queryMessage: "Asked about pension process.", replyMessage: "Replied with guidelines.", status: "Closed" },
+      { queryNo: "Q002", queryDate: "2025-07-22", category: "Documents", queryMessage: "Requested ID verification.", replyMessage: "Document issued.", status: "Closed" },
+      { queryNo: "Q003", queryDate: "2025-08-01", category: "Pension", queryMessage: "Asked about new rules.", replyMessage: "Clarification sent.", status: "Closed" },
+      { queryNo: "Q004", queryDate: "2025-08-15", category: "Service", queryMessage: "Requested service record.", replyMessage: "Under review.", status: "In Progress" },
+      { queryNo: "Q005", queryDate: "2025-08-20", category: "General", queryMessage: "Asked about holiday benefits.", replyMessage: "Pending.", status: "Open" },
     ]);
   };
 
   return (
-    <div className="container">
-      <h2>Query Registration</h2>
-      <div className="form-3col">
+    <div className="qr-container">
+      <h2 className="qr-h2">Query Registration</h2>
+
+      {/* 3 Column Form */}
+      <div className="qr-form-3col">
         {/* Left column */}
-        <div className="col">
+        <div className="qr-col">
           <label>Service No</label>
-          <div className="row-input">
+          <div className="qr-row-input">
             <input
               type="text"
               value={serviceNo}
               onChange={(e) => setServiceNo(e.target.value)}
+              className="qr-input"
             />
-            <button className="buttonShow" type="button" onClick={handleShow}>
+            <button className="qr-buttonShow" type="button" onClick={handleShow}>
               Show
             </button>
           </div>
 
           <label>Query No</label>
-          <input type="text" name="queryNo" value={formData.queryNo} readOnly />
+          <input className="qr-input" type="text" name="queryNo" value={formData.queryNo} readOnly />
 
           <label>Rank</label>
-          <input type="text" name="rank" value={formData.rank} readOnly />
+          <input className="qr-input" type="text" name="rank" value={formData.rank} readOnly />
 
           <label>First Name</label>
-          <input type="text" name="firstName" value={formData.firstName} readOnly />
+          <input className="qr-input" type="text" name="firstName" value={formData.firstName} readOnly />
 
           <label>Address 1</label>
-          <input type="text" name="address1" value={formData.address1} readOnly />
+          <input className="qr-input" type="text" name="address1" value={formData.address1} readOnly />
 
           <label>State</label>
-          <input type="text" name="state" value={formData.state} readOnly />
+          <input className="qr-input" type="text" name="state" value={formData.state} readOnly />
 
           <label>ISD Code</label>
-          <input type="text" name="isdCode" value={formData.isdCode} readOnly />
+          <input className="qr-input" type="text" name="isdCode" value={formData.isdCode} readOnly />
 
           <label>Category</label>
-          <input type="text" name="category" value={formData.category} readOnly />
+          <input className="qr-input" type="text" name="category" value={formData.category} readOnly />
 
           <label>Old Reference No</label>
-          <input type="text" name="oldRefNo" value={formData.oldRefNo} readOnly />
+          <input className="qr-input" type="text" name="oldRefNo" value={formData.oldRefNo} readOnly />
 
           <label>Document Request No</label>
-          <input type="text" name="docReqNo" value={formData.docReqNo} readOnly />
+          <input className="qr-input" type="text" name="docReqNo" value={formData.docReqNo} readOnly />
         </div>
 
         {/* Middle column */}
-        <div className="col">
+        <div className="qr-col">
           <label>Mode of Query</label>
-          <input type="text" name="modeOfQuery" onChange={handleChange} />
+          <input className="qr-input" type="text" name="modeOfQuery" value={formData.modeOfQuery} onChange={handleChange} />
 
           <label>Query Date</label>
-          <input type="date" name="queryDate" value={formData.queryDate} onChange={handleChange} />
+          <input className="qr-input" type="date" name="queryDate" value={formData.queryDate} onChange={handleChange} />
 
           <label>Query Priority</label>
-          <input type="text" name="queryPriority" value={formData.queryPriority} onChange={handleChange} />
+          <input className="qr-input" type="text" name="queryPriority" value={formData.queryPriority} onChange={handleChange} />
 
           <label>Middle Name</label>
-          <input type="text" name="middleName" value={formData.middleName} readOnly />
+          <input className="qr-input" type="text" name="middleName" value={formData.middleName} readOnly />
 
           <label>Address 2</label>
-          <input type="text" name="address2" value={formData.address2} readOnly />
+          <input className="qr-input" type="text" name="address2" value={formData.address2} readOnly />
 
           <label>Region</label>
-          <input type="text" name="region" value={formData.region} readOnly />
+          <input className="qr-input" type="text" name="region" value={formData.region} readOnly />
 
           <label>Mobile No</label>
-          <input type="text" name="mobile" value={formData.mobile} readOnly />
+          <input className="qr-input" type="text" name="mobile" value={formData.mobile} readOnly />
 
           <label>Sub Category</label>
-          <input type="text" name="subCategory" value={formData.subCategory} readOnly />
+          <input className="qr-input" type="text" name="subCategory" value={formData.subCategory} readOnly />
 
           <label>Old Reference Date</label>
-          <input type="date" name="oldRefDate" value={formData.oldRefDate} onChange={handleChange} />
+          <input className="qr-input" type="date" name="oldRefDate" value={formData.oldRefDate} onChange={handleChange} />
 
           <label>Document Issue No</label>
-          <input type="text" name="docIssueNo" value={formData.docIssueNo} readOnly />
+          <input className="qr-input" type="text" name="docIssueNo" value={formData.docIssueNo} readOnly />
         </div>
 
         {/* Right column */}
-        <div className="col">
-          <div className="status-box">
+        <div className="qr-col">
+          <div className="qr-status-box">
             <label>Status</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-            >
+            <select className="qr-select" name="status" value={formData.status} onChange={handleChange}>
               <option value="Initiated">Initiated</option>
               <option value="In Progress">In Progress</option>
               <option value="Closed">Closed</option>
             </select>
             <div>
-              <button className="btn btn-secondary" type="button">View Comment</button>
-              <button className="btn btn-primary" type="button">Add Comment</button>
+              <button className="qr-btn qr-btn-secondary" type="button">View Comment</button>
+              <button className="qr-btn qr-btn-primary" type="button">Add Comment</button>
             </div>
           </div>
 
           <label>Last Name</label>
-          <input type="text" name="lastName" value={formData.lastName} readOnly />
+          <input className="qr-input" type="text" name="lastName" value={formData.lastName} readOnly />
 
           <label>Pincode</label>
-          <input type="text" name="pincode" value={formData.pincode} readOnly />
+          <input className="qr-input" type="text" name="pincode" value={formData.pincode} readOnly />
 
           <label>Country</label>
-          <select name="country" value={formData.country} onChange={handleChange}>
-            <option>India</option>
-            <option>Other</option>
+          <select className="qr-select" name="country" value={formData.country} onChange={handleChange}>
+            <option value="India">India</option>
+            <option value="Other">Other</option>
           </select>
 
           <label>Email ID</label>
-          <input type="email" name="email" value={formData.email} readOnly />
+          <input className="qr-input" type="email" name="email" value={formData.email} readOnly />
 
           <label>Forwarded Section</label>
-          <input type="text" name="forwardedSection" value={formData.forwardedSection} readOnly />
+          <input className="qr-input" type="text" name="forwardedSection" value={formData.forwardedSection} readOnly />
 
           <label>Query Status</label>
-          <input type="text" name="queryStatus" value={formData.queryStatus} readOnly />
+          <input className="qr-input" type="text" name="queryStatus" value={formData.queryStatus} readOnly />
 
-          <button className="btn btn-primary" style={{ marginTop: "10px" }} type="button">
+          <button className="qr-btn qr-btn-primary" style={{ marginTop: "10px" }} type="button">
             Gen Document Req
           </button>
         </div>
       </div>
 
       {/* Query message box */}
-      <div className="query-box">
+      <div className="qr-query-box">
         <h3>Query Registration</h3>
         <label>Query Message</label>
-        <div className="row-input">
-          <textarea
-            name="queryMessage"
-            value={formData.queryMessage}
-            onChange={handleChange}
-          />
+        <div className="qr-row-input">
+          <textarea className="qr-textarea" name="queryMessage" value={formData.queryMessage} onChange={handleChange} />
           <div>
-            <button className="btn btn-secondary" type="button">⬆ Upload</button>
-            <button className="btn btn-primary" type="button">⬇ Download</button>
+            <button className="qr-btn qr-btn-secondary" type="button">⬆ Upload</button>
+            <button className="qr-btn qr-btn-primary" type="button">⬇ Download</button>
           </div>
         </div>
 
         <label>Instant Reply Message</label>
-        <div className="row-input">
-          <textarea
-            name="replyMessage"
-            value={formData.replyMessage}
-            onChange={handleChange}
-          />
+        <div className="qr-row-input">
+          <textarea className="qr-textarea" name="replyMessage" value={formData.replyMessage} onChange={handleChange} />
           <div>
-            <button className="btn btn-secondary" type="button">⬆ Upload</button>
-            <button className="btn btn-primary" type="button">⬇ Download</button>
+            <button className="qr-btn qr-btn-secondary" type="button">⬆ Upload</button>
+            <button className="qr-btn qr-btn-primary" type="button">⬇ Download</button>
           </div>
         </div>
       </div>
 
       {/* Previous queries table */}
-      <div className="table-container">
+      <div className="qr-table-container">
         <h3>Previous Queries</h3>
-        <table>
+        <table className="qr-table">
           <thead>
             <tr>
-              <th>Query No</th>
-              <th>Query Date</th>
-              <th>Category</th>
-              <th>Query Message</th>
-              <th>Reply Message</th>
-              <th>Status</th>
+              <th className="qr-th">Query No</th>
+              <th className="qr-th">Query Date</th>
+              <th className="qr-th">Category</th>
+              <th className="qr-th">Query Message</th>
+              <th className="qr-th">Reply Message</th>
+              <th className="qr-th">Status</th>
             </tr>
           </thead>
           <tbody>
             {previousQueries.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ textAlign: "center" }}>
-                  No previous queries
-                </td>
+                <td colSpan="6" style={{ textAlign: "center" }}>No previous queries</td>
               </tr>
             ) : (
               previousQueries.map((q, i) => (
                 <tr key={i}>
-                  <td>{q.queryNo}</td>
-                  <td>{q.queryDate}</td>
-                  <td>{q.category}</td>
-                  <td>{q.queryMessage}</td>
-                  <td>{q.replyMessage}</td>
-                  <td>{q.status}</td>
+                  <td className="qr-td">{q.queryNo}</td>
+                  <td className="qr-td">{q.queryDate}</td>
+                  <td className="qr-td">{q.category}</td>
+                  <td className="qr-td">{q.queryMessage}</td>
+                  <td className="qr-td">{q.replyMessage}</td>
+                  <td className="qr-td">{q.status}</td>
                 </tr>
               ))
             )}
