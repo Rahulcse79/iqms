@@ -1,4 +1,4 @@
-.container {
+.qr-container {
     max-width: 1300px;
     margin: auto;
     background: #fff;
@@ -7,27 +7,27 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
+.qr-h2 {
     text-align: center;
     margin-bottom: 20px;
     color: #2c3e50;
 }
 
-.form-3col {
+.qr-form-3col {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 20px;
 }
 
-.col label {
+.qr-col label {
     font-weight: 600;
     margin: 5px 0;
     display: block;
 }
 
-input,
-select,
-textarea {
+.qr-input,
+.qr-select,
+.qr-textarea {
     width: 100%;
     padding: 8px;
     margin-bottom: 10px;
@@ -35,17 +35,17 @@ textarea {
     border-radius: 6px;
 }
 
-textarea {
+.qr-textarea {
     min-height: 80px;
 }
 
-.row-input {
+.qr-row-input {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.btn {
+.qr-btn {
     padding: 8px 14px;
     border: none;
     border-radius: 6px;
@@ -53,25 +53,25 @@ textarea {
     font-weight: 600;
 }
 
-.btn-primary {
+.qr-btn-primary {
     margin-top: 20px;
     margin-left: 20px;
     background: #3498db;
     color: white;
 }
 
-.btn-primary:hover {
+.qr-btn-primary:hover {
     background: #2980b9;
 }
 
-.btn-secondary {
+.qr-btn-secondary {
     margin-top: 20px;
     margin-left: 20px;
     background: #7f8c8d;
     color: white;
 }
 
-.buttonShow {
+.qr-buttonShow {
     background: #7f8c8d;
     color: white;
     padding: 8px 14px;
@@ -81,11 +81,11 @@ textarea {
     font-weight: 600;
 }
 
-.btn-secondary:hover {
+.qr-btn-secondary:hover {
     background: #616a6b;
 }
 
-.status-box {
+.qr-status-box {
     background: #fef6d9;
     border: 1px solid #f1c40f;
     padding: 10px;
@@ -93,30 +93,30 @@ textarea {
     margin-bottom: 15px;
 }
 
-.query-box {
+.qr-query-box {
     margin-top: 30px;
     padding: 15px;
     border: 1px solid #ddd;
     border-radius: 8px;
 }
 
-.table-container {
+.qr-table-container {
     margin-top: 30px;
 }
 
-table {
+.qr-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
 
-th,
-td {
+.qr-th,
+.qr-td {
     padding: 10px;
     border: 1px solid #ddd;
 }
 
-th {
+.qr-th {
     background: #3498db;
     color: white;
 }
