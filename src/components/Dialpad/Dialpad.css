@@ -1,0 +1,190 @@
+/* src/components/Dialpad/Dialpad.css */
+.dialpad {
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(0,0); /* will be overridden inline */
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e8eef5;
+  box-shadow: 0 8px 28px rgba(16, 24, 40, 0.1), 0 2px 6px rgba(16, 24, 40, 0.05);
+  overflow: hidden;
+  user-select: none;
+  z-index: 990; /* below .topbar (1000) so even if overlapping, it's visually under; we also clamp to avoid overlap */
+  display: flex;
+  flex-direction: column;
+}
+
+.dialpad.is-dragging {
+  cursor: grabbing;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.18);
+}
+
+.dialpad.is-collapsed {
+  width: 280px !important;
+  height: 56px !important;
+  bottom: 16px !important;
+  right: 16px !important;
+  transform: none !important;
+  transition: all .3s ease;
+}
+
+
+.dialpad__header {
+  height: 48px;
+  padding: 0 12px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, #f7f9fc 0%, #f2f6fb 100%);
+  border-bottom: 1px solid #e9eef6;
+  cursor: grab;
+}
+
+.dialpad__title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.dialpad__header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.dialpad__status {
+  height: 32px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  border-bottom: 1px solid #eef2f8;
+  color: #0f172a;
+}
+.dialpad__status--ready { background: #f8fafc; }
+.dialpad__status--ringing_in { background: #fff7ed; } /* amber-50 */
+.dialpad__status--in_call { background: #ecfdf5; }    /* emerald-50 */
+.dialpad__status--on_hold { background: #eff6ff; }    /* blue-50 */
+.dialpad__error { color: #b91c1c; }
+
+.dialpad__body {
+  padding: 12px;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 12px;
+  flex: 1;
+  min-height: 180px;
+}
+
+.dialpad__display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dialpad__display input {
+  flex: 1;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 16px;
+  border: 1px solid #dbe4ee;
+  border-radius: 10px;
+  outline: none;
+}
+.dialpad__display input:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.dialpad__display-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.dialpad__keygrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.dp-key {
+  height: 56px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .05s ease, background .2s ease;
+}
+.dp-key:active { transform: scale(0.98); background: #eef2f7; }
+
+.dialpad__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.dialpad__ringing, .dialpad__incall {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 6px;
+}
+.dialpad__incall-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.dialpad__resize {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  right: 6px;
+  bottom: 6px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(135deg, transparent 50%, #cbd5e1 50%) left top/8px 8px no-repeat,
+    linear-gradient(135deg, transparent 50%, #94a3b8 50%) right bottom/8px 8px no-repeat;
+  opacity: 0.6;
+}
+.dialpad__resize:hover { opacity: 1; }
+
+/* Buttons */
+.dp-btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dp-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.dp-btn-primary { background: #2563eb; color: #fff; }
+.dp-btn-primary:hover { background: #1e40af; }
+
+.dp-btn-secondary { background: #f3f4f6; }
+.dp-btn-secondary:hover { background: #e5e7eb; }
+
+.dp-btn-success { background: #059669; color: #fff; }
+.dp-btn-success:hover { background: #047857; }
+
+.dp-btn-warning { background: #f59e0b; color: #111827; }
+.dp-btn-warning:hover { background: #d97706; color: #111827; }
+
+.dp-btn-danger { background: #dc2626; color: #fff; }
+.dp-btn-danger:hover { background: #b91c1c; }
+
+.dp-btn-ghost {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+}
+.dp-btn-ghost:hover {
+  background: #f3f4f6;
+}
+
+/* Reduce size gracefully on very small heights (when user shrinks) */
+@media (max-height: 600px) {
+  .dp-key { height: 48px; }
+  .dialpad__display input { height: 40px; }
+}

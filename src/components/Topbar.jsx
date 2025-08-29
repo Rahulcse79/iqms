@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import "./Topbar.css";
+import { useCall } from "../context/CallContext";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const Topbar = ({ toggleSidebar }) => {
   const [searchValue, setSearchValue] = useState("");
   const [searchCategory, setSearchCategory] = useState("Airmen");
   const [searchType, setSearchType] = useState("Service");
+  const { api } = useCall();
 
   const roles = [
     "ASP - I",
@@ -100,6 +102,7 @@ const Topbar = ({ toggleSidebar }) => {
             onChange={(e) => setSearchValue(e.target.value)}
           />
           <button onClick={handleSearch}>Search</button>
+         <button onClick={() => api.simulateIncoming()}>Call Trigger</button>
         </div>
 
         <div className="topbar-right">

@@ -21,6 +21,7 @@ import { AuthContext } from "./context/AuthContext";
 import SearchResults from "./pages/Queries/SearchResults";
 import Loader from "./components/Loader";
 import DavHome from "./Dav/QueryRegistration";
+import { CallProvider } from "./context/CallContext";
 
 function AppRoutes() {
   const { user } = useContext(AuthContext);
@@ -67,9 +68,11 @@ function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <CallProvider>   {/* ✅ wrap here */}
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </CallProvider>
     </AuthProvider>
   );
 }
