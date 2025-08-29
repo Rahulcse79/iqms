@@ -10,7 +10,6 @@
   box-shadow: 0 8px 28px rgba(16, 24, 40, 0.1), 0 2px 6px rgba(16, 24, 40, 0.05);
   overflow: hidden;
   user-select: none;
-  z-index: 990; /* below .topbar (1000) so even if overlapping, it's visually under; we also clamp to avoid overlap */
   display: flex;
   flex-direction: column;
 }
@@ -139,9 +138,10 @@
   height: 56px;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: linear-gradient(135deg, #dcedfc 0%, #f6e5ff 100%);
   font-size: 18px;
   font-weight: 600;
+  color: #868686;
   cursor: pointer;
   transition: transform .05s ease, background .2s ease;
 }
@@ -184,6 +184,7 @@
   height: 40px;
   padding: 0 14px;
   border-radius: 12px;
+  background: green;
   border: 1px solid transparent;
   font-weight: 600;
   cursor: pointer;
@@ -193,20 +194,21 @@
 .dp-btn-primary { background: #2563eb; color: #fff; }
 .dp-btn-primary:hover { background: #1e40af; }
 
-.dp-btn-secondary { background: #f3f4f6; }
+.dp-btn-secondary { background: #f3f4f6; width: 100px; height: auto; }
 .dp-btn-secondary:hover { background: #e5e7eb; }
 
 .dp-btn-success { background: #059669; color: #fff; }
 .dp-btn-success:hover { background: #047857; }
 
-.dp-btn-warning { background: #f59e0b; color: #111827; }
+.dp-btn-warning { background: #f59e0b; color: #111827; width: 100px; height: 100%; }
 .dp-btn-warning:hover { background: #d97706; color: #111827; }
 
-.dp-btn-danger { background: #dc2626; color: #fff; }
+.dp-btn-danger { background: #dc2626; color: #fff; width: 100px; height: 100%; }
 .dp-btn-danger:hover { background: #b91c1c; }
 
 .dp-btn-ghost {
   background: #fff;
+  color: #414141;
   border: 1px solid #e5e7eb;
 }
 .dp-btn-ghost:hover {

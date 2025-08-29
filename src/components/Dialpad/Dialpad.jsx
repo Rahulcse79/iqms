@@ -11,13 +11,13 @@ import "./Dialpad.css";
 
 const STORAGE_KEY = "dialpad@v1";
 
-const DEFAULT_W = 340;
-const DEFAULT_H = 460;
-const MIN_W = 280;
-const MIN_H = 260;
-const MAX_W = 520;
-const MAX_H = 640;
-const PADDING = 16;
+const DEFAULT_W = 350;
+const DEFAULT_H = 470;
+const MIN_W = 310;
+const MIN_H = 290;
+const MAX_W = 540;
+const MAX_H = 660;
+const PADDING = 12;
 
 function clamp(v, a, b) {
   return Math.max(a, Math.min(b, v));
@@ -440,7 +440,7 @@ export default function Dialpad() {
             onClick={toggleCollapse}
             aria-label={collapsed ? "Expand dialpad" : "Collapse dialpad"}
             title={collapsed ? "Expand" : "Minimize"}
-            disabled={["RINGING_IN", "IN_CALL", "ON_HOLD"].includes(call.state)} // 🚫 disable collapse
+            disabled={["RINGING_IN"].includes(call.state)} // 🚫 disable collapse
           >
             {collapsed ? "▣" : "▭"}
           </button>
@@ -491,14 +491,6 @@ export default function Dialpad() {
                 aria-label="Answer incoming call"
               >
                 Answer
-              </button>
-              <button
-                className="dp-btn dp-btn-danger"
-                onClick={api.reject}
-                disabled={!can.reject}
-                aria-label="Reject incoming call"
-              >
-                Reject
               </button>
             </div>
           )}
@@ -596,7 +588,7 @@ function CallButton({ state }) {
       disabled={!canCall}
       aria-label="Call"
     >
-      Call
+      Dial
     </button>
   );
 }
@@ -638,7 +630,7 @@ function InCallPanel({
           {can.hold ? "Hold" : "Resume"}
         </button>
         <button
-          className="dp-btn dp-btn-warning"
+          className="dp-btn dp-btn-secondary"
           onClick={handleBlind}
           disabled={!can.blindTransfer}
         >
@@ -647,7 +639,7 @@ function InCallPanel({
       </div>
       <div className="dialpad__incall-row">
         <button
-          className="dp-btn dp-btn-warning"
+          className="dp-btn dp-btn-secondary"
           onClick={handleLine}
           disabled={!can.lineTransfer}
         >
