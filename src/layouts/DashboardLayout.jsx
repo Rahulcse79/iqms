@@ -4,7 +4,6 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import Footer from "../components/Footer";
-import DialpadFrame from "../components/Dialpad/DialpadFrame";
 import "./DashboardLayout.css";
 import Dialpad from "../components/Dialpad/Dialpad";
 
