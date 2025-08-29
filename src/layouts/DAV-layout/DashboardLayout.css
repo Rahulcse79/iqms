@@ -1,0 +1,64 @@
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f4f7fa;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 220px;
+  right: 0;
+  height: 60px;
+  padding: 12px 24px;
+  text-align: center;
+  border-top: 1px solid #eee;
+  background: #fff;
+  z-index: 1000;
+  transition: left 0.3s ease-in-out;
+}
+.main-content {
+  flex-grow: 1;
+  /* This is the key change */
+  margin-left: 220px; /* Match this value to your sidebar's width */
+  transition: margin-left 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 50px;
+}
+
+/* Adjust margin when the sidebar is collapsed */
+.dashboard-layout.sidebar-collapsed .main-content {
+  margin-left: 80px; 
+}
+.dashboard-layout.sidebar-collapsed .footer{
+  left: 80px; 
+}
+
+.content {
+  padding: 24px;
+  flex-grow: 1; /* Ensures the content area fills the space and pushes the footer down */
+}
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 220px; /* Default sidebar width */
+  right: 0;
+  height: 60px;
+  padding: 12px 24px;
+  text-align: center;
+  border-top: 1px solid #eee;
+  background: #fff;
+  z-index: 1000;
+  transition: left 0.3s ease-in-out;
+}
+
+.dashboard-layout.sidebar-collapsed .footer {
+  left: 0px;
+}

@@ -3,16 +3,17 @@
   position: fixed;
   left: 0;
   top: 0;
-  transform: translate(0,0); /* will be overridden inline */
+  transform: translate(0,0);
   border-radius: 16px;
   background: #ffffff;
   border: 1px solid #e8eef5;
   box-shadow: 0 8px 28px rgba(16, 24, 40, 0.1), 0 2px 6px rgba(16, 24, 40, 0.05);
   overflow: hidden;
   user-select: none;
-  z-index: 990; /* below .topbar (1000) so even if overlapping, it's visually under; we also clamp to avoid overlap */
+  z-index: 990;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; 
+
 }
 
 .dialpad.is-dragging {
@@ -23,12 +24,25 @@
 .dialpad.is-collapsed {
   width: 280px !important;
   height: 56px !important;
-  bottom: 16px !important;
-  right: 16px !important;
+  bottom: 16px;
+  right: 16px;
   transform: none !important;
   transition: all .3s ease;
-}
 
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border: 1px solid var(--dp-border);
+  border-right: none;
+  border-radius: var(--dp-radius) 0 0 var(--dp-radius);
+  background: var(--dp-elev);
+  box-shadow: var(--dp-shadow);
+  font-weight: 600;
+  color: var(--dp-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
 .dialpad__header {
   height: 48px;
@@ -75,6 +89,8 @@
   gap: 12px;
   flex: 1;
   min-height: 180px;
+  margin-bottom: 100px;
+
 }
 
 .dialpad__display {

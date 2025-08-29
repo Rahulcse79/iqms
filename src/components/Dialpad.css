@@ -1,0 +1,597 @@
+:root {
+  /* --- New & Improved Color Palette --- */
+
+  /* Primary & Accent Colors */
+  --dp-primary: #4f46e5; /* Indigo 600 - Professional & vibrant */
+  --dp-primary-600: #4338ca; /* Indigo 700 - For hover states */
+  --dp-accent: #16a34a; /* Green 600 - Success, Online */
+  --dp-danger: #dc2626; /* Red 600 - Danger, On Call */
+  --dp-warning: #f59e0b; /* Amber 500 - Warning, Break */
+  --dp-info: #64748b; /* Slate 500 - Neutral info, Pause */
+
+  /* Background & Surface Colors */
+  --dp-bg: #f8fafc; /* Slate 50 - Main page background */
+  --dp-surface: #f1f5f9; /* Slate 100 - Interactive surfaces */
+  --dp-elev: #ffffff; /* White - Elevated panels */
+
+  /* Text & Border Colors */
+  --dp-text: #1e293b; /* Slate 800 - High-contrast main text */
+  --dp-muted: #64748b; /* Slate 500 - Secondary/muted text */
+  --dp-border: #cbd5e1; /* Slate 300 - Soft, non-distracting borders */
+
+  /* Other UI Variables */
+  --dp-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --dp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --dp-radius: 12px;
+  --dp-radius-lg: 16px;
+  --dp-radius-sm: 8px;
+}
+
+/* --- Base & Panel Styles --- */
+body {
+  background-color: var(--dp-bg); /* Apply light gray to the entire page */
+}
+
+.dp-root {
+  position: fixed;
+  z-index: 9999;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  color: var(--dp-text);
+  transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
+}
+
+.dp-panel {
+  width: 100%;
+  height: 100%;
+  background: var(--dp-elev);
+  border-radius: var(--dp-radius-lg);
+  box-shadow: var(--dp-shadow-lg);
+  border: 1px solid var(--dp-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dp-fade-in 200ms ease-out;
+}
+
+/* --- Header --- */
+.dp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--dp-elev);
+  border-bottom: 1px solid var(--dp-border);
+  cursor: grab;
+  user-select: none;
+}
+.dp-header .dp-title {
+  font-weight: 600;
+}
+
+/* --- Collapsed Tab --- */
+.dp-collapsed-tab button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border: 1px solid var(--dp-border);
+  border-right: none;
+  border-radius: var(--dp-radius) 0 0 var(--dp-radius);
+  background: var(--dp-elev);
+  box-shadow: var(--dp-shadow);
+  font-weight: 600;
+  color: var(--dp-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.dp-collapsed-tab button:hover {
+  background: #f4f4f5; /* A subtle hover */
+  transform: translateX(-2px);
+}
+
+/* --- Agent Status Dropdown --- */
+.dp-status-toggle {
+  background: var(--dp-surface);
+  border-radius: var(--dp-radius-sm);
+  border: 1px solid var(--dp-border);
+  color: black;
+}
+.dp-status-toggle:hover {
+  border-color: var(--dp-primary);
+}
+.dp-status-dot.dp-status--online {
+  background-color: var(--dp-accent);
+  color: black;
+}
+.dp-status-dot.dp-status--on-call {
+  background-color: var(--dp-danger);
+  color: #000;
+}
+.dp-status-dot.dp-status--break {
+  background-color: var(--dp-warning);
+color: #000;
+}
+.dp-status-dot.dp-status--pause {
+  background-color: var(--dp-info);
+  color: #000;
+}
+.dp-status-dot.dp-status--registered {
+  background-color: var(--dp-primary);
+  color: #000;
+}
+
+.dp-status-dropdown {
+  background: var(--dp-elev);
+  border: 1px solid var(--dp-border);
+  box-shadow: var(--dp-shadow);
+  border-radius: var(--dp-radius);
+  color: #000;
+}
+.dp-status-option:hover {
+  background-color: var(--dp-surface);
+  color: var(--dp-primary);
+}
+
+/* --- Input & Keypad --- */
+.dp-input {
+  background: #fff;
+  border: 1px solid var(--dp-border);
+  border-radius: var(--dp-radius-sm);
+  font-size: 16px;
+}
+.dp-input:focus {
+  border-color: var(--dp-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* Dialpad key: premium gradient, depth, and motion */
+:root {
+  /* Tweakable theme tokens for keys */
+  --dp-key-top: #ffffff;
+  --dp-key-bottom: #f2f5f9;
+  --dp-key-hover-top: #f9fbff;
+  --dp-key-hover-bottom: #e9f0ff;
+  --dp-key-press-top: #e7edf5;
+  --dp-key-press-bottom: #dfe7f1;
+
+  --dp-key-border: rgba(15, 23, 42, 0.06);
+  --dp-key-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --dp-key-shadow-hover: 0 6px 14px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.06);
+  --dp-key-shadow-press: inset 0 2px 6px rgba(15, 23, 42, 0.18);
+
+  /* Accent used in ripple/focus ring; keep aligned with brand primary */
+  --dp-key-accent: var(--dp-primary, #4f46e5);
+}
+
+/* Base keycap */
+.dp-key {
+  position: relative;
+  isolation: isolate;               /* Keeps pseudo effects contained */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  border-radius: var(--dp-radius);
+  color: var(--dp-text);
+  font-weight: 600;
+  font-size: 22px;
+  cursor: pointer;
+  overflow: hidden;                  /* Clips ripple and shine */
+  -webkit-tap-highlight-color: transparent;
+
+  /* Layered, tactile 3D look */
+  background: linear-gradient(180deg, var(--dp-key-top) 0%, var(--dp-key-bottom) 100%);
+  border: 1px solid var(--dp-key-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),   /* top inner highlight */
+    var(--dp-key-shadow);
+
+  /* Smooth, snappy interactions */
+  transition:
+    transform 140ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    filter 200ms ease;
+}
+
+/* Hover: lift with deeper shadow and optional shine sweep */
+.dp-key:hover {
+  transform: translateY(-2px) scale(1.01);
+  background: linear-gradient(180deg, var(--dp-key-hover-top), var(--dp-key-hover-bottom));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    var(--dp-key-shadow-hover);
+}
+
+/* Press: dip, stronger inset, quick response */
+.dp-key:active {
+  transform: translateY(1px) scale(0.995);
+  background: linear-gradient(180deg, var(--dp-key-press-top), var(--dp-key-press-bottom));
+  box-shadow: var(--dp-key-shadow-press);
+  transition-duration: 80ms;
+}
+
+/* Keyboard/accessibility focus */
+.dp-key:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    var(--dp-key-shadow-hover),
+    0 0 0 4px color-mix(in oklab, var(--dp-key-accent) 20%, transparent);
+}
+
+/* Shine sweep on hover: one-pass diagonal highlight */
+.dp-key::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -150%;
+  width: 140%;
+  height: 140%;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 18%,
+    rgba(255, 255, 255, 0) 36%
+  );
+  transform: skewX(-14deg);
+  opacity: 0;
+}
+.dp-key:hover::before {
+  animation: dp-key-shine 900ms ease forwards;
+}
+@keyframes dp-key-shine {
+  0%   { left: -150%; opacity: 0; }
+  10%  { opacity: .28; }
+  40%  { opacity: .38; }
+  100% { left: 120%; opacity: 0; }
+}
+
+/* Ripple pulse on press (centered) */
+.dp-key::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in oklab, var(--dp-key-accent) 22%, transparent) 0%,
+    color-mix(in oklab, var(--dp-key-accent) 0%, transparent) 45%
+  );
+  opacity: 0;
+  transform: scale(0.2);
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+.dp-key:active::after {
+  opacity: 1;
+  transform: scale(1);
+  transition-duration: 180ms;
+}
+
+/* Reduced motion: keep feedback without movement */
+@media (prefers-reduced-motion: reduce) {
+  .dp-key,
+  .dp-key::before,
+  .dp-key::after {
+    transition: none !important;
+    animation: none !important;
+  }
+  .dp-key:hover,
+  .dp-key:active {
+    transform: none !important;
+  }
+}
+
+
+/* --- Action Buttons --- */
+.dp-cta {
+  border-radius: var(--dp-radius);
+  font-weight: 600;
+  font-size: 15px;
+}
+.dp-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--dp-shadow);
+}
+.dp-cta:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.dp-cta--primary {
+  background: var(--dp-primary);
+  color: #fff;
+}
+.dp-cta--primary:hover {
+  background: var(--dp-primary-600);
+}
+.dp-cta--disabled {
+  background: #e2e8f0; /* Slate 200 */
+  color: var(--dp-muted);
+  cursor: not-allowed;
+  border-color: transparent;
+}
+.dp-cta--disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.dp-cta--accept {
+  background: var(--dp-accent);
+  color: #fff;
+}
+.dp-cta--accept:hover {
+  filter: brightness(1.1);
+}
+
+.dp-cta--decline {
+  background: var(--dp-danger);
+  color: #fff;
+}
+.dp-cta--decline:hover {
+  filter: brightness(1.1);
+}
+
+.dp-cta--ghost {
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  border: 1px solid var(--dp-border);
+}
+.dp-cta--ghost:hover {
+  background: var(--dp-surface);
+  border-color: #94a3b8; /* Slate 400 */
+}
+
+/* --- Helper Controls --- */
+.dp-ctrl {
+  color: var(--dp-muted);
+}
+.dp-ctrl:hover {
+  background: var(--dp-surface);
+  color: var(--dp-text);
+}
+.dp-ctrl--secondary {
+  background: var(--dp-surface);
+  border: 1px solid var(--dp-border);
+}
+.dp-ctrl--secondary:hover {
+  border-color: var(--dp-muted);
+}
+
+/* Keep remaining structural CSS from previous version */
+.dp-root.dp--sidebar {
+  top: 0;
+  right: 0;
+  width: 360px;
+  height: 100vh;
+}
+.dp-root.dp--bottom {
+  right: 0;
+  bottom: 20px;
+}
+.dp-root.dp--bottom.dp--collapsed {
+  width: auto;
+  height: auto;
+}
+.dp-root.dp--bottom.dp--expanded {
+  width: 360px;
+  height: auto;
+  right: 20px;
+}
+.dp-root.dp--floating {
+  top: 0;
+  left: 0;
+  width: 360px;
+}
+.dp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dp-drag-hint {
+  width: 42px;
+  height: 6px;
+  border-radius: 999px;
+  background: #dbe3ef;
+}
+.dp-header-actions {
+  display: flex;
+  gap: 6px;
+}
+.dp-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dp-status-container {
+  position: relative;
+}
+.dp-status-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.dp-status-toggle svg {
+  margin-left: auto;
+}
+.dp-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.dp-status-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  animation: dp-fade-in 150ms ease-out;
+  color: #000;
+}
+.dp-status-option {
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #000;
+}
+.dp-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.dp-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.dp-actions-container {
+  margin-top: auto;
+  padding-top: 8px;
+}
+.dp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.dp-in-call-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dp-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--dp-radius);
+  background: #fff;
+  border: 1px solid var(--dp-border);
+  box-shadow: var(--dp-shadow);
+  cursor: pointer;
+  user-select: none;
+}
+@keyframes dp-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* Light-to-white gradient tokens (tweak to match brand) */
+:root {
+  --dp-key-grad: #eef2ff;          /* light tint (indigo-50 vibe) */
+  --dp-key-grad-hover: #eaf0ff;    /* slightly deeper on hover */
+  --dp-key-grad-press: #e6ecf9;    /* subtle press shade */
+}
+
+/* Keep the 3x grid with 72px tracks (unchanged layout) */
+.dp-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 12px;
+  justify-content: center;
+  padding: 6px 0;
+}
+
+/* Squared keys with rounded tips + light->white gradient */
+.dp-key,
+.key {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px; /* squared with soft corners */
+  border: 1px solid rgba(16, 24, 40, 0.06);
+  background: linear-gradient(180deg, var(--dp-key-grad) 0%, #ffffff 100%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dp-text);
+  cursor: pointer;
+
+  /* subtle base depth + smooth motion */
+  box-shadow: 0 1px 2px rgba(31, 45, 61, 0.06);
+  transition:
+    transform 160ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+/* Hover: gentle lift and slightly deeper gradient */
+.dp-key:hover,
+.key:hover {
+  transform: translateY(-6px);
+  background: linear-gradient(180deg, var(--dp-key-grad-hover) 0%, #ffffff 100%);
+  box-shadow: 0 12px 30px rgba(31, 45, 61, 0.06);
+}
+
+/* Press: small dip + tighter shadow + press shade */
+.dp-key:active,
+.key:active {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, var(--dp-key-grad-press) 0%, #ffffff 100%);
+  box-shadow: 0 6px 16px rgba(31, 45, 61, 0.08);
+  transition-duration: 80ms;
+}
+
+/* Keyboard accessibility focus ring */
+.dp-key:focus-visible,
+.key:focus-visible {
+  outline: none;
+  box-shadow:
+    0 12px 30px rgba(31, 45, 61, 0.06),
+    0 0 0 4px rgba(79, 70, 229, 0.2);
+  transform: translateY(-4px);
+}
+
+/* Optional placeholders (if used) */
+.dp-key.placeholder,
+.key.placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .dp-key, .key {
+    transition: none;
+  }
+  .dp-key:hover, .key:hover,
+  .dp-key:active, .key:active {
+    transform: none;
+  }
+}

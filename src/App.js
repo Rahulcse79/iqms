@@ -22,6 +22,9 @@ import SearchResults from "./pages/Queries/SearchResults";
 import Loader from "./components/Loader";
 import DavHome from "./Dav/QueryRegistration";
 import { CallProvider } from "./context/CallContext";
+import DialPad from "./components/Dialpad";
+import DialPadCopy from "./components/Dialpad";
+
 
 function AppRoutes() {
   const { user } = useContext(AuthContext);
@@ -57,6 +60,9 @@ function AppRoutes() {
         {/* DAV */}
         <Route path="home" element={<DavHome />} />
         <Route path="loader" element={<Loader />} />
+        <Route path="/dialpad" element={<DialPad />} />
+        <Route path="/dialpad-copy" element={<DialPadCopy />} />
+
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
