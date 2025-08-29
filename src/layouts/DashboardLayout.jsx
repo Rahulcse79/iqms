@@ -12,11 +12,15 @@ const DashboardLayout = () => {
   const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
 
   return (
-    <div className={`dashboard-layout ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+    <div
+      className={`dashboard-layout ${
+        isSidebarCollapsed ? "sidebar-collapsed" : ""
+      }`}
+    >
       <Sidebar isCollapsed={isSidebarCollapsed} />
       <div className="main-content">
         <Topbar className="topbar" toggleSidebar={toggleSidebar} />
-          <Dialpad />
+        <Dialpad />
         <main className="content">
           <Outlet />
         </main>
