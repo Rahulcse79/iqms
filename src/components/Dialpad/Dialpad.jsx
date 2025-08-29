@@ -13,10 +13,10 @@ const STORAGE_KEY = "dialpad@v1";
 
 const DEFAULT_W = 350;
 const DEFAULT_H = 470;
-const MIN_W = 310;
-const MIN_H = 290;
-const MAX_W = 540;
-const MAX_H = 660;
+const MIN_W = 390;
+const MIN_H = 470;
+const MAX_W = 700;
+const MAX_H = 900;
 const PADDING = 12;
 
 function clamp(v, a, b) {

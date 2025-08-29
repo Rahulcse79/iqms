@@ -194,7 +194,7 @@
 .dp-btn-primary { background: #2563eb; color: #fff; }
 .dp-btn-primary:hover { background: #1e40af; }
 
-.dp-btn-secondary { background: #f3f4f6; width: 100px; height: auto; }
+.dp-btn-secondary { background: #f3f4f6; width: 100px; height: auto; color: ; }
 .dp-btn-secondary:hover { background: #e5e7eb; }
 
 .dp-btn-success { background: #059669; color: #fff; }
