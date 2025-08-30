@@ -1,11 +1,13 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { fetchRepliedQueries } from "../actions/allAction";
 
 // --- CSS Styles ---
 const styles = `
   .dashboard-section {
     padding: 2rem;
-    background-color: #f4f6f9; /* A slightly cooler light gray background */
+    background-color: #f4f6f9;
     font-family: sans-serif;
   }
 
@@ -17,12 +19,11 @@ const styles = `
 
   .query-card {
     background-color: #ffffff;
-    border-radius: 0.75rem; /* Slightly more rounded corners */
+    border-radius: 0.75rem;
     padding: 1.5rem;
     color: #313131ff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     border: 1px solid #e5e7eb;
-    /* Add a top border that will be colored */
     border-top: 4px solid transparent;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   }
@@ -32,18 +33,16 @@ const styles = `
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   }
 
-  /* Color variants for each card */
-  .query-card.pending { border-top-color: #f6673bff; } /* Blue */
-  .query-card.transferred { border-top-color: #6366f1; } /* Indigo */
-  .query-card.replied { border-top-color: #22c55e; } /* Green */
+  .query-card.pending { border-top-color: #f63b3bff; }
+  .query-card.transferred { border-top-color: #6366f1; }
+  .query-card.replied { border-top-color: #22c55e; }
 
   .card-header {
     font-size: 1.125rem;
     font-weight: 600;
-    margin-bottom: 1.5rem; /* More space */
+    margin-bottom: 1.5rem;
   }
 
-  /* Match header text color to the border color */
   .pending .card-header { color: #f63b3bff; }
   .transferred .card-header { color: #6366f1; }
   .replied .card-header { color: #22c55e; }
@@ -62,7 +61,7 @@ const styles = `
   }
 
   .card-label {
-    color: #4b5563; /* Darker gray for better contrast */
+    color: #4b5563;
   }
 
   .card-value-link {
@@ -72,9 +71,9 @@ const styles = `
     border-radius: 9999px;
     transition: background-color 0.2s ease-in-out;
     display: inline-block;
+    cursor: pointer;
   }
 
-  /* Badge color variants */
   .pending .card-value-link { background-color: #fedbdbff; color: #af1e1eff; }
   .transferred .card-value-link { background-color: #e0e7ff; color: #3730a3; }
   .replied .card-value-link { background-color: #dcfce7; color: #166534; }
@@ -84,57 +83,88 @@ const styles = `
   .replied .card-value-link:hover { background-color: #bbf7d0; }
 `;
 
-// --- Data ---
-const pendingQueriesData = [
-  { label: 'Pending at Creator', value: 69 },
-  { label: 'Pending at Verifier', value: 7 },
-  { label: 'Pending at Approver', value: 22 },
-  { label: 'Total Pending', value: 98 },
-];
-
-const transferredQueriesData = [
-  { label: 'Creator', value: 5 },
-  { label: 'Verifier', value: 1 },
-  { label: 'Approver', value: 0 },
-  { label: 'Total Transferred', value: 6 },
-];
-
-const repliedQueriesData = [
-  { label: 'Replied Queries', value: 16558 },
-{ label: '-' },
-{ label: '-' },
-{ label: '-' },
-  
-
-];
-
 // --- Card Component ---
-const QueryCard = ({ title, data, className }) => (
-  <div className={`query-card ${className}`}>
-    <h3 className="card-header">{title}</h3>
-    <div className="card-body">
-      {data.map((item, index) => (
-        <div className="card-row" key={index}>
-          <span className="card-label">{item.label}</span>
-          <Link to="/view/queries/incoming" className="card-value-link">
-            {item.value}
-          </Link>
-        </div>
-      ))}
+const QueryCard = ({ title, data, className, link }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className={`query-card ${className}`}>
+      <h3 className="card-header">{title}</h3>
+      <div className="card-body">
+        {data.map((item, index) => (
+          <div className="card-row" key={index}>
+            <span className="card-label">{item.label}</span>
+            {item.value !== "-" ? (
+              <span
+                className="card-value-link"
+                onClick={() => navigate(link)}
+              >
+                {item.value}
+              </span>
+            ) : (
+              <span>-</span>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // --- Main Dashboard Component ---
 const Dashboard = () => {
+  const dispatch = useDispatch();
+  const { loading, items, error } = useSelector((state) => state.replied_queries);
+
+  useEffect(() => {
+    dispatch(fetchRepliedQueries());
+  }, [dispatch]);
+
+  // --- Data ---
+  const pendingQueriesData = [
+    { label: "Pending at Creator", value: 69 },
+    { label: "Pending at Verifier", value: 7 },
+    { label: "Pending at Approver", value: 22 },
+    { label: "Total Pending", value: 98 },
+  ];
+
+  const transferredQueriesData = [
+    { label: "Creator", value: 5 },
+    { label: "Verifier", value: 1 },
+    { label: "Approver", value: 0 },
+    { label: "Total Transferred", value: 6 },
+  ];
+
+  const repliedQueriesData = [
+    { label: "Replied Queries", value: loading ? "..." : error ? "ERR" : items.length },
+    { label: "-", value: "-" },
+    { label: "-", value: "-" },
+    { label: "-", value: "-" },
+  ];
+
   return (
     <>
       <style>{styles}</style>
       <div className="dashboard-section">
         <div className="dashboard-grid">
-          <QueryCard title="Pending Queries" data={pendingQueriesData} className="pending" />
-          <QueryCard title="Transferred Queries from Other Sections" data={transferredQueriesData} className="transferred" />
-          <QueryCard title="Replied Queries" data={repliedQueriesData} className="replied" />
+          <QueryCard
+            title="Pending Queries"
+            data={pendingQueriesData}
+            className="pending"
+            link="/view/queries/incoming"
+          />
+          <QueryCard
+            title="Transferred Queries from Other Sections"
+            data={transferredQueriesData}
+            className="transferred"
+            link="/view/queries/transferred"
+          />
+          <QueryCard
+            title="Replied Queries"
+            data={repliedQueriesData}
+            className="replied"
+            link="/view/queries/replied"
+          />
         </div>
       </div>
     </>

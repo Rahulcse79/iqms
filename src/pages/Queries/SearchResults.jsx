@@ -13,9 +13,7 @@ export default function SearchResults() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const category = searchParams.get("category") || "";
   const type = searchParams.get("type") || "";
-  const query = searchParams.get("q") || "";
 
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
