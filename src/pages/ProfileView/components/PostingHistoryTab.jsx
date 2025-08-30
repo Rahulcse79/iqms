@@ -1,29 +1,45 @@
 import React from 'react';
 import './PostingHistoryTab.css';
 
-export default function PostingHistoryTab() {
-  const postingData = [
-    {
-      sNo: 1,
-      unit: 'Unit A',
-      location: 'Location A',
-      fromDate: '01-Jan-2020',
-      toDate: '15-Mar-2021',
-      docNo: 'DOC12345',
-      docDate: '02-Jan-2020',
-      authority: 'HQ',
-    },
-    {
-      sNo: 2,
-      unit: 'Unit B',
-      location: 'Location B',
-      fromDate: '16-Mar-2021',
-      toDate: 'Present',
-      docNo: 'DOC67890',
-      docDate: '17-Mar-2021',
-      authority: 'CO',
-    }
-  ];
+const formatDate = (iso) => {
+  if (!iso) return '-';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return '-';
+  }
+};
+
+const devLog = (...args) => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.debug('[PostingHistoryTab]', ...args);
+  }
+};
+
+export default function PostingHistoryTab({ items = [], loading, error }) {
+  if (loading) return <p>Loading posting history...</p>;
+  if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
+  if (!items.length) return <p>No posting history available.</p>;
+
+  const cleanedRows = items.map((row, index) => {
+    devLog('Raw Posting Data:', row);
+
+    return {
+      sNo: index + 1,
+      unit: row.abc ?? row.unit ?? '-',
+      fromDate: formatDate(row.wef),
+      rate: row.rate ?? '-',
+      occId: row.occ_id ?? '-',
+      irla: row.irla ?? '-',
+      remarks: row.remarks ?? '-',
+    };
+  });
 
   return (
     <div className="posting-history">
@@ -32,25 +48,23 @@ export default function PostingHistoryTab() {
           <tr>
             <th>S No</th>
             <th>Unit</th>
-            <th>Location</th>
             <th>From Date</th>
-            <th>To Date</th>
-            <th>Document No</th>
-            <th>Document Date</th>
-            <th>Authority</th>
+            <th>Rate</th>
+            <th>Occ ID</th>
+            <th>IRLA</th>
+            <th>Remarks</th>
           </tr>
         </thead>
         <tbody>
-          {postingData.map((row) => (
+          {cleanedRows.map((row) => (
             <tr key={row.sNo}>
               <td>{row.sNo}</td>
               <td>{row.unit}</td>
-              <td>{row.location}</td>
               <td>{row.fromDate}</td>
-              <td>{row.toDate}</td>
-              <td>{row.docNo}</td>
-              <td>{row.docDate}</td>
-              <td>{row.authority}</td>
+              <td>{row.rate}</td>
+              <td>{row.occId}</td>
+              <td>{row.irla}</td>
+              <td>{row.remarks}</td>
             </tr>
           ))}
         </tbody>
