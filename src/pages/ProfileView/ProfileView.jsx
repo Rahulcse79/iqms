@@ -16,6 +16,7 @@ import {
   getTradeHistory,
   getPostingHistory,
 } from '../../actions/allAction';
+import PersonalDetails from './components/PersonalDetails';
 
 const log = {
   debug: (...args) => process.env.NODE_ENV !== 'production' && console.debug('[ProfileView]', ...args),
@@ -45,10 +46,11 @@ const LazyComponent = ({ renderFn }) => {
 };
 
 const SECTIONS = [
-  { id: 'gci', label: 'GCI History', Component: GCIHistoryTab },
+  { id: 'pd', label: 'Personal Details', Component: PersonalDetails },
   { id: 'rank', label: 'Rank History', Component: RankHistoryTab },
   { id: 'trade', label: 'Trade History', Component: TradeHistoryTab },
   { id: 'posting', label: 'Posting History', Component: PostingHistoryTab },
+  { id: 'gci', label: 'GCI History', Component: GCIHistoryTab },
   { id: 'por', label: 'POR Data Bank', Component: PORDataBankTab },
   { id: 'mvr', label: 'MVR History', Component: MVRHistoryTab },
   { id: 'irla', label: 'IRLA History', Component: IRLAHistoryTab },
