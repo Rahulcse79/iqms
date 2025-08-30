@@ -7,8 +7,30 @@ import {
     LOAD_USER_FAIL,
     LOGOUT_USER_SUCCESS,
     LOGOUT_USER_FAIL,
-    CLEAR_ERRORS
+    CLEAR_ERRORS,
+    FETCH_PERSONAL_DATA_REQUEST,
+    FETCH_PERSONAL_DATA_SUCCESS,
+    FETCH_PERSONAL_DATA_FAIL,
 } from '../constants/appConstants';
+
+const initialState = {
+    loading: false,
+    personalData: null,
+    error: null,
+};
+
+export const personalDataReducer = (state = initialState, action) => {
+    switch (action.type) {
+        case FETCH_PERSONAL_DATA_REQUEST:
+            return { ...state, loading: true };
+        case FETCH_PERSONAL_DATA_SUCCESS:
+            return { loading: false, personalData: action.payload, error: null };
+        case FETCH_PERSONAL_DATA_FAIL:
+            return { loading: false, personalData: null, error: action.payload };
+        default:
+            return state;
+    }
+};
 
 export const userReducer = (state = { user: {} }, { type, payload }) => {
     switch (type) {

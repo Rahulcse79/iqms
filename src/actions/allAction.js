@@ -7,9 +7,34 @@ import {
     LOAD_USER_FAIL,
     LOGOUT_USER_SUCCESS,
     LOGOUT_USER_FAIL,
-    CLEAR_ERRORS
+    CLEAR_ERRORS,
+    FETCH_PERSONAL_DATA_REQUEST,
+    FETCH_PERSONAL_DATA_SUCCESS,
+    FETCH_PERSONAL_DATA_FAIL,
 } from '../constants/appConstants';
 import axios from 'axios';
+
+// Fetch personal data by ServiceNo & Category
+export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
+    try {
+        dispatch({ type: FETCH_PERSONAL_DATA_REQUEST });
+
+        const { data } = await axios.get(
+            `/afcao/ipas/ivrs/fetch_pers_data/${serviceNo}/${category}`
+        );
+
+        dispatch({
+            type: FETCH_PERSONAL_DATA_SUCCESS,
+            payload: data.items[0],
+        });
+    } catch (error) {
+        dispatch({
+            type: FETCH_PERSONAL_DATA_FAIL,
+            payload: error.response?.data?.message || error.message,
+        });
+    }
+};
+
 
 export const loginUser = (email, password) => async (dispatch) => {
     try {
