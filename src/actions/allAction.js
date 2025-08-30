@@ -1,4 +1,4 @@
-// actions.js
+
 import axios from 'axios';
 import {
   LOGIN_USER_REQUEST,
@@ -22,7 +22,17 @@ import {
   POSTING_HISTORY_REQUEST,
   POSTING_HISTORY_SUCCESS,
   POSTING_HISTORY_FAIL,
+      REPLIED_QUERY_REQUEST,
+    REPLIED_QUERY_SUCCESS,
+    REPLIED_QUERY_FAIL,
+    SEARCH_QUERY_REQUEST,
+    SEARCH_QUERY_SUCCESS,
+    SEARCH_QUERY_FAIL,
+    SEARCH_QUERY_BY_ID_REQUEST,
+    SEARCH_QUERY_BY_ID_SUCCESS,
+    SEARCH_QUERY_BY_ID_FAIL,
 } from '../constants/appConstants';
+
 
 /**
  * Configuration: host is configurable via env var REACT_APP_PROFILEVIEW_HOST
@@ -33,6 +43,74 @@ import {
 const API_HOST = process.env.REACT_APP_PROFILEVIEW_HOST || 'http://10.69.193.151';
 const BASE_PROFILEVIEW = `${API_HOST}/afcao/ipas/ivrs/profileView`;
 const BASE_PERSONAL = `${API_HOST}/afcao/ipas/ivrs`;
+
+// Search query by Query ID (doc_id)
+export const searchQueryById = (docId) => async (dispatch) => {
+    try {
+        dispatch({ type: SEARCH_QUERY_BY_ID_REQUEST });
+
+        const { data } = await axios.get(
+            `/afcao/ipas/ivrs/searchQuery_docId/${docId}`
+        );
+
+        dispatch({
+            type: SEARCH_QUERY_BY_ID_SUCCESS,
+            payload: data,
+        });
+    } catch (error) {
+        dispatch({
+            type: SEARCH_QUERY_BY_ID_FAIL,
+            payload: error.response?.data?.message || error.message,
+        });
+    }
+};
+
+// Search queries by Service No + Category
+export const searchQueryBySnoAndCategory = (serviceNo, category) => async (dispatch) => {
+    try {
+        dispatch({ type: SEARCH_QUERY_REQUEST });
+
+        const { data } = await axios.get(
+            `/afcao/ipas/ivrs/searchQuery_SNO_CAT/${serviceNo}/${category}`
+        );
+
+        dispatch({
+            type: SEARCH_QUERY_SUCCESS,
+            payload: data,
+        });
+    } catch (error) {
+        dispatch({
+            type: SEARCH_QUERY_FAIL,
+            payload: error.response?.data?.message || error.message,
+        });
+    }
+};
+
+export const fetchRepliedQueries = (offset = 200) => async (dispatch) => {
+    try {
+        dispatch({ type: REPLIED_QUERY_REQUEST });
+
+        const { data } = await axios.get(
+            `/afcao/ipas/ivrs/repliedQuery?offset=${offset}`
+        );
+
+        dispatch({
+            type: REPLIED_QUERY_SUCCESS,
+            payload: data.items || [],
+        });
+    } catch (error) {
+        dispatch({
+            type: REPLIED_QUERY_FAIL,
+            payload: error.response?.data?.message || error.message,
+        });
+    }
+};
+
+// Fetch personal data by ServiceNo & Category
+export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
+    try {
+        dispatch({ type: FETCH_PERSONAL_DATA_REQUEST });
+
 
 /**
  * Lightweight logger wrapper.
