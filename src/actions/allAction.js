@@ -106,11 +106,6 @@ export const fetchRepliedQueries = (offset = 200) => async (dispatch) => {
     }
 };
 
-// Fetch personal data by ServiceNo & Category
-export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
-    try {
-        dispatch({ type: FETCH_PERSONAL_DATA_REQUEST });
-
 
 /**
  * Lightweight logger wrapper.
@@ -292,7 +287,7 @@ export const getPostingHistory = (serviceNo, category, page = 1) => async (dispa
     throw new Error(msg);
   }
 };
-
+    
 /* ---------------------------
    Clear errors (synchronous)
    --------------------------- */
