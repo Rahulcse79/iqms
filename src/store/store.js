@@ -1,21 +1,22 @@
 import { createStore, combineReducers, applyMiddleware, compose } from "redux";
-import { thunk } from "redux-thunk";
-import { allReducer } from "../reducers/allReducers";
+import { thunk } from "redux-thunk"; 
+import { userReducer } from "../reducers/reducers";
 
 const initialState = {
-  user: {
-    name: "Admin",
-    role: "Administrator",
+  login_user: {
+    user: {
+      name: "Admin",
+      role: "Administrator",
+    },
   },
 };
 
 const reducer = combineReducers({
-  login_user: allReducer,
+  login_user: userReducer,
 });
 
 const middleware = [thunk];
 
-// ✅ use Redux DevTools if available, else fallback to Redux compose
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 const store = createStore(
