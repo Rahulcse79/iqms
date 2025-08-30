@@ -11,8 +11,79 @@ import {
     FETCH_PERSONAL_DATA_REQUEST,
     FETCH_PERSONAL_DATA_SUCCESS,
     FETCH_PERSONAL_DATA_FAIL,
+    REPLIED_QUERY_REQUEST,
+    REPLIED_QUERY_SUCCESS,
+    REPLIED_QUERY_FAIL,
+    SEARCH_QUERY_REQUEST,
+    SEARCH_QUERY_SUCCESS,
+    SEARCH_QUERY_FAIL,
+    SEARCH_QUERY_BY_ID_REQUEST,
+    SEARCH_QUERY_BY_ID_SUCCESS,
+    SEARCH_QUERY_BY_ID_FAIL,
 } from '../constants/appConstants';
 import axios from 'axios';
+
+// Search query by Query ID (doc_id)
+export const searchQueryById = (docId) => async (dispatch) => {
+    try {
+        dispatch({ type: SEARCH_QUERY_BY_ID_REQUEST });
+
+        const { data } = await axios.get(
+            `/afcao/ipas/ivrs/searchQuery_docId/${docId}`
+        );
+
+        dispatch({
+            type: SEARCH_QUERY_BY_ID_SUCCESS,
+            payload: data,
+        });
+    } catch (error) {
+        dispatch({
+            type: SEARCH_QUERY_BY_ID_FAIL,
+            payload: error.response?.data?.message || error.message,
+        });
+    }
+};
+
+// Search queries by Service No + Category
+export const searchQueryBySnoAndCategory = (serviceNo, category) => async (dispatch) => {
+    try {
+        dispatch({ type: SEARCH_QUERY_REQUEST });
+
+        const { data } = await axios.get(
+            `/afcao/ipas/ivrs/searchQuery_SNO_CAT/${serviceNo}/${category}`
+        );
+
+        dispatch({
+            type: SEARCH_QUERY_SUCCESS,
+            payload: data,
+        });
+    } catch (error) {
+        dispatch({
+            type: SEARCH_QUERY_FAIL,
+            payload: error.response?.data?.message || error.message,
+        });
+    }
+};
+
+export const fetchRepliedQueries = (offset = 200) => async (dispatch) => {
+    try {
+        dispatch({ type: REPLIED_QUERY_REQUEST });
+
+        const { data } = await axios.get(
+            `/afcao/ipas/ivrs/repliedQuery?offset=${offset}`
+        );
+
+        dispatch({
+            type: REPLIED_QUERY_SUCCESS,
+            payload: data.items || [],
+        });
+    } catch (error) {
+        dispatch({
+            type: REPLIED_QUERY_FAIL,
+            payload: error.response?.data?.message || error.message,
+        });
+    }
+};
 
 // Fetch personal data by ServiceNo & Category
 export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
