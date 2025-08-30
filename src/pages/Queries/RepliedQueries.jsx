@@ -1,26 +1,38 @@
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import QueriesTable from "../../components/QueriesTable";
 import { fetchRepliedQueries } from "../../actions/allAction";
 
 const RepliedQueries = () => {
+
   const dispatch = useDispatch();
-  const { loading, items, error } = useSelector((state) => state.replied_queries);
+  const { loading, items, error } = useSelector(
+    (state) => state.replied_queries
+  );
 
   useEffect(() => {
     dispatch(fetchRepliedQueries());
   }, [dispatch]);
 
+
   if (loading) return <p>Loading replied queries...</p>;
   if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
 
-  // Transform items into table-friendly format
+  // Map API data to table format
   const data = items.map((q, index) => ({
     id: index + 1,
-    serviceNo: q?.sno ? String(q.sno) : "",  
+    serviceNo: q?.sno ? String(q.sno) : "",
     type: "Replied",
     queryId: q?.doc_id ?? "",
-    date: q?.action_dt ?? "",
+    date: q?.action_dt
+      ? new Date(q.action_dt).toLocaleDateString()
+      : "N/A",
+    subject: q?.subject ?? "",
+    pers: q?.pers ?? "",
+    queryType: q?.querytype ?? "",
+    pendingWith: q?.pending_with ?? "",
+    cell: q?.cell ?? "",
+    docStatus: q?.doc_status ?? "",
   }));
 
   return <QueriesTable title="Replied Queries" data={data} />;
