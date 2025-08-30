@@ -9,6 +9,8 @@ import MVRHistoryTab from './components/MVRHistoryTab';
 import IRLAHistoryTab from './components/IRLAHistoryTab';
 import IQMSDetailsTab from './components/IQMSdetailsTab';
 import SearchSection from './components/SearchSection';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPersonalData } from '../../actions/allAction';
 
 // Lazy Loader Component
 const LazyComponent = ({ Component }) => {
@@ -23,10 +25,14 @@ const LazyComponent = ({ Component }) => {
       }
     });
     if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    return () => observer && observer.disconnect();
   }, []);
 
-  return <div ref={ref}>{visible ? <Component /> : <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>}</div>;
+  return (
+    <div ref={ref}>
+      {visible ? <Component /> : <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>}
+    </div>
+  );
 };
 
 const SECTIONS = [
@@ -43,12 +49,15 @@ const SECTIONS = [
 export default function ProfileView() {
   const [serviceNo, setServiceNo] = useState('');
   const [showProfile, setShowProfile] = useState(false);
-
   const sectionRefs = useRef({});
+
+  const dispatch = useDispatch();
+  const { loading, personalData, error } = useSelector((state) => state.personalData);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (serviceNo.trim()) {
+      dispatch(fetchPersonalData(serviceNo, 1)); // assuming category = 1
       setShowProfile(true);
     } else {
       alert('Please enter a service number.');
@@ -68,7 +77,10 @@ export default function ProfileView() {
         handleSearch={handleSearch}
       />
 
-      {showProfile && (
+      {loading && <p>Loading personal data...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {showProfile && personalData && (
         <div className="result-section">
           {/* Dropdown Navigation */}
           <div className="dropdown-container">
@@ -86,7 +98,7 @@ export default function ProfileView() {
               <div
                 key={id}
                 id={id}
-                ref={el => (sectionRefs.current[id] = el)}
+                ref={(el) => (sectionRefs.current[id] = el)}
                 className="profile-section"
               >
                 <h2 className="section-title">{label}</h2>
