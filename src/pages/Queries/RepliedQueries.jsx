@@ -2,9 +2,9 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import QueriesTable from "../../components/QueriesTable";
 import { fetchRepliedQueries } from "../../actions/allAction";
+import Loader from "../../components/Loader"; 
 
 const RepliedQueries = () => {
-
   const dispatch = useDispatch();
   const { loading, items, error } = useSelector(
     (state) => state.replied_queries
@@ -14,11 +14,11 @@ const RepliedQueries = () => {
     dispatch(fetchRepliedQueries());
   }, [dispatch]);
 
+  if (loading) return <Loader text="Loading Replied Queries..." />;
 
-  if (loading) return <p>Loading replied queries...</p>;
-  if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
+  if (error)
+    return <p style={{ color: "red" }}>Error fetching queries: {error}</p>;
 
-  // Map API data to table format
   const data = items.map((q, index) => ({
     id: index + 1,
     serviceNo: q?.sno ? String(q.sno) : "",

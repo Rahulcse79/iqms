@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchRepliedQueries } from "../actions/allAction";
+import Loader from "../components/Loader";
 
 // --- CSS Styles ---
 const styles = `
@@ -145,6 +146,7 @@ const Dashboard = () => {
   return (
     <>
       <style>{styles}</style>
+      {loading && <Loader text="Fetching Replied Queries..." />}
       <div className="dashboard-section">
         <div className="dashboard-grid">
           <QueryCard
