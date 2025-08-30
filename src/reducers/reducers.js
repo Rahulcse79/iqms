@@ -72,6 +72,7 @@ const initialState = {
     loading: false,
     personalData: null,
     error: null,
+    repliedQueries: [] 
 };
 
 export const repliedQueryReducer = (state = { items: [] }, action) => {
