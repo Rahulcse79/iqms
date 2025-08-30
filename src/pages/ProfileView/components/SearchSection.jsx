@@ -1,6 +1,12 @@
 import React from 'react';
 
-export default function SearchSection({ serviceNo, setServiceNo, handleSearch }) {
+export default function SearchSection({
+  serviceNo,
+  setServiceNo,
+  category,
+  setCategory,
+  handleSearch,
+}) {
   return (
     <form className="search-section" onSubmit={handleSearch}>
       <div className="form-group">
@@ -12,9 +18,13 @@ export default function SearchSection({ serviceNo, setServiceNo, handleSearch })
       </div>
       <div className="form-group">
         <label htmlFor="category">Category</label>
-        <select id="category" defaultValue="Airmen">
-          <option>Airmen</option>
-          <option>Officer</option>
+        <select
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="1">Airmen</option>
+          <option value="2">Officer</option>
         </select>
       </div>
       <div className="form-group">
@@ -27,7 +37,9 @@ export default function SearchSection({ serviceNo, setServiceNo, handleSearch })
           onChange={(e) => setServiceNo(e.target.value)}
         />
       </div>
-      <button type="submit" className="submit-btn">Submit</button>
+      <button type="submit" className="submit-btn">
+        Submit
+      </button>
     </form>
   );
 }

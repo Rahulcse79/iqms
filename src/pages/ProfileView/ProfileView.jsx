@@ -10,12 +10,21 @@ import IRLAHistoryTab from './components/IRLAHistoryTab';
 import IQMSDetailsTab from './components/IQMSdetailsTab';
 import SearchSection from './components/SearchSection';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPersonalData } from '../../actions/allAction';
+import {
+  fetchPersonalData,
+  getRankHistory,
+  getTradeHistory,
+  getPostingHistory,
+} from '../../actions/allAction';
 
-// Lazy Loader Component
-const LazyComponent = ({ Component }) => {
+const log = {
+  debug: (...args) => process.env.NODE_ENV !== 'production' && console.debug('[ProfileView]', ...args),
+  error: (...args) => console.error('[ProfileView]', ...args),
+};
+
+const LazyComponent = ({ renderFn }) => {
   const [visible, setVisible] = useState(false);
-  const ref = useRef();
+  const ref = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
@@ -25,12 +34,12 @@ const LazyComponent = ({ Component }) => {
       }
     });
     if (ref.current) observer.observe(ref.current);
-    return () => observer && observer.disconnect();
+    return () => observer.disconnect();
   }, []);
 
   return (
     <div ref={ref}>
-      {visible ? <Component /> : <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>}
+      {visible ? renderFn() : <div style={{ padding: 20, textAlign: 'center' }}>Loading...</div>}
     </div>
   );
 };
@@ -48,25 +57,35 @@ const SECTIONS = [
 
 export default function ProfileView() {
   const [serviceNo, setServiceNo] = useState('');
+  const [category, setCategory] = useState('1');
   const [showProfile, setShowProfile] = useState(false);
   const sectionRefs = useRef({});
 
   const dispatch = useDispatch();
-  const { loading, personalData, error } = useSelector((state) => state.personalData);
+  const personalSlice = useSelector((s) => s.personalData || {});
+  const userSlice = useSelector((s) => s.user ?? s.login_user ?? {});
+  const rankHistory = userSlice.rankHistory || {};
+  const tradeHistory = userSlice.tradeHistory || {};
+  const postingHistory = userSlice.postingHistory || {};
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    if (serviceNo.trim()) {
-      dispatch(fetchPersonalData(serviceNo, 1)); // assuming category = 1
+    if (!serviceNo.trim()) return alert('Please enter a service number.');
+
+    try {
       setShowProfile(true);
-    } else {
-      alert('Please enter a service number.');
+      await dispatch(fetchPersonalData(serviceNo, category));
+      dispatch(getRankHistory(serviceNo, category, 1));
+      dispatch(getTradeHistory(serviceNo, category, 1));
+      dispatch(getPostingHistory(serviceNo, category, 1));
+    } catch (err) {
+      log.error('Search Error', err);
     }
   };
 
   const handleDropdownChange = (e) => {
-    const sectionId = e.target.value;
-    sectionRefs.current[sectionId]?.scrollIntoView({ behavior: 'smooth' });
+    const id = e.target.value;
+    sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -74,15 +93,13 @@ export default function ProfileView() {
       <SearchSection
         serviceNo={serviceNo}
         setServiceNo={setServiceNo}
+        category={category}
+        setCategory={setCategory}
         handleSearch={handleSearch}
       />
 
-      {loading && <p>Loading personal data...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {showProfile && personalData && (
+      {showProfile && (
         <div className="result-section">
-          {/* Dropdown Navigation */}
           <div className="dropdown-container">
             <select onChange={handleDropdownChange} defaultValue="">
               <option value="" disabled>Select a section</option>
@@ -92,21 +109,29 @@ export default function ProfileView() {
             </select>
           </div>
 
-          {/* Scrollable Sections with Lazy Loading */}
           <div className="sections-container">
-            {SECTIONS.map(({ id, Component, label }) => (
-              <div
-                key={id}
-                id={id}
-                ref={(el) => (sectionRefs.current[id] = el)}
-                className="profile-section"
-              >
-                <h2 className="section-title">{label}</h2>
-                <div className="section-content">
-                  <LazyComponent Component={Component} />
+            {SECTIONS.map(({ id, Component, label }) => {
+              let tabProps = {};
+              if (id === 'rank') tabProps = rankHistory;
+              if (id === 'trade') tabProps = tradeHistory;
+              if (id === 'posting') tabProps = postingHistory;
+
+              return (
+                <div
+                  key={id}
+                  id={id}
+                  ref={(el) => (sectionRefs.current[id] = el)}
+                  className="profile-section"
+                >
+                  <h2 className="section-title">{label}</h2>
+                  <div className="section-content">
+                    <LazyComponent renderFn={() => (
+                      <Component {...tabProps} />
+                    )} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
