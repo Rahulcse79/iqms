@@ -1,21 +1,26 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./SearchQuery.css";
 
 const SearchQuery = () => {
   const [activeTab, setActiveTab] = useState("serviceNumber");
   const [serviceNumber, setServiceNumber] = useState("");
   const [queryID, setQueryID] = useState("");
+  const [category, setCategory] = useState("1"); // default category
+  const navigate = useNavigate();
 
   // 🔹 Function to handle search
   const handleSearch = (e) => {
-    e.preventDefault(); // stop page refresh
+    e.preventDefault();
 
-    if (activeTab === "serviceNumber") {
-      console.log("Searching by Service Number:", serviceNumber);
-      alert(`Searching for Service Number: ${serviceNumber}`);
-    } else if (activeTab === "queryID") {
-      console.log("Searching by Query ID:", queryID);
-      alert(`Searching for Query ID: ${queryID}`);
+    if (activeTab === "serviceNumber" && serviceNumber.trim()) {
+      navigate(
+        `/search-results?type=Service&category=${category}&q=${serviceNumber}`
+      );
+    } else if (activeTab === "queryID" && queryID.trim()) {
+      navigate(`/search-results?type=Query&q=${queryID}`);
+    } else {
+      alert("Please enter a valid input");
     }
   };
 
@@ -45,8 +50,9 @@ const SearchQuery = () => {
           <form className="search-form" onSubmit={handleSearch}>
             <label>
               Category:
-              <select>
-                <option value="airmen">Airmen/ NCS(E)</option>
+              <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                <option value="1">Airmen/ NCS(E)</option>
+                {/* Add more categories if available */}
               </select>
             </label>
             <label>

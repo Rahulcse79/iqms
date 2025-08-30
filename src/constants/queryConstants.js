@@ -1,0 +1,7 @@
+// src/constants/queryConstants.js
+
+export const SEARCH_QUERY_REQUEST = "SEARCH_QUERY_REQUEST";
+export const SEARCH_QUERY_SUCCESS = "SEARCH_QUERY_SUCCESS";
+export const SEARCH_QUERY_FAIL = "SEARCH_QUERY_FAIL";
+
+export const CLEAR_QUERY_RESULTS = "CLEAR_QUERY_RESULTS";
