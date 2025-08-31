@@ -29,9 +29,9 @@ export default function SearchResults() {
       try {
         let url = "";
         if (type === "Service") {
-          url = `http://10.69.193.151:80/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${category}`;
+          url = `/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${category}`;
         } else if (type === "Query") {
-          url = `http://10.69.193.151:80/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
+          url = `/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
         }
 
         const { data } = await axios.get(url);

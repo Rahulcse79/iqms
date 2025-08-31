@@ -3,7 +3,6 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "/afcao/ipas/ivrs",
-  timeout: 10000, // 10s timeout
 });
 
 // Optional: intercept requests/responses
