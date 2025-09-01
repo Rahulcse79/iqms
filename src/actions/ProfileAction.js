@@ -18,10 +18,14 @@ import {
   FETCH_ABC_REQUEST,
   FETCH_ABC_SUCCESS,
   FETCH_ABC_FAILURE,
+  GCI_HISTORY_REQUEST,
+  GCI_HISTORY_SUCCESS,
+  GCI_HISTORY_FAIL,
 } from "../constants/ProfileConstants";
 
 // Base paths
 const BASE_PROFILEVIEW = `/afcao/ipas/ivrs/profileView`;
+const BASE_ABCS = `/afcao/ipas/ivrs/`;
 const BASE_PERSONAL = `/afcao/ipas/ivrs`;
 
 /** Small logger */
@@ -72,9 +76,9 @@ const safeErrorMessage = (err) => {
    --------------------------- */
 export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
   dispatch({ type: FETCH_PERSONAL_DATA_REQUEST });
-  const url = `${BASE_PERSONAL}/fetch_pers_data/${encodeURIComponent(serviceNo)}/${encodeURIComponent(
-    category
-  )}`;
+  const url = `${BASE_PERSONAL}/fetch_pers_data/${encodeURIComponent(
+    serviceNo
+  )}/${encodeURIComponent(category)}`;
 
   log.group("fetchPersonalData");
   log.debug("GET", url, { serviceNo, category });
@@ -107,86 +111,186 @@ export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
 /* ---------------------------
    Rank / Trade / Posting history actions
    --------------------------- */
-export const getRankHistory = (serviceNo, category, page = 1) => async (dispatch) => {
-  dispatch({ type: RANK_HISTORY_REQUEST });
-  const url = `${BASE_PROFILEVIEW}/rankHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`;
+export const getRankHistory =
+  (serviceNo, category, page = 1) =>
+  async (dispatch) => {
+    dispatch({ type: RANK_HISTORY_REQUEST });
+    const url = `${BASE_PROFILEVIEW}/rankHist/${encodeURIComponent(
+      serviceNo
+    )}/${encodeURIComponent(category)}`;
 
-  log.group("getRankHistory");
-  log.debug("GET", url, { serviceNo, category, page });
+    log.group("getRankHistory");
+    log.debug("GET", url, { serviceNo, category, page });
+
+    try {
+      const { data } = await axios.get(url, { timeout: 15000 });
+      log.info("getRankHistory -> response received, count:", data?.count);
+      if (Array.isArray(data?.items)) {
+        // eslint-disable-next-line no-console
+        console.table(data.items);
+      }
+      dispatch({ type: RANK_HISTORY_SUCCESS, payload: data });
+      log.info("getRankHistory -> DISPATCH SUCCESS");
+      return data;
+    } catch (error) {
+      const msg = safeErrorMessage(error);
+      log.error("getRankHistory -> ERROR", msg, { error });
+      dispatch({ type: RANK_HISTORY_FAIL, payload: msg });
+      throw new Error(msg);
+    } finally {
+      log.groupEnd();
+    }
+  };
+
+export const getTradeHistory =
+  (serviceNo, category, page = 1) =>
+  async (dispatch) => {
+    dispatch({ type: TRADE_HISTORY_REQUEST });
+    const url = `${BASE_PROFILEVIEW}/tradeHist/${encodeURIComponent(
+      serviceNo
+    )}/${encodeURIComponent(category)}`;
+
+    log.group("getTradeHistory");
+    log.debug("GET", url, { serviceNo, category, page });
+
+    try {
+      const { data } = await axios.get(url, { timeout: 15000 });
+      log.info("getTradeHistory -> response received, count:", data?.count);
+      if (Array.isArray(data?.items)) {
+        // eslint-disable-next-line no-console
+        console.table(data.items);
+      }
+      dispatch({ type: TRADE_HISTORY_SUCCESS, payload: data });
+      log.info("getTradeHistory -> DISPATCH SUCCESS");
+      return data;
+    } catch (error) {
+      const msg = safeErrorMessage(error);
+      log.error("getTradeHistory -> ERROR", msg, { error });
+      dispatch({ type: TRADE_HISTORY_FAIL, payload: msg });
+      throw new Error(msg);
+    } finally {
+      log.groupEnd();
+    }
+  };
+
+export const getPostingHistory =
+  (serviceNo, category, page = 1) =>
+  async (dispatch) => {
+    dispatch({ type: POSTING_HISTORY_REQUEST });
+    const url = `${BASE_PROFILEVIEW}/postingHist/${encodeURIComponent(
+      serviceNo
+    )}/${encodeURIComponent(category)}`;
+
+    log.group("getPostingHistory");
+    log.debug("GET", url, { serviceNo, category, page });
+
+    try {
+      const { data } = await axios.get(url, { timeout: 15000 });
+      log.info("getPostingHistory -> response received, count:", data?.count);
+      if (Array.isArray(data?.items)) {
+        // eslint-disable-next-line no-console
+        console.table(data.items);
+      }
+      dispatch({ type: POSTING_HISTORY_SUCCESS, payload: data });
+      log.info("getPostingHistory -> DISPATCH SUCCESS");
+      return data;
+    } catch (error) {
+      const msg = safeErrorMessage(error);
+      log.error("getPostingHistory -> ERROR", msg, { error });
+      dispatch({ type: POSTING_HISTORY_FAIL, payload: msg });
+      throw new Error(msg);
+    } finally {
+      log.groupEnd();
+    }
+  };
+
+export const fetchABCCodes = () => async (dispatch) => {
+  console.log("[Action] fetchABCCodes triggered");
+  dispatch({ type: FETCH_ABC_REQUEST });
+
+  const url = `${BASE_ABCS}fetch_abc_codes`;
 
   try {
-    const { data } = await axios.get(url, { timeout: 15000 });
-    log.info("getRankHistory -> response received, count:", data?.count);
-    if (Array.isArray(data?.items)) {
-      // eslint-disable-next-line no-console
-      console.table(data.items);
-    }
-    dispatch({ type: RANK_HISTORY_SUCCESS, payload: data });
-    log.info("getRankHistory -> DISPATCH SUCCESS");
-    return data;
+    const res = await axios.get(url);
+    console.log("[Action] API Response:", res.data);
+
+    dispatch({
+      type: FETCH_ABC_SUCCESS,
+      payload: res.data,
+    });
   } catch (error) {
-    const msg = safeErrorMessage(error);
-    log.error("getRankHistory -> ERROR", msg, { error });
-    dispatch({ type: RANK_HISTORY_FAIL, payload: msg });
-    throw new Error(msg);
-  } finally {
-    log.groupEnd();
+    console.error("[Action] Error fetching ABC codes:", error);
+    dispatch({
+      type: FETCH_ABC_FAILURE,
+      payload: error.message || "Failed to fetch ABC codes",
+    });
   }
 };
 
-export const getTradeHistory = (serviceNo, category, page = 1) => async (dispatch) => {
-  dispatch({ type: TRADE_HISTORY_REQUEST });
-  const url = `${BASE_PROFILEVIEW}/tradeHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`;
-
-  log.group("getTradeHistory");
-  log.debug("GET", url, { serviceNo, category, page });
-
-  try {
-    const { data } = await axios.get(url, { timeout: 15000 });
-    log.info("getTradeHistory -> response received, count:", data?.count);
-    if (Array.isArray(data?.items)) {
-      // eslint-disable-next-line no-console
-      console.table(data.items);
+/* ----------------- getGCIHistory (with caching) -----------------
+   serviceNo: string/number
+   category: string/number
+   abc: string (selected code)
+*/
+export const getGCIHistory =
+  (serviceNo, category, abc) => async (dispatch, getState) => {
+    if (!serviceNo) {
+      const msg = "Service number required to fetch GCI history";
+      dispatch({ type: GCI_HISTORY_FAIL, payload: msg });
+      throw new Error(msg);
     }
-    dispatch({ type: TRADE_HISTORY_SUCCESS, payload: data });
-    log.info("getTradeHistory -> DISPATCH SUCCESS");
-    return data;
-  } catch (error) {
-    const msg = safeErrorMessage(error);
-    log.error("getTradeHistory -> ERROR", msg, { error });
-    dispatch({ type: TRADE_HISTORY_FAIL, payload: msg });
-    throw new Error(msg);
-  } finally {
-    log.groupEnd();
-  }
-};
 
-export const getPostingHistory = (serviceNo, category, page = 1) => async (dispatch) => {
-  dispatch({ type: POSTING_HISTORY_REQUEST });
-  const url = `${BASE_PROFILEVIEW}/postingHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`;
-
-  log.group("getPostingHistory");
-  log.debug("GET", url, { serviceNo, category, page });
-
-  try {
-    const { data } = await axios.get(url, { timeout: 15000 });
-    log.info("getPostingHistory -> response received, count:", data?.count);
-    if (Array.isArray(data?.items)) {
-      // eslint-disable-next-line no-console
-      console.table(data.items);
+    const cacheKey = `${serviceNo}|${category}|${abc}`;
+    // Check cache in redux first
+    try {
+      const cached = getState()?.profileView?.gciHistory?.cache?.[cacheKey];
+      if (cached) {
+        // served from cache
+        dispatch({
+          type: GCI_HISTORY_SUCCESS,
+          payload: cached,
+          meta: { cacheKey, fromCache: true },
+        });
+        log.info("getGCIHistory -> served from cache", cacheKey);
+        return cached;
+      }
+    } catch (e) {
+      // noop — continue to fetch
     }
-    dispatch({ type: POSTING_HISTORY_SUCCESS, payload: data });
-    log.info("getPostingHistory -> DISPATCH SUCCESS");
-    return data;
-  } catch (error) {
-    const msg = safeErrorMessage(error);
-    log.error("getPostingHistory -> ERROR", msg, { error });
-    dispatch({ type: POSTING_HISTORY_FAIL, payload: msg });
-    throw new Error(msg);
-  } finally {
-    log.groupEnd();
-  }
-};
+
+    dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey } });
+    const url = `${BASE_PROFILEVIEW}/gciHist/${encodeURIComponent(
+      serviceNo
+    )}/${encodeURIComponent(category)}/${encodeURIComponent(abc)}`;
+    log.group("getGCIHistory");
+    log.debug("GET", url, { serviceNo, category, abc });
+
+    try {
+      const { data } = await axios.get(url, { timeout: 15000 });
+      // `data` expected in same pattern used elsewhere: { items: [...], count, limit, offset, links }
+      log.info("getGCIHistory -> response received", {
+        count: data?.count ?? null,
+      });
+      if (process.env.NODE_ENV !== "production" && Array.isArray(data?.items)) {
+        console.table(data.items.slice(0, 10));
+      }
+      // include cacheKey inside meta so reducer can store it
+      dispatch({
+        type: GCI_HISTORY_SUCCESS,
+        payload: data,
+        meta: { cacheKey },
+      });
+      log.info("getGCIHistory -> DISPATCH SUCCESS", cacheKey);
+      return data;
+    } catch (err) {
+      const msg = safeErrorMessage(err);
+      dispatch({ type: GCI_HISTORY_FAIL, payload: msg, meta: { cacheKey } });
+      log.error("getGCIHistory -> ERROR", msg);
+      throw new Error(msg);
+    } finally {
+      log.groupEnd();
+    }
+  };
 
 // Import breadcrumb
 try {

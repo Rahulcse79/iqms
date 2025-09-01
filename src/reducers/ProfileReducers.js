@@ -17,6 +17,9 @@ import {
   FETCH_ABC_REQUEST,
   FETCH_ABC_SUCCESS,
   FETCH_ABC_FAILURE,
+  GCI_HISTORY_REQUEST,
+  GCI_HISTORY_SUCCESS,
+  GCI_HISTORY_FAIL,
 } from "../constants/ProfileConstants";
 
 /** Local reducer logger */
@@ -59,11 +62,21 @@ export const personalDataReducer = (state = personalInitial, action) => {
     }
     case FETCH_PERSONAL_DATA_SUCCESS: {
       rlog.hit(action.type, { received: !!action.payload });
-      return { ...state, loading: false, personalData: action.payload, error: null };
+      return {
+        ...state,
+        loading: false,
+        personalData: action.payload,
+        error: null,
+      };
     }
     case FETCH_PERSONAL_DATA_FAIL: {
       rlog.hit(action.type, action.payload);
-      return { ...state, loading: false, personalData: null, error: action.payload };
+      return {
+        ...state,
+        loading: false,
+        personalData: null,
+        error: action.payload,
+      };
     }
     default:
       return state;
@@ -84,14 +97,18 @@ export const ProfileViewReducer = (state = profileViewInitial, action) => {
     case RANK_HISTORY_SUCCESS: {
       rlog.hit(action.type, {
         count: action.payload?.count,
-        items: Array.isArray(action.payload?.items) ? action.payload.items.length : 0,
+        items: Array.isArray(action.payload?.items)
+          ? action.payload.items.length
+          : 0,
       });
       return {
         ...state,
         rankHistory: {
           ...state.rankHistory,
           loading: false,
-          items: Array.isArray(action.payload?.items) ? action.payload.items : [],
+          items: Array.isArray(action.payload?.items)
+            ? action.payload.items
+            : [],
           meta: action.payload || null,
           error: null,
         },
@@ -101,7 +118,11 @@ export const ProfileViewReducer = (state = profileViewInitial, action) => {
       rlog.hit(action.type, action.payload);
       return {
         ...state,
-        rankHistory: { ...state.rankHistory, loading: false, error: action.payload },
+        rankHistory: {
+          ...state.rankHistory,
+          loading: false,
+          error: action.payload,
+        },
       };
     }
 
@@ -116,14 +137,18 @@ export const ProfileViewReducer = (state = profileViewInitial, action) => {
     case TRADE_HISTORY_SUCCESS: {
       rlog.hit(action.type, {
         count: action.payload?.count,
-        items: Array.isArray(action.payload?.items) ? action.payload.items.length : 0,
+        items: Array.isArray(action.payload?.items)
+          ? action.payload.items.length
+          : 0,
       });
       return {
         ...state,
         tradeHistory: {
           ...state.tradeHistory,
           loading: false,
-          items: Array.isArray(action.payload?.items) ? action.payload.items : [],
+          items: Array.isArray(action.payload?.items)
+            ? action.payload.items
+            : [],
           meta: action.payload || null,
           error: null,
         },
@@ -133,7 +158,11 @@ export const ProfileViewReducer = (state = profileViewInitial, action) => {
       rlog.hit(action.type, action.payload);
       return {
         ...state,
-        tradeHistory: { ...state.tradeHistory, loading: false, error: action.payload },
+        tradeHistory: {
+          ...state.tradeHistory,
+          loading: false,
+          error: action.payload,
+        },
       };
     }
 
@@ -148,14 +177,18 @@ export const ProfileViewReducer = (state = profileViewInitial, action) => {
     case POSTING_HISTORY_SUCCESS: {
       rlog.hit(action.type, {
         count: action.payload?.count,
-        items: Array.isArray(action.payload?.items) ? action.payload.items.length : 0,
+        items: Array.isArray(action.payload?.items)
+          ? action.payload.items.length
+          : 0,
       });
       return {
         ...state,
         postingHistory: {
           ...state.postingHistory,
           loading: false,
-          items: Array.isArray(action.payload?.items) ? action.payload.items : [],
+          items: Array.isArray(action.payload?.items)
+            ? action.payload.items
+            : [],
           meta: action.payload || null,
           error: null,
         },
@@ -165,9 +198,99 @@ export const ProfileViewReducer = (state = profileViewInitial, action) => {
       rlog.hit(action.type, action.payload);
       return {
         ...state,
-        postingHistory: { ...state.postingHistory, loading: false, error: action.payload },
+        postingHistory: {
+          ...state.postingHistory,
+          loading: false,
+          error: action.payload,
+        },
       };
     }
+
+    case GCI_HISTORY_REQUEST: {
+      // optional cacheKey in action.meta
+      return {
+        ...state,
+        gciHistory: {
+          ...state.gciHistory,
+          loading: true,
+          error: null,
+        },
+      };
+    }
+
+    case GCI_HISTORY_SUCCESS: {
+      const cacheKey = action?.meta?.cacheKey ?? null;
+      const payload = action.payload || {};
+      const items = Array.isArray(payload.items)
+        ? payload.items
+        : (payload || []).items ?? [];
+      const newCache = { ...(state.gciHistory.cache || {}) };
+
+      if (cacheKey) {
+        newCache[cacheKey] = payload;
+      }
+
+      return {
+        ...state,
+        gciHistory: {
+          ...state.gciHistory,
+          loading: false,
+          items: items,
+          meta: payload || null,
+          error: null,
+          cache: newCache,
+        },
+      };
+    }
+
+    case GCI_HISTORY_FAIL:
+      return {
+        ...state,
+        gciHistory: {
+          ...state.gciHistory,
+          loading: false,
+          error: action.payload ?? "Failed to fetch GCI history",
+        },
+      };
+
+    default:
+      return state;
+  }
+};
+
+export const abcCodesReducer = (state = personalInitial, action) => {
+  console.log("[Reducer] abcCodesReducer Action:", action.type);
+
+  switch (action.type) {
+    case FETCH_ABC_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case FETCH_ABC_SUCCESS:
+      console.log("[Reducer] Payload:", action.payload);
+      return {
+        ...state,
+        loading: false,
+        items: action.payload.items || [],
+        meta: {
+          hasMore: action.payload.hasMore,
+          limit: action.payload.limit,
+          offset: action.payload.offset,
+          count: action.payload.count,
+          links: action.payload.links,
+        },
+        error: null,
+      };
+
+    case FETCH_ABC_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
 
     default:
       return state;
