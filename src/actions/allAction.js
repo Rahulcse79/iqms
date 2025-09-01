@@ -10,18 +10,6 @@ import {
   LOGOUT_USER_SUCCESS,
   LOGOUT_USER_FAIL,
   CLEAR_ERRORS,
-  FETCH_PERSONAL_DATA_REQUEST,
-  FETCH_PERSONAL_DATA_SUCCESS,
-  FETCH_PERSONAL_DATA_FAIL,
-  RANK_HISTORY_REQUEST,
-  RANK_HISTORY_SUCCESS,
-  RANK_HISTORY_FAIL,
-  TRADE_HISTORY_REQUEST,
-  TRADE_HISTORY_SUCCESS,
-  TRADE_HISTORY_FAIL,
-  POSTING_HISTORY_REQUEST,
-  POSTING_HISTORY_SUCCESS,
-  POSTING_HISTORY_FAIL,
   REPLIED_QUERY_REQUEST,
   REPLIED_QUERY_SUCCESS,
   REPLIED_QUERY_FAIL,
@@ -147,29 +135,7 @@ const safeErrorMessage = (err) => {
   return err?.message || 'Something went wrong';
 };
 
-/* ---------------------------
-   Fetch personal data
-   --------------------------- */
-export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
-  dispatch({ type: FETCH_PERSONAL_DATA_REQUEST });
 
-  const url = `${BASE_PERSONAL}/fetch_pers_data/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`;
-  log.debug('fetchPersonalData -> GET', url);
-
-  try {
-    const res = await axios.get(url, { timeout: 15000 });
-    const item = res?.data?.items?.[0] ?? null;
-    dispatch({ type: FETCH_PERSONAL_DATA_SUCCESS, payload: item });
-    log.info('fetchPersonalData success', { serviceNo, category, received: !!item });
-    return res.data;
-  } catch (error) {
-    const msg = safeErrorMessage(error);
-    log.error('fetchPersonalData failed', error);
-    dispatch({ type: FETCH_PERSONAL_DATA_FAIL, payload: msg });
-    // rethrow so callers (components) can await and handle
-    throw new Error(msg);
-  }
-};
 
 /* ---------------------------
    Auth actions (kept functionality, hardened)
@@ -225,68 +191,6 @@ export const logoutUser = () => async (dispatch) => {
   }
 };
 
-/* ---------------------------
-   Rank / Trade / Posting history actions
-   - Uses fully qualified host to avoid accidental routing through dev-server proxies.
-   - Returns data on success and throws an Error on failure so callers can await / handle.
-   --------------------------- */
-
-export const getRankHistory = (serviceNo, category, page = 1) => async (dispatch) => {
-  dispatch({ type: RANK_HISTORY_REQUEST });
-
-  const url = `${BASE_PROFILEVIEW}/rankHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`;
-  log.debug('getRankHistory -> GET', url);
-
-  try {
-    const { data } = await axios.get(url, { timeout: 15000 });
-    dispatch({ type: RANK_HISTORY_SUCCESS, payload: data });
-    log.info('getRankHistory success', { serviceNo, category, page, count: data?.count ?? null });
-    return data;
-  } catch (error) {
-    const msg = safeErrorMessage(error);
-    dispatch({ type: RANK_HISTORY_FAIL, payload: msg });
-    log.error('getRankHistory failed', error);
-    throw new Error(msg);
-  }
-};
-
-export const getTradeHistory = (serviceNo, category, page = 1) => async (dispatch) => {
-  dispatch({ type: TRADE_HISTORY_REQUEST });
-
-  const url = `${BASE_PROFILEVIEW}/tradeHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`;
-  log.debug('getTradeHistory -> GET', url);
-
-  try {
-    const { data } = await axios.get(url, { timeout: 15000 });
-    dispatch({ type: TRADE_HISTORY_SUCCESS, payload: data });
-    log.info('getTradeHistory success', { serviceNo, category, page, count: data?.count ?? null });
-    return data;
-  } catch (error) {
-    const msg = safeErrorMessage(error);
-    dispatch({ type: TRADE_HISTORY_FAIL, payload: msg });
-    log.error('getTradeHistory failed', error);
-    throw new Error(msg);
-  }
-};
-
-export const getPostingHistory = (serviceNo, category, page = 1) => async (dispatch) => {
-  dispatch({ type: POSTING_HISTORY_REQUEST });
-
-  const url = `${BASE_PROFILEVIEW}/postingHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`;
-  log.debug('getPostingHistory -> GET', url);
-
-  try {
-    const { data } = await axios.get(url, { timeout: 15000 });
-    dispatch({ type: POSTING_HISTORY_SUCCESS, payload: data });
-    log.info('getPostingHistory success', { serviceNo, category, page, count: data?.count ?? null });
-    return data;
-  } catch (error) {
-    const msg = safeErrorMessage(error);
-    dispatch({ type: POSTING_HISTORY_FAIL, payload: msg });
-    log.error('getPostingHistory failed', error);
-    throw new Error(msg);
-  }
-};
 
 /* ---------------------------
    Clear errors (synchronous)

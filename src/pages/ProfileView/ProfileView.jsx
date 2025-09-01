@@ -1,3 +1,4 @@
+// ProfileView.jsx
 import React, {
   useState,
   useRef,
@@ -22,7 +23,7 @@ import {
   getRankHistory,
   getTradeHistory,
   getPostingHistory,
-} from '../../actions/allAction';
+} from '../../actions/ProfileAction';
 import PersonalDetails from './components/PersonalDetails';
 
 const log = {
@@ -271,11 +272,35 @@ export default function ProfileView() {
   const [pinThreshold, setPinThreshold] = useState(null);
 
   const dispatch = useDispatch();
+
+  // NOTE: changed selector source to profileView (was reading from user/login_user)
   const personalSlice = useSelector((s) => s.personalData || {});
+  const profileViewSlice = useSelector((s) => s.profileView || {});
+  // keep an explicit reference to user slice too (unchanged) in case other parts need it
   const userSlice = useSelector((s) => s.user ?? s.login_user ?? {});
-  const rankHistory = userSlice.rankHistory || {};
-  const tradeHistory = userSlice.tradeHistory || {};
-  const postingHistory = userSlice.postingHistory || {};
+
+  // Take the history slices from profileViewSlice (this is where reducers store them)
+  const rankHistory = profileViewSlice.rankHistory || {};
+  const tradeHistory = profileViewSlice.tradeHistory || {};
+  const postingHistory = profileViewSlice.postingHistory || {};
+
+  // --- Debug/logging to help trace data flow (non-invasive) ---
+  useEffect(() => {
+    // Only in dev mode — harmless otherwise
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        console.groupCollapsed('[ProfileView] Redux slices snapshot');
+        console.log('profileView keys:', Object.keys(profileViewSlice || {}));
+        console.log('rankHistory present:', !!profileViewSlice?.rankHistory);
+        console.log('rankHistory.items length:', Array.isArray(profileViewSlice?.rankHistory?.items) ? profileViewSlice.rankHistory.items.length : typeof profileViewSlice?.rankHistory?.items);
+        console.log('tradeHistory.items length:', Array.isArray(profileViewSlice?.tradeHistory?.items) ? profileViewSlice.tradeHistory.items.length : typeof profileViewSlice?.tradeHistory?.items);
+        console.log('postingHistory.items length:', Array.isArray(profileViewSlice?.postingHistory?.items) ? profileViewSlice.postingHistory.items.length : typeof profileViewSlice?.postingHistory?.items);
+        console.groupEnd();
+      } catch (e) {
+        // no-op
+      }
+    }
+  }, [profileViewSlice]);
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -492,10 +517,30 @@ export default function ProfileView() {
 
           <div className="sections-container">
             {SECTIONS.map(({ id, Component, label }) => {
+              // prepare tab props from profileView slice (this is the important fix)
               let tabProps = {};
               if (id === 'rank') tabProps = rankHistory;
               if (id === 'trade') tabProps = tradeHistory;
               if (id === 'posting') tabProps = postingHistory;
+
+              // debug the props being passed to the component (dev only)
+              if (process.env.NODE_ENV !== 'production') {
+                try {
+                  console.groupCollapsed(`[ProfileView] render section ${id}`);
+                  console.log('tabProps keys:', Object.keys(tabProps || {}));
+                  console.log('items type:', Array.isArray(tabProps?.items) ? 'array' : typeof tabProps?.items);
+                  if (Array.isArray(tabProps?.items)) {
+                    console.log('items length:', tabProps.items.length);
+                    // show up to first 5 rows to avoid huge output
+                    console.table(tabProps.items.slice(0, 5));
+                  } else {
+                    console.log('tabProps (non-array items):', tabProps);
+                  }
+                  console.groupEnd();
+                } catch (e) {
+                  // noop
+                }
+              }
 
               return (
                 <div

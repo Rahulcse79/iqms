@@ -17,11 +17,25 @@ const formatDate = (iso) => {
   }
 };
 
+/* Developer logging helper (no-ops in production) */
 const devLog = (...args) => {
   if (process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line no-console
-    console.debug('[RankHistoryTab]', ...args);
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[RankHistoryTab]', ...args);
+    } catch {}
   }
+};
+
+const devGroup = (label, fn) => {
+  if (process.env.NODE_ENV === 'production') return;
+  try {
+    // eslint-disable-next-line no-console
+    console.groupCollapsed(`[RankHistoryTab] ${label}`);
+    fn();
+    // eslint-disable-next-line no-console
+    console.groupEnd();
+  } catch {}
 };
 
 /* pick date raw from multiple possible keys */
@@ -119,17 +133,40 @@ const styles = {
 };
 
 /* ---------------- Component ---------------- */
+/**
+ * Props:
+ *  - items: [] (array of rank-history objects from reducer)
+ *  - loading: boolean
+ *  - error: any
+ *
+ * NOTE: I have not changed any functional behavior. Only added dev logging to
+ * inspect incoming reducer data and to show intermediate parsed states.
+ */
 export default function RankHistoryTab({ items = [], loading, error }) {
   /* Hooks & state (always first) */
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
   const [sortDir, setSortDir] = useState(null); // null | 'asc' | 'desc'
 
+  // Quick prop-level log so you can see what's being passed from container/mapState
+  devGroup('Props Snapshot', () => {
+    devLog('loading:', loading);
+    devLog('error:', error);
+    devLog('items type:', Array.isArray(items) ? 'array' : typeof items);
+    if (Array.isArray(items)) {
+      // only show first 10 in table to avoid huge logs
+      // eslint-disable-next-line no-console
+      console.table(items.slice(0, 10));
+    } else {
+      devLog('items (non-array):', items);
+    }
+  });
+
   /* Data cleaning */
   const cleanedRows = useMemo(() => {
     if (!Array.isArray(items)) return [];
-    return items.map((row, idx) => {
-      devLog('Raw Rank Data:', row);
+    const mapped = items.map((row, idx) => {
+      devLog('Raw Rank Data (row):', row);
       const dateRaw = pickDateRaw(row);
       return {
         _idx: idx,
@@ -140,6 +177,18 @@ export default function RankHistoryTab({ items = [], loading, error }) {
         __raw: row,
       };
     });
+
+    devGroup('cleanedRows sample', () => {
+      // eslint-disable-next-line no-console
+      console.table(mapped.slice(0, 10).map(r => ({
+        _idx: r._idx,
+        rank: r.rank,
+        rankDateFormatted: r.rankDateFormatted,
+        remarks: r.remarks,
+      })));
+    });
+
+    return mapped;
   }, [items]);
 
   /* Sorting (rankDate only) */
@@ -153,6 +202,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
       const diff = a.rankDateRaw.getTime() - b.rankDateRaw.getTime();
       return sortDir === 'asc' ? diff : -diff;
     });
+    devLog('sortedRows direction:', sortDir, 'count:', arr.length);
     return arr;
   }, [cleanedRows, sortDir]);
 
@@ -172,6 +222,21 @@ export default function RankHistoryTab({ items = [], loading, error }) {
   const startIndex = (page - 1) * pageSize;
   const pageRows = sortedRows.slice(startIndex, startIndex + pageSize);
 
+  // Log page-level rows when they change
+  useEffect(() => {
+    devGroup(`Page ${page} Rows`, () => {
+      devLog('startIndex:', startIndex);
+      devLog('pageRows length:', pageRows.length);
+      // eslint-disable-next-line no-console
+      console.table(pageRows.map((r, i) => ({
+        idx: startIndex + i + 1,
+        rank: r.rank,
+        rankDateFormatted: r.rankDateFormatted,
+        remarks: r.remarks,
+      })));
+    });
+  }, [pageRows, page, startIndex]);
+
   /* Handlers */
   const toggleSort = () => setSortDir((d) => (d === null ? 'asc' : d === 'asc' ? 'desc' : null));
   const onHeaderKey = (e) => {
@@ -182,6 +247,8 @@ export default function RankHistoryTab({ items = [], loading, error }) {
   };
 
   /* Conditional UI after hooks */
+  devLog('Render check', { loading, error, itemsLength: Array.isArray(items) ? items.length : null, total });
+
   if (loading) return <p style={{ padding: 20 }}>Loading rank history...</p>;
   if (error) return <p style={{ padding: 20, color: 'red' }}>Error: {String(error)}</p>;
   if (!Array.isArray(items) || items.length === 0) return <p style={{ padding: 20 }}>No rank history available.</p>;
