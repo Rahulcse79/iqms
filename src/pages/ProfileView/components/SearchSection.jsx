@@ -32,7 +32,7 @@ export default function SearchSection({
         <input
           type="text"
           id="service-no"
-          placeholder="e.g., 789123-A"
+          placeholder="e.g., 123456"
           value={serviceNo}
           onChange={(e) => setServiceNo(e.target.value)}
         />
