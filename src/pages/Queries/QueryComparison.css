@@ -1,145 +1,282 @@
+/* A. Base / Resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-/* Container */
+:root {
+  --bg: #f7f8fa;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --primary: #0d6efd;
+  --primary-dark: #0b5ed7;
+  --card-bg: #ffffff;
+  --shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+}
+
+/* B. Container */
 .comparison-container {
-    padding: 30px 20px;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    max-width: 1200px;
-    margin: auto;
+  padding: 28px 18px 40px;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
-/* Heading */
 .comparison-container h2 {
-    margin-bottom: 24px;
-    font-size: 26px;
-    color: #2c3e50;
-    font-weight: 700;
-    text-align: center;
+  margin: 0 0 18px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
 }
 
-/* Form */
+/* C. Form Card */
 .comparison-form {
-    background: #fff;
-    padding: 22px;
-    border: 1px solid #e5e5e5;
-    border-radius: 10px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
-    margin-bottom: 28px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 18px;
 }
 
-/* Service number inputs row */
+/* multi-input row */
 .service-numbers-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 18px;
-    margin-bottom: 22px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
 }
 
-.service-numbers-row label {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    font-weight: 600;
-    color: #333;
-    font-size: 14px;
-    min-width: 220px;
+.input-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* allow shrinking in grid */
 }
 
-.service-numbers-row input,
-.service-numbers-row select {
-    margin-top: 6px;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    transition: border 0.2s, box-shadow 0.2s;
-    width: 100%;
-    box-sizing: border-box;
+.input-block label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
 }
 
-.service-numbers-row input:focus,
-.service-numbers-row select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 6px rgba(0, 123, 255, 0.25);
-    outline: none;
+.input-block input,
+.input-block select {
+  padding: 10px 12px;
+  border: 1px solid #cfd4dc;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  width: 100%;
 }
 
-/* Search button */
-.search-btn {
-    padding: 12px 20px;
-    background-color: #007bff;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 160px;
-    display: block;
-    margin: 0 auto;
+.input-block input:focus,
+.input-block select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
 }
 
-.search-btn:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+.input-block input.invalid {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
 }
 
-/* Results */
-.comparison-results {
-    width: 100%;
+.field-error {
+  margin-top: 6px;
+  color: #b91c1c;
+  font-size: 12px;
 }
 
-.error-text {
-    color: red;
-    font-weight: 600;
-    margin-top: 8px;
+/* Actions */
+.actions-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 14px;
 }
 
-/* Table */
-.results-table-wrapper {
-    overflow-x: auto;
+.btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-.results-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 14px;
+.btn.primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: transparent;
 }
 
-.results-table th,
-.results-table td {
-    padding: 12px 14px;
-    border: 1px solid #e5e5e5;
-    font-size: 14px;
-    text-align: left;
-    white-space: nowrap;
+.btn.primary:hover {
+  background: var(--primary-dark);
 }
 
-.results-table th {
-    background: #f9fafb;
-    font-weight: 700;
-    color: #333;
+.btn.ghost {
+  background: #fff;
+  color: var(--text);
 }
 
-.results-table tbody tr:nth-child(even) {
-    background: #fdfdfd;
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.results-table tbody tr:hover {
-    background: #f1f7ff;
+/* Form error banner */
+.form-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #b91c1c;
+  border-radius: 8px;
+  text-align: center;
 }
 
-/* Responsive */
-@media (max-width: 992px) {
-    .service-numbers-row {
-        flex-wrap: wrap;
-    }
-    .service-numbers-row label {
-        flex: 1 1 100%;
-    }
-    .search-btn {
-        width: 100%;
-    }
+/* D. Results Grid */
+.results-grid {
+  margin-top: 20px;
+  display: grid;
+  gap: 16px;
+  /* columns set dynamically via style attr */
+}
+
+.empty-page-note {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* E. Panel Card */
+.result-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* critical to prevent overflow in grid children */
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden; /* contain inner table */
+}
+
+.card-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.card-title h3 {
+  font-size: 16px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #3730a3;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.card-body {
+  padding: 12px;
+}
+
+/* Scroll area for table so page width never grows */
+.table-scroll {
+  width: 100%;
+  max-height: 60vh;
+  overflow: auto;
+  border-radius: 8px;
+}
+
+/* Panel empty */
+.panel-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* F. DataTable overrides (react-data-table-component) */
+.queries-container .rdt_Table {
+  width: 100% !important;
+}
+
+.queries-container .rdt_TableHead,
+.queries-container .rdt_TableBody {
+  width: 100% !important;
+}
+
+.queries-container .rdt_TableBody {
+  max-height: 56vh; /* safety; also have wrapper .table-scroll */
+  overflow-y: auto;
+}
+
+.queries-container .rdt_TableCell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px; /* keep cells from stretching card */
+}
+
+/* G. Utilities */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* H. Responsive tweaks */
+@media (max-width: 768px) {
+  .card-title h3 {
+    max-width: 180px;
+  }
 }
