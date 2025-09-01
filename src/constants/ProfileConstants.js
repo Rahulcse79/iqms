@@ -23,6 +23,11 @@ export const FETCH_ABC_REQUEST = "FETCH_ABC_REQUEST";
 export const FETCH_ABC_SUCCESS = "FETCH_ABC_SUCCESS";
 export const FETCH_ABC_FAILURE = "FETCH_ABC_FAILURE";
 
+export const GCI_HISTORY_REQUEST = "GCI_HISTORY_REQUEST";
+export const GCI_HISTORY_SUCCESS = "GCI_HISTORY_SUCCESS";
+export const GCI_HISTORY_FAIL = "GCI_HISTORY_FAIL";
+
+
 // Light import-time breadcrumb so you know constants loaded
 try {
   if (DEBUG_REDUX_LOGS) {
