@@ -69,7 +69,7 @@ function App() {
   return (
     <AuthProvider>
       <CallProvider>   {/* ✅ wrap here */}
-        <BrowserRouter>
+        <BrowserRouter basename="/app2">
           <AppRoutes />
         </BrowserRouter>
       </CallProvider>

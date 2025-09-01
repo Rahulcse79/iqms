@@ -2,8 +2,8 @@
   "name": "devicemanager",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://10.69.193.151:80",
-  "homepage": "",
+  "proxy": "http://sampoorna.cao.local",
+  "homepage": "/app2",
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.11.0",

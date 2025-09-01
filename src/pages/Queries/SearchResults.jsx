@@ -29,7 +29,7 @@ export default function SearchResults() {
       try {
         let url = "";
         if (type === "Service") {
-          url = `/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${category}`;
+          url = `/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/1`;
         } else if (type === "Query") {
           url = `/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
         }
