@@ -1,7 +1,7 @@
 import { createStore, combineReducers, applyMiddleware, compose } from "redux";
 import { thunk } from "redux-thunk"; 
 import { userReducer, repliedQueryReducer, searchQueryReducer, searchQueryByIdReducer } from "../reducers/reducers";
-import {personalDataReducer, ProfileViewReducer} from "../reducers/ProfileReducers";
+import {personalDataReducer, ProfileViewReducer, abcCodesReducer} from "../reducers/ProfileReducers";
 import { queryReducer } from "../reducers/queryReducer";
 
 const initialState = {
@@ -21,6 +21,7 @@ const reducer = combineReducers({
   query_by_id: searchQueryByIdReducer,
   query: queryReducer,
   profileView: ProfileViewReducer,
+  abcCodes: abcCodesReducer,
 });
 
 const middleware = [thunk];
