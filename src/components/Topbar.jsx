@@ -3,6 +3,7 @@ import { RiMenuFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import "./Topbar.css";
 import { useCall } from "../context/CallContext";
+import { GrRefresh } from "react-icons/gr";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -26,6 +27,11 @@ const Topbar = ({ toggleSidebar }) => {
     name: "Admin",
     designation: "System Admin",
     email: "123456",
+  };
+
+  const handleRefreshScreen = () => {
+    navigate("/");
+    window.location.reload(); // Force full reload
   };
 
   const handleRoleChange = (e) => {
@@ -78,7 +84,12 @@ const Topbar = ({ toggleSidebar }) => {
           </select>
         </div>
 
-        {/* Center */}
+        <div className="refresh-container">
+          <GrRefresh
+            className="refresh-button-api"
+            onClick={handleRefreshScreen}
+          />
+        </div>
         <div className="topbar-center">
           <select
             value={searchCategory}
@@ -102,7 +113,7 @@ const Topbar = ({ toggleSidebar }) => {
             onChange={(e) => setSearchValue(e.target.value)}
           />
           <button onClick={handleSearch}>Search</button>
-         <button onClick={() => api.simulateIncoming()}>Call Trigger</button>
+          <button onClick={() => api.simulateIncoming()}>Call Trigger</button>
         </div>
 
         <div className="topbar-right">

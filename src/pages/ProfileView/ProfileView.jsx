@@ -443,10 +443,10 @@ export default function ProfileView() {
     scrollToSectionWithOffset(id);
   };
 
-  // Provide inline style for pinned element (left/width)
-  const pinnedInlineStyle = isPinned
-    ? { position: 'fixed', top: 0, left: `${pinStyle.left}px`, width: `${pinStyle.width}px`, zIndex: 1100 }
-    : {};
+  // // Provide inline style for pinned element (left/width)
+  // const pinnedInlineStyle = isPinned
+  //   ? { position: 'fixed', top: 0, left: `${pinStyle.left}px`, width: `${pinStyle.width}px`, zIndex: 1100 }
+  //   : {};
 
   return (
     <div className="profile-view-container">
@@ -480,7 +480,7 @@ export default function ProfileView() {
           <div
             className={`dropdown-sticky dropdown-sticky--pinable ${isPinned ? 'dropdown-sticky--pinned' : ''}`}
             ref={dropdownRef}
-            style={pinnedInlineStyle}
+            // style={pinnedInlineStyle}
           >
             <SectionPicker
               options={SECTIONS}

@@ -6,20 +6,25 @@
   padding: 12px 20px;
 }
 
+
 .topbar-content {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* spread sections across */
   align-items: center;
   width: 100%;
 }
 
 .topbar-left,
 .topbar-center,
-.topbar-right {
+.topbar-right,
+.refresh-container {
+  flex: 1; /* allow each to take equal space */
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 }
+
 
 .topbar-center {
   flex-grow: 1;
@@ -32,7 +37,12 @@ select, input, button {
   border: none;
   outline: none;
 }
-
+.refresh-button-api{
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  gap: 2rem;
+}
 input {
   width: 220px;
 }
