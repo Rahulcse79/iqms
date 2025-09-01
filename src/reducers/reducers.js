@@ -31,7 +31,13 @@ import {
   SEARCH_QUERY_BY_ID_FAIL,
 } from "../constants/appConstants";
 
-export const searchQueryByIdReducer = (state = { item: null }, action) => {
+/**
+ * 🔹 Reducer: Search Query By ID
+ */
+export const searchQueryByIdReducer = (
+  state = { item: null, loading: false, error: null, count: 0 },
+  action
+) => {
   switch (action.type) {
     case SEARCH_QUERY_BY_ID_REQUEST:
       return { ...state, loading: true, error: null };
@@ -39,136 +45,134 @@ export const searchQueryByIdReducer = (state = { item: null }, action) => {
     case SEARCH_QUERY_BY_ID_SUCCESS:
       return {
         loading: false,
-        item: action.payload.items[0] || null,
-        count: action.payload.count,
+        item: action.payload?.items?.[0] || null,
+        count: action.payload?.count || 0,
+        error: null,
       };
 
     case SEARCH_QUERY_BY_ID_FAIL:
-      return { loading: false, error: action.payload, item: null };
+      return { loading: false, error: action.payload, item: null, count: 0 };
 
     default:
       return state;
   }
 };
 
-export const searchQueryReducer = (state = { items: [] }, action) => {
+/**
+ * 🔹 Reducer: Search Queries (list)
+ */
+export const searchQueryReducer = (
+  state = { items: [], loading: false, error: null, count: 0, hasMore: false },
+  action
+) => {
   switch (action.type) {
     case SEARCH_QUERY_REQUEST:
-      return {
-        ...state,
-        loading: true,
-        error: null,
-      };
+      return { ...state, loading: true, error: null };
+
     case SEARCH_QUERY_SUCCESS:
       return {
         loading: false,
-        items: action.payload.items,
-        count: action.payload.count,
-        hasMore: action.payload.hasMore,
-      };
-    case SEARCH_QUERY_FAIL:
-      return {
-        loading: false,
-        error: action.payload,
-        items: [],
-      };
-    default:
-      return state;
-  }
-};
-
-const initialState = {
-  loading: false,
-  personalData: null,
-  error: null,
-  repliedQueries: [],
-};
-
-export const repliedQueryReducer = (state = { items: [] }, action) => {
-  switch (action.type) {
-    case REPLIED_QUERY_REQUEST:
-      return {
-        ...state,
-        loading: true,
+        items: action.payload?.items || [],
+        count: action.payload?.count || 0,
+        hasMore: action.payload?.hasMore || false,
         error: null,
       };
-    case REPLIED_QUERY_SUCCESS:
-      return {
-        loading: false,
-        items: action.payload,
-      };
-    case REPLIED_QUERY_FAIL:
-      return {
-        loading: false,
-        error: action.payload,
-        items: [],
-      };
+
+    case SEARCH_QUERY_FAIL:
+      return { loading: false, error: action.payload, items: [], count: 0 };
+
     default:
       return state;
   }
 };
 
-export const personalDataReducer = (state = initialState, action) => {
+/**
+ * 🔹 Reducer: Replied Queries
+ */
+export const repliedQueryReducer = (
+  state = { items: [], loading: false, error: null },
+  action
+) => {
+  switch (action.type) {
+    case REPLIED_QUERY_REQUEST:
+      return { ...state, loading: true, error: null };
+
+    case REPLIED_QUERY_SUCCESS:
+      return { loading: false, items: action.payload || [], error: null };
+
+    case REPLIED_QUERY_FAIL:
+      return { loading: false, error: action.payload, items: [] };
+
+    default:
+      return state;
+  }
+};
+
+/**
+ * 🔹 Reducer: Personal Data
+ */
+export const personalDataReducer = (
+  state = { loading: false, personalData: null, error: null },
+  action
+) => {
   switch (action.type) {
     case FETCH_PERSONAL_DATA_REQUEST:
       return { ...state, loading: true };
+
     case FETCH_PERSONAL_DATA_SUCCESS:
       return { loading: false, personalData: action.payload, error: null };
+
     case FETCH_PERSONAL_DATA_FAIL:
       return { loading: false, personalData: null, error: action.payload };
+
     default:
       return state;
   }
 };
 
-export const userReducer = (state = { user: {} }, { type, payload }) => {
+/**
+ * 🔹 Reducer: User
+ */
+export const userReducer = (
+  state = {
+    user: {},
+    isAuthenticated: false,
+    loading: false,
+    error: null,
+    rankHistory: { items: [], loading: false, error: null },
+    tradeHistory: { items: [], loading: false, error: null },
+    postingHistory: { items: [], loading: false, error: null },
+  },
+  { type, payload }
+) => {
   switch (type) {
+    // Auth
     case LOGIN_USER_REQUEST:
     case LOAD_USER_REQUEST:
-      return {
-        loading: true,
-        isAuthenticated: false,
-      };
+      return { ...state, loading: true, isAuthenticated: false };
+
     case LOGIN_USER_SUCCESS:
     case LOAD_USER_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        isAuthenticated: true,
-        user: payload,
-      };
+      return { ...state, loading: false, isAuthenticated: true, user: payload };
+
     case LOGOUT_USER_SUCCESS:
-      return {
-        loading: false,
-        user: null,
-        isAuthenticated: false,
-      };
+      return { ...state, loading: false, isAuthenticated: false, user: null };
+
     case LOGIN_USER_FAIL:
-      return {
-        ...state,
-        loading: false,
-        isAuthenticated: false,
-        user: null,
-        error: payload,
-      };
     case LOAD_USER_FAIL:
       return {
+        ...state,
         loading: false,
         isAuthenticated: false,
         user: null,
         error: payload,
       };
+
     case LOGOUT_USER_FAIL:
-      return {
-        ...state,
-        loading: false,
-        error: payload,
-      };
+      return { ...state, loading: false, error: payload };
+
     case CLEAR_ERRORS:
-      return {
-        ...state,
-        error: null,
-      };
+      return { ...state, error: null };
 
     // Rank history
     case RANK_HISTORY_REQUEST:
@@ -181,7 +185,6 @@ export const userReducer = (state = { user: {} }, { type, payload }) => {
       return {
         ...state,
         rankHistory: {
-          ...state.rankHistory,
           loading: false,
           items: Array.isArray(payload?.items) ? payload.items : [],
           meta: payload || null,
@@ -206,7 +209,6 @@ export const userReducer = (state = { user: {} }, { type, payload }) => {
       return {
         ...state,
         tradeHistory: {
-          ...state.tradeHistory,
           loading: false,
           items: Array.isArray(payload?.items) ? payload.items : [],
           meta: payload || null,
@@ -231,7 +233,6 @@ export const userReducer = (state = { user: {} }, { type, payload }) => {
       return {
         ...state,
         postingHistory: {
-          ...state.postingHistory,
           loading: false,
           items: Array.isArray(payload?.items) ? payload.items : [],
           meta: payload || null,

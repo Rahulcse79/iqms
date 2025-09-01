@@ -22,6 +22,7 @@ import SearchResults from "./pages/Queries/SearchResults";
 import Loader from "./components/Loader";
 import DavHome from "./Dav/QueryRegistration";
 import { CallProvider } from "./context/CallContext";
+import QueryComparision from "./pages/Queries/QueryComparison";
 
 function AppRoutes() {
   const { user } = useContext(AuthContext);
@@ -53,6 +54,7 @@ function AppRoutes() {
         <Route path="view/query/:id" element={<QueryView />} />
         <Route path="view/profile" element={<ProfileView />} />
         <Route path="search-results" element={<SearchResults />} />
+        <Route path="query/comparision" element={<QueryComparision />} />
 
         {/* DAV */}
         <Route path="home" element={<DavHome />} />
