@@ -1,4 +1,3 @@
-// src/reducers/queryReducer.js
 import {
   SEARCH_QUERY_REQUEST,
   SEARCH_QUERY_SUCCESS,
@@ -6,38 +5,38 @@ import {
   CLEAR_QUERY_RESULTS,
 } from "../constants/queryConstants";
 
-export const queryReducer = (state = { queries: [] }, { type, payload }) => {
+const initialSlotState = { loading: false, items: [], error: null };
+
+const initialState = {
+  slot1: { ...initialSlotState },
+  slot2: { ...initialSlotState },
+  slot3: { ...initialSlotState },
+};
+
+export const queryReducer = (state = initialState, action) => {
+  const { type, payload, meta } = action;
+
   switch (type) {
     case SEARCH_QUERY_REQUEST:
       return {
         ...state,
-        loading: true,
-        queries: [],
-        error: null,
+        [`slot${meta.slot}`]: { ...state[`slot${meta.slot}`], loading: true, error: null, items: [] },
       };
 
     case SEARCH_QUERY_SUCCESS:
       return {
         ...state,
-        loading: false,
-        queries: payload, // API response items
-        error: null,
+        [`slot${meta.slot}`]: { loading: false, items: payload, error: null },
       };
 
     case SEARCH_QUERY_FAIL:
       return {
         ...state,
-        loading: false,
-        queries: [],
-        error: payload, // error message
+        [`slot${meta.slot}`]: { loading: false, items: [], error: payload },
       };
 
     case CLEAR_QUERY_RESULTS:
-      return {
-        ...state,
-        queries: [],
-        error: null,
-      };
+      return initialState;
 
     default:
       return state;

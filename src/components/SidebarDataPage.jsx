@@ -75,6 +75,11 @@ const SidebarDataPage = () => {
       icon: <FaBalanceScale style={{ color: "#009688" }} />,
     },
     {
+      title: "Query Comparision",
+      path: "/query/comparision",
+      icon: <FaBalanceScale style={{ color: "#009688" }} />,
+    },
+    {
       title: "Logout",
       icon: <RiLogoutBoxRLine style={{ color: "#009688" }} />,
       onClick: handleLogout, 
