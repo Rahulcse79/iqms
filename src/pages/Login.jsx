@@ -1,24 +1,30 @@
-import React, { useState, useContext , useEffect} from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { USERS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import "./login.css";
-import Cookies from "js-cookie"; 
+import Cookies from "js-cookie";
 import logo from "../assets/Images/login-logo.png";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRepliedQueries } from "../actions/allAction";
+import Loader from "../components/Loader";
 
 const Login = () => {
   const [category, setCategory] = useState("Civilian");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [initializing, setInitializing] = useState(false); // 🔹 new state
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { loading } = useSelector((state) => state.replied_queries); // optional check
 
   useEffect(() => {
-    const authUser = Cookies.get("authUser"); 
+    const authUser = Cookies.get("authUser");
     if (authUser) {
-      navigate("/"); 
-      window.location.reload()
+      navigate("/");
     }
   }, [navigate]);
 
@@ -29,19 +35,29 @@ const Login = () => {
       const foundUser = USERS.find(
         (u) => u.username === username && u.password === password
       );
+
       if (foundUser) {
+        setInitializing(true); // 🔹 show loader
         await login(foundUser);
+
+        // fetch all initial APIs here
+        await dispatch(fetchRepliedQueries());
+
+        setInitializing(false); // 🔹 hide loader
         navigate("/");
-        window.location.reload();
       } else {
         setError("Invalid username or password");
       }
     } catch (err) {
       console.error("Login error:", err);
       setError("Something went wrong. Please try again.");
+      setInitializing(false);
     }
   };
 
+  if (initializing || loading) {
+    return <Loader text="Starting system... Fetching all data, please wait." />;
+  }
 
   return (
     <div className="login-container">

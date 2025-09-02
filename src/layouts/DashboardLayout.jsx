@@ -6,10 +6,22 @@ import Topbar from "../components/Topbar";
 import Footer from "../components/Footer";
 import "./DashboardLayout.css";
 import Dialpad from "../components/Dialpad/Dialpad";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { refreshRepliedQueries } from "../actions/allAction";
 
 const DashboardLayout = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      dispatch(refreshRepliedQueries());
+    }, 15 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
   return (
     <div

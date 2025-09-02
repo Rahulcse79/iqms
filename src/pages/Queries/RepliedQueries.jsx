@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import QueriesTable from "../../components/QueriesTable";
 import { fetchRepliedQueries } from "../../actions/allAction";
-import Loader from "../../components/Loader"; 
+import Loader from "../../components/Loader";
 
 const RepliedQueries = () => {
   const dispatch = useDispatch();
@@ -11,9 +11,12 @@ const RepliedQueries = () => {
   );
 
   useEffect(() => {
-    dispatch(fetchRepliedQueries());
-  }, [dispatch]);
-
+    // Fetch only if data not present
+    if (!items || items.length === 0) {
+      dispatch(fetchRepliedQueries());
+    }
+  }, [dispatch, items]);
+  
   if (loading) return <Loader text="Loading Replied Queries..." />;
 
   if (error)
@@ -24,9 +27,7 @@ const RepliedQueries = () => {
     serviceNo: q?.sno ? String(q.sno) : "",
     type: "Replied",
     queryId: q?.doc_id ?? "",
-    date: q?.action_dt
-      ? new Date(q.action_dt).toLocaleDateString()
-      : "N/A",
+    date: q?.action_dt ? new Date(q.action_dt).toLocaleDateString() : "N/A",
     subject: q?.subject ?? "",
     pers: q?.pers ?? "",
     queryType: q?.querytype ?? "",

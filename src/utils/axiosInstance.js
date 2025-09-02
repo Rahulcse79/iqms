@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "/afcao/ipas/ivrs",
+  baseURL: "http://sampoorna.cao.local/afcao/ipas/ivrs",
 });
 
 // Optional: intercept requests/responses

@@ -24,9 +24,9 @@ import {
 } from "../constants/ProfileConstants";
 
 // Base paths
-const BASE_PROFILEVIEW = `/afcao/ipas/ivrs/profileView`;
-const BASE_ABCS = `/afcao/ipas/ivrs/`;
-const BASE_PERSONAL = `/afcao/ipas/ivrs`;
+const BASE_PROFILEVIEW = `http://sampoorna.cao.local/afcao/ipas/ivrs/profileView`;
+const BASE_ABCS = `http://sampoorna.cao.local/afcao/ipas/ivrs/`;
+const BASE_PERSONAL = `http://sampoorna.cao.local/afcao/ipas/ivrs`;
 
 /** Small logger */
 const log = {
