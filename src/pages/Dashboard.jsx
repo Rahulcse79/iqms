@@ -96,10 +96,7 @@ const QueryCard = ({ title, data, className, link }) => {
           <div className="card-row" key={index}>
             <span className="card-label">{item.label}</span>
             {item.value !== "-" ? (
-              <span
-                className="card-value-link"
-                onClick={() => navigate(link)}
-              >
+              <span className="card-value-link" onClick={() => navigate(link)}>
                 {item.value}
               </span>
             ) : (
@@ -115,11 +112,16 @@ const QueryCard = ({ title, data, className, link }) => {
 // --- Main Dashboard Component ---
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const { loading, items, error } = useSelector((state) => state.replied_queries);
+  const { loading, items, error } = useSelector(
+    (state) => state.replied_queries
+  );
 
   useEffect(() => {
-    dispatch(fetchRepliedQueries());
-  }, [dispatch]);
+    // Only fetch if not already loaded
+    if (!items || items.length === 0) {
+      dispatch(fetchRepliedQueries());
+    }
+  }, [dispatch, items]);
 
   // --- Data ---
   const pendingQueriesData = [
@@ -137,7 +139,10 @@ const Dashboard = () => {
   ];
 
   const repliedQueriesData = [
-    { label: "Replied Queries", value: loading ? "..." : error ? "ERR" : items.length },
+    {
+      label: "Replied Queries",
+      value: loading ? "..." : error ? "ERR" : items.length,
+    },
     { label: "-", value: "-" },
     { label: "-", value: "-" },
     { label: "-", value: "-" },
