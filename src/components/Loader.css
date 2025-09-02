@@ -1,131 +1,229 @@
-/* Full-screen background */
-.loader-overlay {
-  position: fixed;
+
+/* ------------------------------------------------------------------------- */
+/* File: Loader.css
+   Place this file alongside Loader.jsx: src/components/Loader/Loader.css
+   Notes:
+   - Uses modern CSS motion-path (offset-path). Works well in modern Chromium & Firefox.
+   - For Safari prefix -webkit-* is included.
+   - If you need a JS fallback for older browsers, I can add it.
+*/
+
+:root {
+  --loader-height: 60vh;
+  --duration: 7.2s; /* full loop time */
+  --easing: cubic-bezier(0.22, 0.93, 0.16, 0.98);
+}
+.rafale-loader {
+  position: fixed; /* instead of relative */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: rgba(245, 248, 250, 0.96); /* Subtle light tone */
-  z-index: 9999;
-  animation: fadeIn 0.3s ease-in-out;
+  width: 100vw;
+  height: 100vh; /* full viewport */
+  min-height: unset; /* remove previous min height */
+  z-index: 9999; /* keep it above all other elements */
+  background: linear-gradient(180deg, #0b1a2b 0%, #1a3a5a 50%, #6fb1ff 100%);
+  display: block;
+  isolation: isolate;
+  -webkit-font-smoothing: antialiased;
+  transform: translateZ(0);
+  pointer-events: all; /* intercept clicks */
 }
 
-/* Jet Icon */
-.jet-icon {
-  background: linear-gradient(90deg, #0a2540, #00509e);
+/* Disable all pointer events behind loader */
+body:has(.rafale-loader) {
+  overflow: hidden; /* prevent scrolling */
+  pointer-events: none;
+}
+
+/* SKY - parallax cloud layers */
+.sky { position: absolute; inset: 0; pointer-events: none; }
+.cloud-layer {
+  position: absolute; left: -20%; right: -20%; top: 0; bottom: 0;
+  background-repeat: repeat-x;
+  opacity: 0.28;
+  mix-blend-mode: screen;
+}
+.cloud-layer.layer-back {
+  background-image: radial-gradient(closest-side, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0) 60%);
+  transform: translateZ(0);
+  animation: clouds-back 40s linear infinite;
+}
+.cloud-layer.layer-mid {
+  background-image: radial-gradient(closest-side, rgba(255,255,255,0.06) 18%, rgba(255,255,255,0) 60%);
+  opacity: 0.42;
+  animation: clouds-mid 28s linear infinite;
+}
+.cloud-layer.layer-front {
+  background-image: radial-gradient(closest-side, rgba(255,255,255,0.08) 18%, rgba(255,255,255,0) 60%);
+  opacity: 0.55;
+  animation: clouds-front 18s linear infinite;
+}
+
+@keyframes clouds-back { from { background-position: 0 0 } to { background-position: 1200px 0 } }
+@keyframes clouds-mid  { from { background-position: 0 0 } to { background-position: 900px 0 } }
+@keyframes clouds-front{ from { background-position: 0 0 } to { background-position: 600px 0 } }
+
+/* SVG helper - keep it behind planes */
+.paths-svg {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: 100%;
+  top: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Smoke styling: blurred, soft, stroke-draw animation */
+.smoke {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-width: 25;
+  opacity: 0.9;
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  filter: url(#smokeBlur);
+  mix-blend-mode: screen;
+  transform-origin: 0 0;
+  z-index: 2;
+}
+.smoke.saffron { stroke: #ff9933; stroke-width: 18; opacity: 0.95; }
+.smoke.white   { stroke: #ffffff; stroke-width: 18; opacity: 0.98; }
+.smoke.green   { stroke: #138808; stroke-width: 18; opacity: 0.95; }
+
+/* Animate the stroke to draw following the plane. Keep the animation duration same as plane. */
+.smoke.saffron { animation: smoke-draw var(--duration) linear infinite; }
+.smoke.white   { animation: smoke-draw var(--duration) linear infinite; animation-delay: 0.06s; }
+.smoke.green   { animation: smoke-draw var(--duration) linear infinite; animation-delay: 0.12s; }
+
+@keyframes smoke-draw {
+  0%   { stroke-dashoffset: 2000; opacity: 0.0 }
+  8%   { opacity: 0.22 }
+  35%  { opacity: 0.8 }
+  80%  { stroke-dashoffset: 200; opacity: 0.55 }
+  100% { stroke-dashoffset: 0; opacity: 0.0 }
+}
+
+/* Planes - base styling */
+.plane {
+  position: absolute;
+  top: 25%; left: 0;
+  width: 220px; /* responsive choice, scale with container if you want */
+  height: auto;
+  will-change: offset-distance, transform;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  filter: drop-shadow(0 22px 30px rgba(6, 12, 18, 0.35));
+}
+.plane img { display: block; width: 100%; height: auto; transform-origin: center; }
+
+/* Motion paths for the planes. Uses CSS offset-path. Duplicate for webkit for Safari. */
+.plane-center {
+  /* Higher flight path (leading jet climbs more) */
+  offset-path: path('M -150 460 C 420 360, 940 240, 1850 80');
+  -webkit-offset-path: path('M -150 460 C 420 360, 940 240, 1850 80');
+  offset-rotate: auto 0deg;
+  -webkit-offset-rotate: auto 0deg;
+  animation: fly-center var(--duration) var(--easing) infinite;
+}
+
+.plane-left {
+  /* Slightly lower path */
+  offset-path: path('M -150 520 C 380 480, 780 410, 1700 210');
+  -webkit-offset-path: path('M -150 520 C 380 480, 780 410, 1700 210');
+  offset-rotate: auto 0deg;
+  -webkit-offset-rotate: auto 0deg;
+  animation: fly-left var(--duration) var(--easing) infinite;
+}
+
+.plane-right {
+  /* Mid-height path (between center & left) */
+  offset-path: path('M -150 490 C 500 430, 1000 310, 1850 100');
+  -webkit-offset-path: path('M -150 490 C 500 430, 1000 310, 1850 100');
+  offset-rotate: auto 0deg;
+  -webkit-offset-rotate: auto 0deg;
+  animation: fly-right var(--duration) var(--easing) infinite;
+}
+
+
+
+/* Fine tuned keyframes to create the "together -> center leads -> trident" motion
+   The planes start nearly together (small offset-distance). The center accelerates
+   ahead in the early phase, left & right slightly lag and then follow the curve more. */
+@keyframes fly-center {
+  0%   { offset-distance: 0%; transform: translate(-50%, -50%) scale(0.95) }
+  30%  { offset-distance: 15%; transform: translate(-50%, -52%) scale(1.03) }
+  50%  { offset-distance: 45%; transform: translate(-50%, -56%) scale(1.07) }
+  50%  { offset-distance: 70%; transform: translate(-50%, -60%) scale(1.04) }
+  90%  { offset-distance: 90%; transform: translate(-50%, -65%) scale(1.00) }
+  100% { offset-distance: 100%; transform: translate(-50%, -70%) scale(0.97) }
+}
+
+@keyframes fly-left {
+  0%   { offset-distance: 0%; transform: translate(-50%, -50%) scale(0.92) }
+  5%   { offset-distance: 12%; transform: translate(-49%, -51%) scale(0.96) }
+  20%  { offset-distance: 35%; transform: translate(-48%, -53%) scale(1.00) }
+  55%  { offset-distance: 65%; transform: translate(-46%, -57%) scale(0.99) }
+  85%  { offset-distance: 85%; transform: translate(-44%, -63%) scale(0.96) }
+  100% { offset-distance: 100%; transform: translate(-40%, -70%) scale(0.94) }
+}
+
+@keyframes fly-right {
+  0%   { offset-distance: 0%; transform: translate(-50%, -50%) scale(0.92) }
+  16%   { offset-distance: 14%; transform: translate(-51%, -51%) scale(0.96) }
+  32%  { offset-distance: 38%; transform: translate(-53%, -53%) scale(1.01) }
+  45%  { offset-distance: 68%; transform: translate(-56%, -58%) scale(1.00) }
+  75%  { offset-distance: 88%; transform: translate(-60%, -64%) scale(0.96) }
+  100% { offset-distance: 100%; transform: translate(-65%, -70%) scale(0.94) }
+}
+
+
+/* Horizon / ground for depth */
+.horizon {
+  position: absolute;
+  left: 0; right: 0; bottom: -2%; height: 22%;
+  background: linear-gradient(180deg, rgba(10,20,40,0) 0%, rgba(6,10,20,0.18) 50%, rgba(6,10,20,0.35) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Accessibility: respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .cloud-layer, .smoke, .plane { animation: none !important; }
+  .smoke { opacity: 0.5; }
+}
+
+/* small responsive tweaks */
+@media (max-width: 880px) {
+  .plane { width: 88px; }
+  :root { --duration: 6.8s; }
+}
+
+@media (max-width: 480px) {
+  .plane { width: 64px; }
+  :root { --loader-height: 48vh; --duration: 6.2s; }
+}
+
+/* Utility: if you want to pause the loader from outside, toggle .paused on root */
+.rafale-loader.paused .plane, .rafale-loader.paused .smoke, .rafale-loader.paused .cloud-layer { animation-play-state: paused; }
+
+.text-airfoce {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 50px;
+  font-weight: 800;
+  font-weight: bold;
+  text-transform: uppercase;
+  background: linear-gradient(to bottom, #FF9933 0%, #FFFFFF 50%, #138808 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: flyAcross ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
-}
-
-/* Loader Text */
-.loader-text {
-  margin-top: 20px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  color: #1b2a3a;
-  font-family: "Segoe UI", "Roboto", sans-serif;
-}
-
-/* Jet animation */
-@keyframes flyAcross {
-  0% {
-    transform: translateX(-80px) rotate(-5deg);
-    opacity: 0.85;
-  }
-  50% {
-    transform: translateX(80px) rotate(3deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-80px) rotate(-5deg);
-    opacity: 0.85;
-  }
-}
-
-/* Subtle fade-in for overlay */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.loader {
-  width: 32px;
-  height: 90px;
-  display: block;
-  margin: 20px auto;
-  position: relative;
-  border-radius: 50% 50% 0 0;
-  border-bottom: 10px solid #FF3D00;
-  background-color: #FFF;
-  background-image: radial-gradient(ellipse at center, #FFF 34%, #FF3D00 35%, #FF3D00 54%, #FFF 55%), linear-gradient(#FF3D00 10px, transparent 0);
-  background-size: 28px 28px;
-  background-position: center 20px , center 2px;
-  background-repeat: no-repeat;
-  box-sizing: border-box;
-  animation: animloaderBack 1s linear infinite alternate;
-}
-.loader::before {
-  content: '';  
-  box-sizing: border-box;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 64px;
-  height: 44px;
-  border-radius: 50%;
-  box-shadow: 0px 15px #FF3D00 inset;
-  top: 67px;
-}
-.loader::after {
-  content: '';  
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  width: 34px;
-  height: 34px;
-  top: 112%;
-  background: radial-gradient(ellipse at center, #ffdf00 8%, rgba(249, 62, 0, 0.6) 24%, rgba(0, 0, 0, 0) 100%);
-  border-radius: 50% 50% 0;
-  background-repeat: no-repeat;
-  background-position: -44px -44px;
-  background-size: 100px 100px;
-  box-shadow: 4px 4px 12px 0px rgba(255, 61, 0, 0.5);
-  box-sizing: border-box;
-  animation: animloader 1s linear infinite alternate;
-}
-
-@keyframes animloaderBack {
-  0%, 30%, 70% {
-    transform: translateY(0px);
-  }
-  20%, 40%, 100% {
-    transform: translateY(-5px);
-  }
-}
-
-@keyframes animloader {
-  0% {
-    box-shadow: 4px 4px 12px 2px rgba(255, 61, 0, 0.75);
-    width: 34px;
-    height: 34px;
-    background-position: -44px -44px;
-    background-size: 100px 100px;
-  }
-  100% {
-    box-shadow: 2px 2px 8px 0px rgba(255, 61, 0, 0.5);
-    width: 30px;
-    height: 28px;
-    background-position: -36px -36px;
-    background-size: 80px 80px;
-  }
+  background-clip: text;
+  color: transparent;
+  z-index: 100;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5); /* soft shadow for contrast */
+  cursor: default;
 }
