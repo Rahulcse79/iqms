@@ -21,7 +21,7 @@
   height: 100vh; /* full viewport */
   min-height: unset; /* remove previous min height */
   z-index: 9999; /* keep it above all other elements */
-  background: linear-gradient(180deg, #0b1a2b 0%, #1a3a5a 50%, #6fb1ff 100%);
+  background: linear-gradient(180deg, #0b1a2b 0%, #1a3a5a 50%, #6fb1ff 80%);
   display: block;
   isolation: isolate;
   -webkit-font-smoothing: antialiased;
@@ -114,10 +114,11 @@ body:has(.rafale-loader) {
   will-change: offset-distance, transform;
   z-index: 4;
   transform: translate(-50%, -50%);
+  cursor: disabled;
   pointer-events: none;
   filter: drop-shadow(0 22px 30px rgba(6, 12, 18, 0.35));
 }
-.plane img { display: block; width: 100%; height: auto; transform-origin: center; }
+.plane img { display: block; width: 100%; height: auto; cursor: disabled; transform-origin: center; }
 
 /* Motion paths for the planes. Uses CSS offset-path. Duplicate for webkit for Safari. */
 .plane-center {

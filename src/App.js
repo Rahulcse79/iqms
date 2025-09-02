@@ -19,7 +19,6 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import SearchResults from "./pages/Queries/SearchResults";
-import Loader from "./components/Loader";
 import DavHome from "./Dav/QueryRegistration";
 import { CallProvider } from "./context/CallContext";
 import QueryComparision from "./pages/Queries/QueryComparison";
@@ -58,7 +57,6 @@ function AppRoutes() {
 
         {/* DAV */}
         <Route path="home" element={<DavHome />} />
-        <Route path="loader" element={<Loader />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
