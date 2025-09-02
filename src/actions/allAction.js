@@ -38,7 +38,7 @@ export const searchQueryById = (docId) => async (dispatch) => {
     dispatch({ type: SEARCH_QUERY_BY_ID_REQUEST });
 
     const { data } = await axios.get(
-      `/afcao/ipas/ivrs/searchQuery_docId/${docId}`
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${docId}`
     );
 
     dispatch({
@@ -59,7 +59,7 @@ export const searchQueryBySnoAndCategory = (serviceNo, category) => async (dispa
     dispatch({ type: SEARCH_QUERY_REQUEST });
 
     const { data } = await axios.get(
-      `/afcao/ipas/ivrs/searchQuery_SNO_CAT/${serviceNo}/${category}`
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${serviceNo}/${category}`
     );
 
     dispatch({
@@ -79,7 +79,7 @@ export const fetchRepliedQueries = (offset = 200) => async (dispatch) => {
     dispatch({ type: REPLIED_QUERY_REQUEST });
 
     const { data } = await axios.get(
-      `/afcao/ipas/ivrs/repliedQuery?offset=${offset}`
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery?offset=${offset}`
     );
 
     dispatch({
