@@ -33,6 +33,7 @@ const Topbar = ({ toggleSidebar }) => {
 
   const handleRefreshScreen = () => {
     navigate("/", { replace: true });
+    window.location.reload();
   };
 
   const handleRoleChange = (e) => {
@@ -65,7 +66,10 @@ const Topbar = ({ toggleSidebar }) => {
     )}`;
 
     // Avoid pushing identical URL repeatedly
-    if (location.pathname + location.search === "/search-results" + targetPath.slice("/search-results".length)) {
+    if (
+      location.pathname + location.search ===
+      "/search-results" + targetPath.slice("/search-results".length)
+    ) {
       // Already on same search result URL — do nothing
       return;
     }
@@ -89,7 +93,11 @@ const Topbar = ({ toggleSidebar }) => {
             <RiMenuFill />
           </button>
           <label htmlFor="roleDropdown">Switch Role: </label>
-          <select id="roleDropdown" value={selectedRole} onChange={handleRoleChange}>
+          <select
+            id="roleDropdown"
+            value={selectedRole}
+            onChange={handleRoleChange}
+          >
             {roles.map((role, index) => (
               <option key={index} value={role}>
                 {role}
@@ -100,21 +108,32 @@ const Topbar = ({ toggleSidebar }) => {
 
         {/* Refresh */}
         <div className="refresh-container">
-          <GrRefresh className="refresh-button-api" onClick={handleRefreshScreen} />
+          <GrRefresh
+            className="refresh-button-api"
+            onClick={handleRefreshScreen}
+          />
         </div>
 
         {/* Center: Search */}
         <div className="topbar-center">
-          <select value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}>
+          <select
+            value={searchCategory}
+            onChange={(e) => setSearchCategory(e.target.value)}
+          >
             <option value="Airmen">Airmen</option>
           </select>
-          <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
+          <select
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value)}
+          >
             <option value="Service">Service No.</option>
             <option value="Query">Query</option>
           </select>
           <input
             type="text"
-            placeholder={searchType === "Query" ? "Enter Query ID" : "Enter Service No."}
+            placeholder={
+              searchType === "Query" ? "Enter Query ID" : "Enter Service No."
+            }
             value={searchValue}
             onChange={handleSearchInputChange}
           />
