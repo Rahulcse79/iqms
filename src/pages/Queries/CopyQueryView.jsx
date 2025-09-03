@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./CopyQueryView.css";
+import FeedbackDialog from "../../components/FeedbackDialog"; // adjust path if needed
 
 const QueryView = ({ queryId, onBack }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [replyText, setReplyText] = useState("");
   const [forwardOption, setForwardOption] = useState("");
   const [transferSection, setTransferSection] = useState("");
-
+  const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
   const [item, setItem] = useState(null);
   const [error, setError] = useState(null);
 
-  // Fetch data directly (no Redux, no global state)
+  // NEW: state for feedback dialog
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+
+  // Fetch data
   useEffect(() => {
     if (!queryId) return;
 
@@ -21,7 +25,7 @@ const QueryView = ({ queryId, onBack }) => {
         setLoading(true);
         setError(null);
 
-        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryId}`; 
+        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryId}`;
         console.log("Fetching:", url);
 
         const { data } = await axios.get(url);
@@ -38,15 +42,41 @@ const QueryView = ({ queryId, onBack }) => {
   }, [queryId]);
 
   const handleSubmit = () => {
-    if (window.confirm("Are you sure you want to submit this reply?")) {
-      alert(`
-        Reply Submitted!
-        Reply: ${replyText}
-        Forwarded To: ${forwardOption}
-        Sub-Section: ${transferSection || ""}
-      `);
-      setReplyText("");
+    // Validate reply text
+    if (!replyText.trim()) {
+      setFormError("Reply cannot be empty.");
+      return;
     }
+
+    // Validate forward option
+    if (!forwardOption) {
+      setFormError("Please select an option from 'Reply / Forward To'.");
+      return;
+    }
+
+    // Validate transfer section if needed
+    if (forwardOption === "Transfer to Sub-Section" && !transferSection) {
+      setFormError("Please select a sub-section.");
+      return;
+    }
+
+    // Clear error if validation passed
+    setFormError("");
+
+    // TODO: Replace with actual API call
+    console.log("Submitted:", {
+      replyText,
+      forwardOption,
+      transferSection,
+    });
+
+    // Reset form
+    setReplyText("");
+    setForwardOption("");
+    setTransferSection("");
+
+    // Show feedback dialog
+    setShowFeedbackDialog(true);
   };
 
   if (loading) return <div className="qview-container">Loading...</div>;
@@ -162,6 +192,7 @@ const QueryView = ({ queryId, onBack }) => {
               )}
 
               <div className="form-actions">
+                {formError && <div className="form-error">{formError}</div>}
                 <button className="btn primary" onClick={handleSubmit}>
                   Submit
                 </button>
@@ -186,6 +217,12 @@ const QueryView = ({ queryId, onBack }) => {
           </div>
         )}
       </div>
+
+      {/* Feedback Dialog */}
+      <FeedbackDialog
+        open={showFeedbackDialog}
+        onClose={() => setShowFeedbackDialog(false)}
+      />
     </div>
   );
 };
