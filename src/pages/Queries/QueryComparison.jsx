@@ -4,7 +4,7 @@ import { searchByServiceNoAndCategory } from "../../actions/queryActions";
 import "./QueryComparison.css";
 import DataTable from "react-data-table-component";
 import jsPDF from "jspdf";
-import QueryView from "./CopyQueryView";
+import QueryDetails from "./QueryDetails";
 
 const ALLOWED_CATEGORIES = ["Airmen", "Officer"];
 const NUM_SLOTS = 3;
@@ -446,17 +446,17 @@ const Comparison = () => {
       <div className="results-grid2">
         {activeQueryId1 && (
           <div className="query-view-panel">
-            <QueryView queryId={activeQueryId1} onBack={handleBack1} />
+            <QueryDetails queryId={activeQueryId1} onBack={handleBack1} />
           </div>
         )}
         {activeQueryId2 && (
           <div className="query-view-panel">
-            <QueryView queryId={activeQueryId2} onBack={handleBack2} />
+            <QueryDetails queryId={activeQueryId2} onBack={handleBack2} />
           </div>
         )}
         {activeQueryId3 && (
           <div className="query-view-panel">
-            <QueryView queryId={activeQueryId3} onBack={handleBack3} />
+            <QueryDetails queryId={activeQueryId3} onBack={handleBack3} />
           </div>
         )}
       </div>

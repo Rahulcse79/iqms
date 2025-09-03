@@ -1,5 +1,5 @@
 /* Container */
-.qview-container {
+.qdetails-container {
     padding: 20px;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
@@ -54,16 +54,6 @@
 .tab-btn.active {
     background-color: #3b82f6;
     color: white;
-}
-
-/* Left Panel */
-.left-panel {
-    width: 100%;
-    max-width: 900px;
-    background-color: white;
-    padding: 20px 25px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* Header Card */
@@ -186,10 +176,6 @@ textarea {
 @media (max-width: 768px) {
     .details-card {
         grid-template-columns: 1fr;
-    }
-
-    .left-panel {
-        padding: 15px 20px;
     }
 
     .tab-header {

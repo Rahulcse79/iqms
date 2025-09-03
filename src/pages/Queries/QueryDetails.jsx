@@ -1,90 +1,61 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import "./CopyQueryView.css";
+import "./QueryDetails.css";
+import { useQuery } from "@tanstack/react-query";
 import FeedbackDialog from "../../components/FeedbackDialog"; // adjust path if needed
 
-const QueryView = ({ queryId, onBack }) => {
+const fetchQueryDetails = async (queryId) => {
+  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryId}`;
+  const { data } = await axios.get(url);
+  return data.items && data.items.length > 0 ? data.items[0] : null;
+};
+
+const QueryDetails = ({ queryId, onBack }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [replyText, setReplyText] = useState("");
   const [forwardOption, setForwardOption] = useState("");
   const [transferSection, setTransferSection] = useState("");
   const [formError, setFormError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [item, setItem] = useState(null);
-  const [error, setError] = useState(null);
-
-  // NEW: state for feedback dialog
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
 
-  // Fetch data
-  useEffect(() => {
-    if (!queryId) return;
-
-    const fetchQuery = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryId}`;
-        console.log("Fetching:", url);
-
-        const { data } = await axios.get(url);
-
-        setItem(data.items && data.items.length > 0 ? data.items[0] : null);
-      } catch (err) {
-        setError(err.message || "Something went wrong");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchQuery();
-  }, [queryId]);
+  
+  const { data: item, isLoading, isError, error } = useQuery({
+    queryKey: ["query", queryId], // ✅ cached by ID
+    queryFn: () => fetchQueryDetails(queryId),
+    enabled: !!queryId, // only run when queryId exists
+    retry: 2,           // auto-retry failed requests
+    staleTime: 1000 * 60 * 5, // cache for 5 min
+  });
 
   const handleSubmit = () => {
-    // Validate reply text
     if (!replyText.trim()) {
       setFormError("Reply cannot be empty.");
       return;
     }
-
-    // Validate forward option
     if (!forwardOption) {
       setFormError("Please select an option from 'Reply / Forward To'.");
       return;
     }
-
-    // Validate transfer section if needed
     if (forwardOption === "Transfer to Sub-Section" && !transferSection) {
       setFormError("Please select a sub-section.");
       return;
     }
 
-    // Clear error if validation passed
     setFormError("");
+    console.log("Submitted:", { replyText, forwardOption, transferSection });
 
-    // TODO: Replace with actual API call
-    console.log("Submitted:", {
-      replyText,
-      forwardOption,
-      transferSection,
-    });
-
-    // Reset form
     setReplyText("");
     setForwardOption("");
     setTransferSection("");
-
-    // Show feedback dialog
     setShowFeedbackDialog(true);
   };
 
-  if (loading) return <div className="qview-container">Loading...</div>;
-  if (error)
+  if (isLoading) return <div className="qdetails-container">Loading...</div>;
+  if (isError)
     return (
-      <div className="qview-container">
-        <div className="qview-card">
-          <h3>Error fetching query: {error}</h3>
+      <div className="qdetails-container">
+        <div className="qdetails-card">
+          <h3>Error fetching query: {error.message}</h3>
           {onBack && (
             <button className="btn" onClick={onBack}>
               Back
@@ -93,17 +64,17 @@ const QueryView = ({ queryId, onBack }) => {
         </div>
       </div>
     );
-  if (!item) return null;
+  if (!item) return <div className="qdetails-container">No data found.</div>;
 
   return (
-    <div className="qview-container split-active">
+    <div className="qdetails-container split-active">
       {onBack && (
         <button className="btn back-btn" onClick={onBack}>
           ← Back
         </button>
       )}
 
-      <div className="left-panel">
+      <div className="query-details-page">
         <h2 className="page-title">View Query Status</h2>
 
         {/* Tabs */}
@@ -227,4 +198,4 @@ const QueryView = ({ queryId, onBack }) => {
   );
 };
 
-export default QueryView;
+export default QueryDetails;

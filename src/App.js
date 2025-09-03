@@ -1,5 +1,6 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -23,9 +24,11 @@ import DavHome from "./Dav/QueryRegistration";
 import { CallProvider } from "./context/CallContext";
 import QueryComparision from "./pages/Queries/QueryComparison";
 
+
+const queryClient = new QueryClient();
+
 function AppRoutes() {
   const { user } = useContext(AuthContext);
-
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -68,10 +71,12 @@ function App() {
 
   return (
     <AuthProvider>
-      <CallProvider>   {/* ✅ wrap here */}
-        <BrowserRouter basename="/app2">
-          <AppRoutes />
-        </BrowserRouter>
+      <CallProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter basename="/app2">
+            <AppRoutes />
+          </BrowserRouter>
+        </QueryClientProvider>
       </CallProvider>
     </AuthProvider>
   );
