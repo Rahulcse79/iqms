@@ -5,6 +5,22 @@
   box-sizing: border-box;
 }
 
+.results-grid2 {
+  display: flex;
+  gap: 20px; /* space between panels */
+  justify-content: space-between; /* spread them evenly */
+}
+
+.query-view-panel {
+  flex: 1; /* each takes equal width */
+  background: #f9f9f9; /* optional */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+
+
 :root {
   --bg: #f7f8fa;
   --border: #e5e7eb;

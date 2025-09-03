@@ -1,6 +1,6 @@
 import { createStore, combineReducers, applyMiddleware, compose } from "redux";
 import { thunk } from "redux-thunk"; 
-import { userReducer, repliedQueryReducer, searchQueryReducer, searchQueryByIdReducer } from "../reducers/reducers";
+import { userReducer, repliedQueryReducer, searchQueryReducer, searchQueryByIdReducer, searchQueryIdReducer } from "../reducers/reducers";
 import {personalDataReducer, ProfileViewReducer, abcCodesReducer} from "../reducers/ProfileReducers";
 import { queryReducer } from "../reducers/queryReducer";
 
@@ -19,6 +19,7 @@ const reducer = combineReducers({
   replied_queries: repliedQueryReducer,
   search_queries: searchQueryReducer,
   query_by_id: searchQueryByIdReducer,
+  query_id: searchQueryIdReducer,
   query: queryReducer,
   profileView: ProfileViewReducer,
   abcCodes: abcCodesReducer,

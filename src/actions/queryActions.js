@@ -4,6 +4,9 @@ import {
   SEARCH_QUERY_REQUEST,
   SEARCH_QUERY_SUCCESS,
   SEARCH_QUERY_FAIL,
+  SEARCH_QUERY_ID_REQUEST,
+  SEARCH_QUERY_ID_SUCCESS,
+  SEARCH_QUERY_ID_FAIL,
   CLEAR_QUERY_RESULTS,
 } from "../constants/queryConstants";
 
@@ -32,23 +35,28 @@ export const searchByServiceNoAndCategory = (serviceNo, category, slot) => async
   }
 };
 
-
 // Search by Query ID
 export const searchByQueryId = (docId) => async (dispatch) => {
   try {
-    dispatch({ type: SEARCH_QUERY_REQUEST, meta: { slot: "doc" } });
+    dispatch({ type: SEARCH_QUERY_ID_REQUEST, meta: { slot: "doc" } });
 
     const { data } = await api.get(`/searchQuery_docId/${docId}`);
 
     dispatch({
-      type: SEARCH_QUERY_SUCCESS,
-      payload: data.items || [],
+      type: SEARCH_QUERY_ID_SUCCESS,
+      payload: {
+        items: data.items || [],
+        count: data.count || 0,
+        hasMore: data.hasMore || false,
+        limit: data.limit || 0,
+        offset: data.offset || 0,
+      },
       meta: { slot: "doc" },
     });
   } catch (error) {
     dispatch({
-      type: SEARCH_QUERY_FAIL,
-      payload: error.message || "Something went wrong",
+      type: SEARCH_QUERY_ID_FAIL,
+      payload: error.response?.data?.message || error.message || "Something went wrong",
       meta: { slot: "doc" },
     });
   }

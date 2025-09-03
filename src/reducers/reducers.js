@@ -19,6 +19,12 @@ import {
   SEARCH_QUERY_BY_ID_FAIL,
 } from "../constants/appConstants";
 
+import {
+SEARCH_QUERY_ID_REQUEST,
+SEARCH_QUERY_ID_SUCCESS,
+SEARCH_QUERY_ID_FAIL,
+} from "../constants/queryConstants";
+
 export const searchQueryByIdReducer = (state = { item: null }, action) => {
   switch (action.type) {
     case SEARCH_QUERY_BY_ID_REQUEST:
@@ -38,6 +44,43 @@ export const searchQueryByIdReducer = (state = { item: null }, action) => {
       return state;
   }
 };
+
+export const searchQueryIdReducer = (state = { items: [] }, action) => {
+  switch (action.type) {
+    case SEARCH_QUERY_ID_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case SEARCH_QUERY_ID_SUCCESS:
+      return {
+        loading: false,
+        items: action.payload.items || [],
+        count: action.payload.count || 0,
+        hasMore: action.payload.hasMore || false,
+        limit: action.payload.limit || 0,
+        offset: action.payload.offset || 0,
+        error: null,
+      };
+
+    case SEARCH_QUERY_ID_FAIL:
+      return {
+        loading: false,
+        error: action.payload,
+        items: [],
+        count: 0,
+        hasMore: false,
+        limit: 0,
+        offset: 0,
+      };
+
+    default:
+      return state;
+  }
+};
+
 
 export const searchQueryReducer = (state = { items: [] }, action) => {
   switch (action.type) {
