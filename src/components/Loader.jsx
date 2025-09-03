@@ -2,13 +2,17 @@
 // Place this file at: src/components/Loader/Loader.jsx
 // Make sure you have the image at: ../assets/Images/loader-image.png (relative to this file)
 
-import React from 'react';
-import './Loader.css';
-import planeImg from '../assets/Images/loader-img.png';
+import React from "react";
+import "./Loader.css";
+import planeImg from "../assets/Images/loader-img.png";
 
-export default function Loader({ className = '' }) {
+export default function Loader({ className = "", text = "Loading..." }) {
   return (
-    <div className={`rafale-loader ${className}`} role="status" aria-live="polite">
+    <div
+      className={`rafale-loader ${className}`}
+      role="status"
+      aria-live="polite"
+    >
       {/* moving sky + subtle clouds */}
       <div className="sky">
         <div className="cloud-layer layer-back" aria-hidden></div>
@@ -33,14 +37,41 @@ export default function Loader({ className = '' }) {
         </defs>
 
         {/* Drawing paths for smoke (these match CSS motion paths below) */}
-        <path id="p-center" d="M -120 320 C 220 300, 540 240, 1050 90" fill="none" />
-        <path id="p-left"   d="M -120 320 C 180 340, 420 300, 710 180" fill="none" />
-        <path id="p-right"  d="M -120 320 C 260 320, 700 220, 1180 60" fill="none" />
+        <path
+          id="p-center"
+          d="M -120 320 C 220 300, 540 240, 1050 90"
+          fill="none"
+        />
+        <path
+          id="p-left"
+          d="M -120 320 C 180 340, 420 300, 710 180"
+          fill="none"
+        />
+        <path
+          id="p-right"
+          d="M -120 320 C 260 320, 700 220, 1180 60"
+          fill="none"
+        />
 
         {/* Smoke strokes (saffron, white, green). The stroke animation is synchronized with the planes. */}
-        <path className="smoke saffron" d="M -120 320 C 220 300, 540 240, 1050 90" fill="none" filter="url(#smokeBlur)" />
-        <path className="smoke white"   d="M -120 320 C 180 340, 420 300, 710 180" fill="none" filter="url(#smokeBlur)" />
-        <path className="smoke green"   d="M -120 320 C 260 320, 700 220, 1180 60" fill="none" filter="url(#smokeBlur)" />
+        <path
+          className="smoke saffron"
+          d="M -120 320 C 220 300, 540 240, 1050 90"
+          fill="none"
+          filter="url(#smokeBlur)"
+        />
+        <path
+          className="smoke white"
+          d="M -120 320 C 180 340, 420 300, 710 180"
+          fill="none"
+          filter="url(#smokeBlur)"
+        />
+        <path
+          className="smoke green"
+          d="M -120 320 C 260 320, 700 220, 1180 60"
+          fill="none"
+          filter="url(#smokeBlur)"
+        />
       </svg>
 
       {/* The three planes (images) that follow their respective motion paths */}
@@ -58,10 +89,13 @@ export default function Loader({ className = '' }) {
 
       {/* subtle ground blur to give depth */}
       <div className="horizon" aria-hidden />
-      <div className='text-airfoce'>
-        THE INDIAN AIR FORCE
+      <div className="text-airfoce">
+        <div>AFCAO</div>
+        <div>INDIAN AIR FORCE</div>
       </div>
+
+      {/* Dynamic Loader Text */}
+      <div className="loader-text">{text}</div>
     </div>
   );
 }
-
