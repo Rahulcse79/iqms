@@ -1,24 +1,41 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { searchByQueryId } from "../../actions/queryActions";
-import "./QueryView.css";
+import axios from "axios";
+import "./CopyQueryView.css";
 
 const QueryView = ({ queryId, onBack }) => {
-  const dispatch = useDispatch();
-
   const [activeTab, setActiveTab] = useState("details");
   const [replyText, setReplyText] = useState("");
   const [forwardOption, setForwardOption] = useState("");
   const [transferSection, setTransferSection] = useState("");
 
-  const { loading, item, error } = useSelector((state) => state.query_by_id);
+  const [loading, setLoading] = useState(false);
+  const [item, setItem] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Fetch query by ID when component mounts or queryId changes
+  // Fetch data directly (no Redux, no global state)
   useEffect(() => {
-    if (queryId) {
-      dispatch(searchByQueryId(queryId));
-    }
-  }, [dispatch, queryId]);
+    if (!queryId) return;
+
+    const fetchQuery = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryId}`;
+        console.log("Fetching:", url);
+
+        const { data } = await axios.get(url);
+
+        setItem(data.items && data.items.length > 0 ? data.items[0] : null);
+      } catch (err) {
+        setError(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuery();
+  }, [queryId]);
 
   const handleSubmit = () => {
     if (window.confirm("Are you sure you want to submit this reply?")) {
@@ -32,40 +49,29 @@ const QueryView = ({ queryId, onBack }) => {
     }
   };
 
-  // Show loading while API is fetching
-  if (loading) {
-    return (
-      <div className="qview-container">
-        <div className="qview-card">Loading query details...</div>
-      </div>
-    );
-  }
-
-  // Show error if API fails
-  if (error) {
+  if (loading) return <div className="qview-container">Loading...</div>;
+  if (error)
     return (
       <div className="qview-container">
         <div className="qview-card">
           <h3>Error fetching query: {error}</h3>
-          {onBack && <button className="btn" onClick={onBack}>Back</button>}
+          {onBack && (
+            <button className="btn" onClick={onBack}>
+              Back
+            </button>
+          )}
         </div>
       </div>
     );
-  }
+  if (!item) return null;
 
-  // Wait until item is loaded
-  if (!item) {
-    return (
-      <div className="qview-container">
-        <div className="qview-card">No query data available.</div>
-      </div>
-    );
-  }
-
-  // Once API data is available, render the page
   return (
     <div className="qview-container split-active">
-      {onBack && <button className="btn back-btn" onClick={onBack}>← Back</button>}
+      {onBack && (
+        <button className="btn back-btn" onClick={onBack}>
+          ← Back
+        </button>
+      )}
 
       <div className="left-panel">
         <h2 className="page-title">View Query Status</h2>
@@ -91,28 +97,28 @@ const QueryView = ({ queryId, onBack }) => {
           <div className="query-details">
             <div className="header-card">
               <h2 className="subject">{item.subject || "N/A"}</h2>
-              <span className="query-id">Query ID: {item.queryId || item.doc_id}</span>
+              <span className="query-id">Query ID: {item.doc_id}</span>
             </div>
 
             <div className="details-card">
-              <div><strong>Query By:</strong> {item.pers}</div>
-              <div><strong>Service No:</strong> {item.serviceNo || "N/A"}</div>
-              <div><strong>Query Type:</strong> {item.querytype || item.type}</div>
-              <div><strong>Pending With:</strong> {item.pending_with_dec}</div>
-              <div><strong>Date:</strong> {item.submit_date ? new Date(item.submit_date).toLocaleDateString() : "N/A"}</div>
-              {item.cell && <div><strong>Cell:</strong> {item.cell}</div>}
-              {item.queryRef && <div><strong>Query Reference(s):</strong> {item.queryRef}</div>}
-              {item.porRef && <div><strong>POR Reference(s):</strong> {item.porRef}</div>}
-              {item.porRelated && <div><strong>POR Related Queries:</strong> {item.porRelated}</div>}
-              {item.particulars && <div><strong>Particulars:</strong> {item.particulars}</div>}
+              <div>
+                <strong>Query By:</strong> {item.pers}
+              </div>
+              <div>
+                <strong>Service No:</strong> {item.serviceNo || "N/A"}
+              </div>
+              <div>
+                <strong>Query Type:</strong> {item.querytype}
+              </div>
+              <div>
+                <strong>Pending With:</strong> {item.pending_with_dec}
+              </div>
+              <div>
+                <strong>Date:</strong>{" "}
+                {new Date(item.submit_date).toLocaleDateString()}
+              </div>
             </div>
 
-            <div className="query-message">
-              <h4>Query</h4>
-              <p>{item.message}</p>
-            </div>
-
-            {/* Reply Form */}
             <div className="form-section">
               <div className="form-group">
                 <label>Reply</label>
@@ -131,8 +137,12 @@ const QueryView = ({ queryId, onBack }) => {
                   onChange={(e) => setForwardOption(e.target.value)}
                 >
                   <option value="">--Select--</option>
-                  <option value="Transfer to Supervisor">Transfer to Supervisor</option>
-                  <option value="Transfer to Sub-Section">Transfer to Sub-Section</option>
+                  <option value="Transfer to Supervisor">
+                    Transfer to Supervisor
+                  </option>
+                  <option value="Transfer to Sub-Section">
+                    Transfer to Sub-Section
+                  </option>
                 </select>
               </div>
 
@@ -152,7 +162,9 @@ const QueryView = ({ queryId, onBack }) => {
               )}
 
               <div className="form-actions">
-                <button className="btn primary" onClick={handleSubmit}>Submit</button>
+                <button className="btn primary" onClick={handleSubmit}>
+                  Submit
+                </button>
               </div>
             </div>
           </div>
