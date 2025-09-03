@@ -21,7 +21,7 @@ const QueryView = ({ queryId, onBack }) => {
         setLoading(true);
         setError(null);
 
-        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryId}`;
+        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryId}`; 
         console.log("Fetching:", url);
 
         const { data } = await axios.get(url);
