@@ -24,6 +24,9 @@ import DavHome from "./Dav/QueryRegistration";
 import { CallProvider } from "./context/CallContext";
 import QueryComparision from "./pages/Queries/QueryComparison";
 
+import NewQuery from "./Dav/NewQuery";
+import DavQuery from "./Dav/QueryView";
+
 
 const queryClient = new QueryClient();
 
@@ -60,6 +63,8 @@ function AppRoutes() {
 
         {/* DAV */}
         <Route path="home" element={<DavHome />} />
+        <Route path="dav-query" element={<DavQuery />} />
+        <Route path="new-query" element={<NewQuery />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
