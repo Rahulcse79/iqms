@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { RiMenuFill } from "react-icons/ri";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Topbar.css";
 import { useCall } from "../context/CallContext";
 import { GrRefresh } from "react-icons/gr";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedRole, setSelectedRole] = useState("Admin");
   const [searchValue, setSearchValue] = useState("");
   const [searchCategory, setSearchCategory] = useState("Airmen");
@@ -23,6 +24,7 @@ const Topbar = ({ toggleSidebar }) => {
     "ASP - VII",
     "ASP - VIII",
   ];
+
   const userInfo = {
     name: "Admin",
     designation: "System Admin",
@@ -30,8 +32,7 @@ const Topbar = ({ toggleSidebar }) => {
   };
 
   const handleRefreshScreen = () => {
-    navigate("/");
-    window.location.reload(); // Force full reload
+    navigate("/", { replace: true });
   };
 
   const handleRoleChange = (e) => {
@@ -39,16 +40,15 @@ const Topbar = ({ toggleSidebar }) => {
     console.log("Switched to role:", e.target.value);
   };
 
-  // This function now contains the auto-detection logic
+  // Auto-detect Service/Query number based on digits
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
     setSearchValue(value);
 
-    // Use regex to check for exactly 6 or 8 digits
     if (/^\d{6}$/.test(value)) {
-      setSearchType("Service"); // It's a 6-digit Service Number
+      setSearchType("Service"); // 6-digit → Service Number
     } else if (/^\d{8}$/.test(value)) {
-      setSearchType("Query"); // It's an 8-digit Query Number
+      setSearchType("Query"); // 8-digit → Query Number
     }
   };
 
@@ -57,25 +57,39 @@ const Topbar = ({ toggleSidebar }) => {
       alert("Please enter a value to search");
       return;
     }
-    navigate(
-      `/search-results?category=${searchCategory}&type=${searchType}&q=${searchValue}`
-    );
+
+    const targetPath = `/search-results?category=${encodeURIComponent(
+      searchCategory
+    )}&type=${encodeURIComponent(searchType)}&q=${encodeURIComponent(
+      searchValue.trim()
+    )}`;
+
+    // Avoid pushing identical URL repeatedly
+    if (location.pathname + location.search === "/search-results" + targetPath.slice("/search-results".length)) {
+      // Already on same search result URL — do nothing
+      return;
+    }
+
+    // Determine origin (only set `from` when we are not currently on search-results)
+    const state = {};
+    if (!location.pathname.startsWith("/search-results")) {
+      state.from = location.pathname + location.search;
+    }
+
+    // Push new entry (not replace) so user can go back through search entries
+    navigate(targetPath, { state });
   };
 
   return (
     <header className="topbar">
       <div className="topbar-content">
-        {/* Left: Toggle Sidebar & Title */}
+        {/* Left: Sidebar Toggle & Role Switch */}
         <div className="topbar-left">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             <RiMenuFill />
           </button>
           <label htmlFor="roleDropdown">Switch Role: </label>
-          <select
-            id="roleDropdown"
-            value={selectedRole}
-            onChange={handleRoleChange}
-          >
+          <select id="roleDropdown" value={selectedRole} onChange={handleRoleChange}>
             {roles.map((role, index) => (
               <option key={index} value={role}>
                 {role}
@@ -84,38 +98,31 @@ const Topbar = ({ toggleSidebar }) => {
           </select>
         </div>
 
+        {/* Refresh */}
         <div className="refresh-container">
-          <GrRefresh
-            className="refresh-button-api"
-            onClick={handleRefreshScreen}
-          />
+          <GrRefresh className="refresh-button-api" onClick={handleRefreshScreen} />
         </div>
+
+        {/* Center: Search */}
         <div className="topbar-center">
-          <select
-            value={searchCategory}
-            onChange={(e) => setSearchCategory(e.target.value)}
-          >
+          <select value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}>
             <option value="Airmen">Airmen</option>
           </select>
-          <select
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value)}
-          >
+          <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
             <option value="Service">Service No.</option>
             <option value="Query">Query</option>
           </select>
           <input
             type="text"
-            placeholder={
-              searchType === "Query" ? "Enter Query ID" : "Enter Service No."
-            }
+            placeholder={searchType === "Query" ? "Enter Query ID" : "Enter Service No."}
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            onChange={handleSearchInputChange}
           />
           <button onClick={handleSearch}>Search</button>
           <button onClick={() => api.simulateIncoming()}>Call Trigger</button>
         </div>
 
+        {/* Right: User Info */}
         <div className="topbar-right">
           <div className="user-info">
             <span className="user-name">{userInfo.name}</span>
