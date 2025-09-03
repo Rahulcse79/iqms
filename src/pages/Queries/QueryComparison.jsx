@@ -175,6 +175,9 @@ const Comparison = () => {
     setFieldErrors(Array.from({ length: NUM_SLOTS }, () => ""));
     setFormError(null);
     setTouched(false);
+    setActiveQueryId1(null)
+    setActiveQueryId2(null)
+    setActiveQueryId3(null)
     setSearch("");
   };
 
