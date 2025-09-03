@@ -4,7 +4,7 @@
 const services = [
   {
     serviceNo: "SVC1001",
-    rank: "Captain",
+    rank: "Sergent",
     firstName: "Aman",
     middleName: "R",
     lastName: "Kumar",
@@ -21,7 +21,7 @@ const services = [
   },
   {
     serviceNo: "SVC1002",
-    rank: "Major",
+    rank: "Flying Officer",
     firstName: "Neha",
     middleName: "T",
     lastName: "Sharma",
@@ -38,7 +38,7 @@ const services = [
   },
   {
     serviceNo: "SVC2001",
-    rank: "Lieutenant",
+    rank: "Wing Commander ",
     firstName: "Ravi",
     middleName: "",
     lastName: "Patel",
@@ -55,7 +55,7 @@ const services = [
   },
   {
     serviceNo: "SVC2002",
-    rank: "Colonel",
+    rank: "JWO",
     firstName: "Arun",
     middleName: "K",
     lastName: "Verma",
@@ -72,7 +72,7 @@ const services = [
   },
   {
     serviceNo: "SVC2003",
-    rank: "Brigadier",
+    rank: "Wing Commander ",
     firstName: "Sunil",
     middleName: "P",
     lastName: "Mehta",
@@ -89,7 +89,7 @@ const services = [
   },
   {
     serviceNo: "SVC2004",
-    rank: "General",
+    rank: "MWO",
     firstName: "Karan",
     middleName: "J",
     lastName: "Singh",
@@ -106,7 +106,7 @@ const services = [
   },
   {
     serviceNo: "SVC3001",
-    rank: "Lieutenant",
+    rank: "Wing Commander ",
     firstName: "Priya",
     middleName: "",
     lastName: "Nair",
@@ -123,7 +123,7 @@ const services = [
   },
   {
     serviceNo: "SVC3002",
-    rank: "Captain",
+    rank: "Sergent",
     firstName: "Aditya",
     middleName: "",
     lastName: "Gupta",
@@ -140,7 +140,7 @@ const services = [
   },
   {
     serviceNo: "SVC3003",
-    rank: "Major",
+    rank: "Flying Officer",
     firstName: "Suresh",
     middleName: "L",
     lastName: "Rao",
@@ -157,7 +157,7 @@ const services = [
   },
   {
     serviceNo: "SVC3004",
-    rank: "Captain",
+    rank: "Sergent",
     firstName: "Meena",
     middleName: "",
     lastName: "Joshi",
@@ -174,7 +174,7 @@ const services = [
   },
   {
     serviceNo: "SVC4001",
-    rank: "Lieutenant",
+    rank: "Wing Commander ",
     firstName: "Rohit",
     middleName: "M",
     lastName: "Khan",
@@ -191,7 +191,7 @@ const services = [
   },
   {
     serviceNo: "SVC4002",
-    rank: "Colonel",
+    rank: "JWO",
     firstName: "Nikita",
     middleName: "S",
     lastName: "Bose",
@@ -208,7 +208,7 @@ const services = [
   },
   {
     serviceNo: "SVC4003",
-    rank: "Brigadier",
+    rank: "Wing Commander ",
     firstName: "Deepak",
     middleName: "R",
     lastName: "Shah",
@@ -225,7 +225,7 @@ const services = [
   },
   {
     serviceNo: "SVC4004",
-    rank: "General",
+    rank: "MWO",
     firstName: "Vikram",
     middleName: "",
     lastName: "Chauhan",
@@ -242,7 +242,7 @@ const services = [
   },
   {
     serviceNo: "SVC5001",
-    rank: "Major",
+    rank: "Flying Officer",
     firstName: "Anjali",
     middleName: "P",
     lastName: "Desai",
@@ -259,7 +259,7 @@ const services = [
   },
   {
     serviceNo: "SVC5002",
-    rank: "Captain",
+    rank: "Sergent",
     firstName: "Kabir",
     middleName: "H",
     lastName: "Yadav",
@@ -276,7 +276,7 @@ const services = [
   },
   {
     serviceNo: "SVC5003",
-    rank: "Lieutenant",
+    rank: "Wing Commander ",
     firstName: "Swati",
     middleName: "N",
     lastName: "Reddy",
@@ -293,7 +293,7 @@ const services = [
   },
   {
     serviceNo: "SVC5004",
-    rank: "Colonel",
+    rank: "JWO",
     firstName: "Ramesh",
     middleName: "V",
     lastName: "Menon",
@@ -310,7 +310,7 @@ const services = [
   },
   {
     serviceNo: "SVC5005",
-    rank: "Brigadier",
+    rank: "Wing Commander ",
     firstName: "Alok",
     middleName: "",
     lastName: "Chatterjee",
@@ -390,7 +390,7 @@ function createQuery(payload) {
   const nextIndex = existing.length + 1;
   const queryNo = `${serviceNo}-Q${String(nextIndex).padStart(3, "0")}`;
   const subject =
-    payload.subject || `${payload.category || "General"} - ${payload.subCategory || ""}`.trim();
+    payload.subject || `${payload.category || "MWO"} - ${payload.subCategory || ""}`.trim();
 
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10);

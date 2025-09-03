@@ -20,7 +20,6 @@
 /* Container */
 .query-container {
   background: var(--bg);
-  min-height: 100vh;
   padding: 28px;
   color: var(--text);
   box-sizing: border-box;
@@ -33,6 +32,7 @@
   align-items: center;
   justify-content: center;
   padding: 80px 20px;
+
 }
 .search-only-card {
   width: 720px;
