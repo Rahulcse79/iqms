@@ -2,7 +2,7 @@ import { createStore, combineReducers, applyMiddleware, compose } from "redux";
 import { thunk } from "redux-thunk"; 
 import { userReducer, repliedQueryReducer, officerBasicPayReasonReducer, officerRankHistoryReducer, searchQueryReducer, officerPersmastReducer, searchQueryByIdReducer, airmanBasicPayReasonReducer, searchQueryIdReducer, airmanRankHistoryReducer, airmanPersmastReducer } from "../reducers/reducers";
 import {personalDataReducer, ProfileViewReducer, abcCodesReducer} from "../reducers/ProfileReducers";
-import { queryReducer } from "../reducers/queryReducer";
+import frqQryReducer, { faqReducer, queryReducer } from "../reducers/queryReducer";
 
 const initialState = {
   login_user: {
@@ -24,12 +24,17 @@ const reducer = combineReducers({
   query: queryReducer,
   profileView: ProfileViewReducer,
   abcCodes: abcCodesReducer,
+
   airmanPersmast: airmanPersmastReducer,
   airmanRankHistory: airmanRankHistoryReducer,
   airmanBasicPayReason: airmanBasicPayReasonReducer,
   officerPersmast: officerPersmastReducer,
   officerRankHistory: officerRankHistoryReducer,
   officerBasicPayReason: officerBasicPayReasonReducer,
+
+
+  faqReducer: faqReducer,
+  frqQryReducer: frqQryReducer,
 
 });
 

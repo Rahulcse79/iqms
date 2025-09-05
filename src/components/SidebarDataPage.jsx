@@ -9,6 +9,7 @@ import {
   FaBalanceScale,
   FaChevronDown,
   FaChevronUp,
+  FaBookOpen,
 } from "react-icons/fa";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { AuthContext } from "../context/AuthContext";
@@ -78,6 +79,11 @@ const SidebarDataPage = () => {
       title: "Query Comparision",
       path: "/query/comparision",
       icon: <FaBalanceScale style={{ color: "#009688" }} />,
+    },
+        {
+      title: "FAQ's",
+      path: "/FAQ",
+      icon: <FaBookOpen style={{ color: "#009688" }} />,
     },
     {
       title: "Logout",

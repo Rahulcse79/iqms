@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRepliedQueries } from "../actions/allAction";
+import { userRoleOptions, UserRoleLabel } from "../constants/Enum";
 import Loader from "../components/Loader";
 
 const Login = () => {
@@ -24,7 +25,7 @@ const Login = () => {
   useEffect(() => {
     const authUser = Cookies.get("authUser");
     if (authUser) {
-      navigate("/");
+      navigate("/app2");
     }
   }, [navigate]);
 
@@ -74,12 +75,15 @@ const Login = () => {
               <select
                 id="category"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => setCategory(Number(e.target.value))} // store as number
                 className="login-select"
               >
-                <option value="Civilian">Civilian</option>
-                <option value="Officer">Officer</option>
-                <option value="Airmen">Airmen/ NCS(E)</option>
+                <option value="">-- Select --</option>
+                {userRoleOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
             <label htmlFor="username">Username</label>
