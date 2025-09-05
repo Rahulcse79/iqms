@@ -49,7 +49,10 @@ import {
 // Officer Basic Pay Reason API call
 export const fetchOfficerBasicPayReason = (sno) => async (dispatch) => {
   try {
-    dispatch({ type: SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_REQUEST });
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_REQUEST,
+      meta: { serviceNumber: sno },
+    });
 
     const { data } = await axios.get(
       `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/basicPayReason/officer/${sno}`
@@ -58,11 +61,13 @@ export const fetchOfficerBasicPayReason = (sno) => async (dispatch) => {
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_SUCCESS,
       payload: data.items || [],
+      meta: { serviceNumber: sno },
     });
   } catch (error) {
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_FAIL,
-      payload: error.response?.data?.message || error.message || "Something went wrong",
+      payload: safeErrorMessage(error),
+      meta: { serviceNumber: sno },
     });
   }
 };
@@ -70,7 +75,10 @@ export const fetchOfficerBasicPayReason = (sno) => async (dispatch) => {
 // Officer Rank History API call
 export const fetchOfficerRankHistory = (sno) => async (dispatch) => {
   try {
-    dispatch({ type: SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_REQUEST });
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_REQUEST,
+      meta: { serviceNumber: sno },
+    });
 
     const { data } = await axios.get(
       `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/rankHistory/officer/${sno}`
@@ -79,12 +87,13 @@ export const fetchOfficerRankHistory = (sno) => async (dispatch) => {
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_SUCCESS,
       payload: data.items || [],
+      meta: { serviceNumber: sno },
     });
   } catch (error) {
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_FAIL,
-      payload:
-        error.response?.data?.message || error.message || "Something went wrong",
+      payload: safeErrorMessage(error),
+      meta: { serviceNumber: sno },
     });
   }
 };
@@ -92,7 +101,10 @@ export const fetchOfficerRankHistory = (sno) => async (dispatch) => {
 // Officer Persmast API call
 export const fetchOfficerPersmast = (sno) => async (dispatch) => {
   try {
-    dispatch({ type: SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_REQUEST });
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_REQUEST,
+      meta: { serviceNumber: sno },
+    });
 
     const { data } = await axios.get(
       `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/persmast/officer/${sno}`
@@ -100,21 +112,25 @@ export const fetchOfficerPersmast = (sno) => async (dispatch) => {
 
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_SUCCESS,
-      payload: data.items || [],
+      payload: data.items?.[0] || {},
+      meta: { serviceNumber: sno },
     });
   } catch (error) {
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_FAIL,
-      payload:
-        error.response?.data?.message || error.message || "Something went wrong",
+      payload: safeErrorMessage(error),
+      meta: { serviceNumber: sno },
     });
   }
 };
 
-// Fetch Airman Basic Pay Reason
+// Airman Basic Pay Reason
 export const fetchAirmanBasicPayReason = (sno) => async (dispatch) => {
   try {
-    dispatch({ type: SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_REQUEST });
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_REQUEST,
+      meta: { serviceNumber: sno },
+    });
 
     const { data } = await axios.get(
       `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/basicPayReason/airmen/${sno}`
@@ -122,23 +138,25 @@ export const fetchAirmanBasicPayReason = (sno) => async (dispatch) => {
 
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_SUCCESS,
-      payload: data,
+      payload: data.items || [],
+      meta: { serviceNumber: sno },
     });
   } catch (error) {
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: safeErrorMessage(error),
+      meta: { serviceNumber: sno },
     });
   }
 };
 
-// Fetch Airman Rank History
+// Airman Rank History
 export const fetchAirmanRankHistory = (sno) => async (dispatch) => {
   try {
-    dispatch({ type: SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_REQUEST });
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_REQUEST,
+      meta: { serviceNumber: sno },
+    });
 
     const { data } = await axios.get(
       `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/rankHistory/airmen/${sno}`
@@ -146,23 +164,25 @@ export const fetchAirmanRankHistory = (sno) => async (dispatch) => {
 
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_SUCCESS,
-      payload: data,
+      payload: data.items || [],
+      meta: { serviceNumber: sno },
     });
   } catch (error) {
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: safeErrorMessage(error),
+      meta: { serviceNumber: sno },
     });
   }
 };
 
-// Action: Fetch Airman Persmast details by Service No (Sno)
+// Airman Persmast
 export const fetchAirmanPersmast = (sno) => async (dispatch) => {
   try {
-    dispatch({ type: SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_REQUEST });
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_REQUEST,
+      meta: { serviceNumber: sno },
+    });
 
     const { data } = await axios.get(
       `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/persmast/airmen/${sno}`
@@ -170,18 +190,18 @@ export const fetchAirmanPersmast = (sno) => async (dispatch) => {
 
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_SUCCESS,
-      payload: data,
+      payload: data.items?.[0] || {},
+      meta: { serviceNumber: sno },
     });
   } catch (error) {
     dispatch({
       type: SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: safeErrorMessage(error),
+      meta: { serviceNumber: sno },
     });
   }
 };
+
 
 // Search query by Query ID (doc_id)
 export const searchQueryById = (docId) => async (dispatch) => {

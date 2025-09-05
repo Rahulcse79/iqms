@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Comparison.css";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -18,36 +18,53 @@ const Comparison = () => {
   const [selectCategory, setSelectCategory] = useState("Airmen");
   const [result, setResult] = useState(null);
 
-  // Officer states
-  const officerBasicPayReason = useSelector((state) => state.officerBasicPayReason);
-  const officerRankHistory = useSelector((state) => state.officerRankHistory);
-  const officerPersmast = useSelector((state) => state.officerPersmast);
+  // global slices (reducers should have shape: { data: { [sno]: payload }, loading, error })
+  const airmanPersmastSlice = useSelector((state) => state.airmanPersmast);
+  const airmanBasicPaySlice = useSelector((state) => state.airmanBasicPayReason);
+  const airmanRankSlice = useSelector((state) => state.airmanRankHistory);
 
-  // Airman states
-  const airmanBasicPayReason = useSelector((state) => state.airmanBasicPayReason);
-  const airmanRankHistory = useSelector((state) => state.airmanRankHistory);
-  const airmanPersmast = useSelector((state) => state.airmanPersmast);
+  const officerPersmastSlice = useSelector((state) => state.officerPersmast);
+  const officerBasicPaySlice = useSelector((state) => state.officerBasicPayReason);
+  const officerRankSlice = useSelector((state) => state.officerRankHistory);
+
+  // helper to read keyed-by-sno from slice safely
+  const getFromSlice = (slice, sno) => {
+    if (!slice || !sno) return null;
+    // slice.data might be undefined initially
+    return slice.data ? slice.data[sno] ?? null : null;
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
 
-    if (!seniorServiceNumber || !juniorServiceNumber || !selectCategory) {
+    if (!seniorServiceNumber || !juniorServiceNumber) {
       alert("Please fill in all fields before searching.");
       return;
     }
 
     if (selectCategory === "Officer") {
+      // Senior
+      dispatch(fetchOfficerPersmast(seniorServiceNumber));
       dispatch(fetchOfficerBasicPayReason(seniorServiceNumber));
       dispatch(fetchOfficerRankHistory(seniorServiceNumber));
-      dispatch(fetchOfficerPersmast(seniorServiceNumber));
-    } else if (selectCategory === "Airmen") {
+      // Junior
+      dispatch(fetchOfficerPersmast(juniorServiceNumber));
+      dispatch(fetchOfficerBasicPayReason(juniorServiceNumber));
+      dispatch(fetchOfficerRankHistory(juniorServiceNumber));
+    } else {
+      // Airmen
+      dispatch(fetchAirmanPersmast(seniorServiceNumber));
       dispatch(fetchAirmanBasicPayReason(seniorServiceNumber));
       dispatch(fetchAirmanRankHistory(seniorServiceNumber));
-      dispatch(fetchAirmanPersmast(seniorServiceNumber));
+      // Junior
+      dispatch(fetchAirmanPersmast(juniorServiceNumber));
+      dispatch(fetchAirmanBasicPayReason(juniorServiceNumber));
+      dispatch(fetchAirmanRankHistory(juniorServiceNumber));
     }
 
     setResult({ category: selectCategory, senior: seniorServiceNumber, junior: juniorServiceNumber });
 
+    // scroll to results
     setTimeout(() => {
       const el = document.querySelector(".comparison-results");
       if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -58,94 +75,225 @@ const Comparison = () => {
     window.print();
   };
 
-  const renderCard = (person, payReason, rankHistory, label) => {
-    if (!person) return <div className="card">{label}: No Data Found</div>;
+  // Build a normalized person object for rendering
+  // persData can be either: an object (persmast single object) or { items: [...] } depending on your action payload
+  const normalizePers = (persData) => {
+    if (!persData) return null;
+    // if reducer stored single object (payload = data.items?.[0] || {}), persData is an object with sno etc
+    if (persData.sno || persData.p_name) return persData;
+    // if reducer stored { items: [...] } or array
+    if (Array.isArray(persData)) return persData[0] || null;
+    if (persData.items && persData.items.length) return persData.items[0];
+    return null;
+  };
+
+  // payData and rankData are expected to be arrays OR { items: [...] } depending on how actions dispatch.
+  const normalizeArray = (arrOrObj) => {
+    if (!arrOrObj) return [];
+    if (Array.isArray(arrOrObj)) return arrOrObj;
+    if (arrOrObj.items && Array.isArray(arrOrObj.items)) return arrOrObj.items;
+    return [];
+  };
+
+  // pick the right slices & per-sno entry
+  const seniorPersRaw =
+    selectCategory === "Officer"
+      ? getFromSlice(officerPersmastSlice, result?.senior || seniorServiceNumber)
+      : getFromSlice(airmanPersmastSlice, result?.senior || seniorServiceNumber);
+
+  const juniorPersRaw =
+    selectCategory === "Officer"
+      ? getFromSlice(officerPersmastSlice, result?.junior || juniorServiceNumber)
+      : getFromSlice(airmanPersmastSlice, result?.junior || juniorServiceNumber);
+
+  const seniorPayRaw =
+    selectCategory === "Officer"
+      ? getFromSlice(officerBasicPaySlice, result?.senior || seniorServiceNumber)
+      : getFromSlice(airmanBasicPaySlice, result?.senior || seniorServiceNumber);
+
+  const juniorPayRaw =
+    selectCategory === "Officer"
+      ? getFromSlice(officerBasicPaySlice, result?.junior || juniorServiceNumber)
+      : getFromSlice(airmanBasicPaySlice, result?.junior || juniorServiceNumber);
+
+  const seniorRankRaw =
+    selectCategory === "Officer"
+      ? getFromSlice(officerRankSlice, result?.senior || seniorServiceNumber)
+      : getFromSlice(airmanRankSlice, result?.senior || seniorServiceNumber);
+
+  const juniorRankRaw =
+    selectCategory === "Officer"
+      ? getFromSlice(officerRankSlice, result?.junior || juniorServiceNumber)
+      : getFromSlice(airmanRankSlice, result?.junior || juniorServiceNumber);
+
+  // normalized for rendering
+  const seniorPerson = normalizePers(seniorPersRaw);
+  const juniorPerson = normalizePers(juniorPersRaw);
+  const seniorPayList = normalizeArray(seniorPayRaw);
+  const juniorPayList = normalizeArray(juniorPayRaw);
+  const seniorRankList = normalizeArray(seniorRankRaw);
+  const juniorRankList = normalizeArray(juniorRankRaw);
+
+  // console logs to help debugging
+  useEffect(() => {
+    console.log("selectCategory:", selectCategory);
+    console.log("seniorServiceNumber:", seniorServiceNumber);
+    console.log("juniorServiceNumber:", juniorServiceNumber);
+
+    console.log("airmanPersmastSlice:", airmanPersmastSlice);
+    console.log("airmanBasicPaySlice:", airmanBasicPaySlice);
+    console.log("airmanRankSlice:", airmanRankSlice);
+
+    console.log("officerPersmastSlice:", officerPersmastSlice);
+    console.log("officerBasicPaySlice:", officerBasicPaySlice);
+    console.log("officerRankSlice:", officerRankSlice);
+
+    console.log("seniorPerson:", seniorPerson);
+    console.log("juniorPerson:", juniorPerson);
+    console.log("seniorPayList:", seniorPayList);
+    console.log("juniorPayList:", juniorPayList);
+    console.log("seniorRankList:", seniorRankList);
+    console.log("juniorRankList:", juniorRankList);
+  }, [
+    selectCategory,
+    seniorServiceNumber,
+    juniorServiceNumber,
+    airmanPersmastSlice,
+    airmanBasicPaySlice,
+    airmanRankSlice,
+    officerPersmastSlice,
+    officerBasicPaySlice,
+    officerRankSlice,
+    seniorPerson,
+    juniorPerson,
+    seniorPayList,
+    juniorPayList,
+    seniorRankList,
+    juniorRankList,
+  ]);
+
+  // Card renderer (uses normalized objects/arrays)
+  const renderCard = (person, payList, rankList, label, sliceLoading, sliceError) => {
+    if (sliceLoading && !person && payList.length === 0 && rankList.length === 0) {
+      return <div className="card">{label}: Loading...</div>;
+    }
+
+    if (!person && payList.length === 0 && rankList.length === 0) {
+      return <div className="card">{label}: No Data Found</div>;
+    }
 
     return (
       <div className="card">
         <div className="card-top">
-          {label} • {person.serviceNo}
+          {label} • {person?.sno || "-"}
         </div>
+
         <div className="card-body">
+          {/* PERSMAST */}
           <div className="card-title">PERSMAST</div>
           <table className="info-table">
             <tbody>
               <tr>
-                <td>Cell No</td>
-                <td>{person.cellNo || "-"}</td>
+                <td>Cell</td>
+                <td>{person?.cell ?? "-"}</td>
                 <td>Unit</td>
-                <td>{person.unit || "-"}</td>
+                <td>{person?.unit_name ?? person?.unitname ?? "-"}</td>
               </tr>
               <tr>
                 <td>Service No</td>
-                <td>{person.serviceNo}</td>
+                <td>{person?.sno ?? "-"}</td>
                 <td>Rank</td>
-                <td>{person.rank || "-"}</td>
+                <td>{person?.rank ?? person?.rankname ?? "-"}</td>
               </tr>
               <tr>
-                <td>Trade</td>
-                <td>{person.trade || "-"}</td>
+                <td>Trade / Branch</td>
+                <td>{person?.tradename ?? person?.branch_name ?? "-"}</td>
                 <td>DOE</td>
-                <td>{person.doe || "-"}</td>
+                <td>{person?.enrldt ? new Date(person.enrldt).toLocaleDateString() : "-"}</td>
               </tr>
               <tr>
                 <td>Name</td>
-                <td colSpan="3">{person.name || "-"}</td>
+                <td colSpan="3">{person?.p_name ?? "-"}</td>
               </tr>
-            </tbody>
-          </table>
-
-          <div className="section-title">Basic Pay Reason</div>
-          <ul>
-            {(payReason || []).map((pr, idx) => (
-              <li key={idx}>
-                {pr.reason} – {pr.amount}
-              </li>
-            ))}
-          </ul>
-
-          <div className="section-title">RANK HISTORY</div>
-          <table className="rank-table">
-            <thead>
               <tr>
-                <th>S.No</th>
-                <th>Rank</th>
-                <th>Rank Date</th>
+                <td>CS</td>
+                <td>{person?.cs ?? "-"}</td>
+                <td>Unit Code</td>
+                <td>{person?.unitcd ?? "-"}</td>
               </tr>
-            </thead>
-            <tbody>
-              {(rankHistory || []).map((r, idx) => (
-                <tr key={idx}>
-                  <td>{idx + 1}</td>
-                  <td>{r.rank}</td>
-                  <td>{r.rankDate}</td>
-                </tr>
-              ))}
             </tbody>
           </table>
+
+          {/* BASIC PAY REASON */}
+          <div className="section-title">Basic Pay Reason</div>
+          {payList.length === 0 ? (
+            <p>No pay entries.</p>
+          ) : (
+            <table className="info-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Description</th>
+                  <th>Rate</th>
+                  <th>WEF</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payList.map((p, i) => (
+                  <tr key={i}>
+                    <td>{i + 1}</td>
+                    <td>{p.description ?? p.desc ?? "-"}</td>
+                    <td>{p.rate ?? p.amount ?? "-"}</td>
+                    <td>{p.wef ? new Date(p.wef).toLocaleDateString() : p.hp_date ? new Date(p.hp_date).toLocaleDateString() : "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          {/* RANK HISTORY */}
+          <div className="section-title">Rank History</div>
+          {rankList.length === 0 ? (
+            <p>No rank history.</p>
+          ) : (
+            <table className="rank-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Rank</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Opt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rankList.map((r, i) => (
+                  <tr key={i}>
+                    <td>{i + 1}</td>
+                    <td>{r.rank ?? "-"}</td>
+                    <td>{r.hp_date ? new Date(r.hp_date).toLocaleDateString() : r.wef ? new Date(r.wef).toLocaleDateString() : "-"}</td>
+                    <td>{r.type ?? "-"}</td>
+                    <td>{r.opt ?? "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     );
   };
 
-  // choose correct data
-  let seniorData, juniorData, seniorPay, juniorPay, seniorRankHistory, juniorRankHistory;
+  // determine which slice-level loading/error to use (simple heuristic)
+  const sliceLoading =
+    selectCategory === "Officer"
+      ? officerPersmastSlice?.loading || officerBasicPaySlice?.loading || officerRankSlice?.loading
+      : airmanPersmastSlice?.loading || airmanBasicPaySlice?.loading || airmanRankSlice?.loading;
 
-  if (selectCategory === "Officer") {
-    seniorData = officerPersmast[seniorServiceNumber];
-    juniorData = officerPersmast[juniorServiceNumber];
-    seniorPay = officerBasicPayReason[seniorServiceNumber];
-    juniorPay = officerBasicPayReason[juniorServiceNumber];
-    seniorRankHistory = officerRankHistory[seniorServiceNumber];
-    juniorRankHistory = officerRankHistory[juniorServiceNumber];
-  } else if (selectCategory === "Airmen") {
-    seniorData = airmanPersmast[seniorServiceNumber];
-    juniorData = airmanPersmast[juniorServiceNumber];
-    seniorPay = airmanBasicPayReason[seniorServiceNumber];
-    juniorPay = airmanBasicPayReason[juniorServiceNumber];
-    seniorRankHistory = airmanRankHistory[seniorServiceNumber];
-    juniorRankHistory = airmanRankHistory[juniorServiceNumber];
-  }
+  const sliceError =
+    selectCategory === "Officer"
+      ? officerPersmastSlice?.error || officerBasicPaySlice?.error || officerRankSlice?.error
+      : airmanPersmastSlice?.error || airmanBasicPaySlice?.error || airmanRankSlice?.error;
 
   return (
     <div className="comparison-container">
@@ -157,7 +305,6 @@ const Comparison = () => {
           <select value={selectCategory} onChange={(e) => setSelectCategory(e.target.value)}>
             <option value="Airmen">Airmen / NCs(E)</option>
             <option value="Officer">Officer</option>
-            <option value="Other">Other</option>
           </select>
         </label>
 
@@ -167,7 +314,7 @@ const Comparison = () => {
             type="text"
             placeholder="Enter Senior Service No"
             value={seniorServiceNumber}
-            onChange={(e) => setSeniorServiceNumber(e.target.value)}
+            onChange={(e) => setSeniorServiceNumber(e.target.value.trim())}
           />
         </label>
 
@@ -177,7 +324,7 @@ const Comparison = () => {
             type="text"
             placeholder="Enter Junior Service No"
             value={juniorServiceNumber}
-            onChange={(e) => setJuniorServiceNumber(e.target.value)}
+            onChange={(e) => setJuniorServiceNumber(e.target.value.trim())}
           />
         </label>
 
@@ -195,9 +342,11 @@ const Comparison = () => {
             </button>
           </div>
 
+          {sliceError && <div className="error">Error: {sliceError}</div>}
+
           <div className="cards">
-            {renderCard(seniorData, seniorPay, seniorRankHistory, "Senior")}
-            {renderCard(juniorData, juniorPay, juniorRankHistory, "Junior")}
+            {renderCard(seniorPerson, seniorPayList, seniorRankList, "Senior", sliceLoading, sliceError)}
+            {renderCard(juniorPerson, juniorPayList, juniorRankList, "Junior", sliceLoading, sliceError)}
           </div>
         </div>
       )}

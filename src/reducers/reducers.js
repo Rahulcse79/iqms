@@ -47,95 +47,130 @@ SEARCH_QUERY_ID_SUCCESS,
 SEARCH_QUERY_ID_FAIL,
 } from "../constants/queryConstants";
 
-export const officerBasicPayReasonReducer = (state = { basicPayReasons: [] }, action) => {
-  switch (action.type) {
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_REQUEST:
-      return { loading: true, basicPayReasons: [] };
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_SUCCESS:
-      return { loading: false, basicPayReasons: action.payload };
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_FAIL:
-      return { loading: false, error: action.payload };
-    default:
-      return state;
-  }
-};
 
-export const officerRankHistoryReducer = (state = { rankHistory: [] }, action) => {
-  switch (action.type) {
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_REQUEST:
-      return { loading: true, rankHistory: [] };
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_SUCCESS:
-      return { loading: false, rankHistory: action.payload };
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_FAIL:
-      return { loading: false, error: action.payload };
-    default:
-      return state;
-  }
-};
-
-export const officerPersmastReducer = (state = { officer: [] }, action) => {
-  switch (action.type) {
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_REQUEST:
-      return { loading: true, officer: [] };
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_SUCCESS:
-      return { loading: false, officer: action.payload };
-    case SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_FAIL:
-      return { loading: false, error: action.payload };
-    default:
-      return state;
-  }
-};
-
-export const airmanBasicPayReasonReducer = (
-  state = { basicPayReasons: [] },
+// ---------- AIRMAN REDUCERS ----------
+export const airmanPersmastReducer = (
+  state = { data: {}, loading: false, error: null },
   action
 ) => {
   switch (action.type) {
-    case SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_REQUEST:
-      return { loading: true, basicPayReasons: [] };
-    case SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_SUCCESS:
-      return { loading: false, basicPayReasons: action.payload };
-    case SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_FAIL:
-      return { loading: false, error: action.payload };
-    case SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_RESET:
-      return { basicPayReasons: [] };
+    case SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_REQUEST:
+      return { ...state, loading: true };
+    case SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        data: { ...state.data, [action.meta.serviceNumber]: action.payload },
+      };
+    case SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    case SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_RESET:
+      return { data: {}, loading: false, error: null };
     default:
       return state;
   }
 };
 
 export const airmanRankHistoryReducer = (
-  state = { rankHistory: [] },
+  state = { data: {}, loading: false, error: null },
   action
 ) => {
   switch (action.type) {
     case SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_REQUEST:
-      return { loading: true, rankHistory: [] };
+      return { ...state, loading: true };
     case SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_SUCCESS:
-      return { loading: false, rankHistory: action.payload };
+      return {
+        ...state,
+        loading: false,
+        data: { ...state.data, [action.meta.serviceNumber]: action.payload },
+      };
     case SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_FAIL:
-      return { loading: false, error: action.payload };
+      return { ...state, loading: false, error: action.payload };
     case SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_RESET:
-      return { rankHistory: [] };
+      return { data: {}, loading: false, error: null };
     default:
       return state;
   }
 };
 
-export const airmanPersmastReducer = (state = { airman: {} }, action) => {
+export const airmanBasicPayReasonReducer = (
+  state = { data: {}, loading: false, error: null },
+  action
+) => {
   switch (action.type) {
-    case SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_REQUEST:
-      return { loading: true, airman: {} };
+    case SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_REQUEST:
+      return { ...state, loading: true };
+    case SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        data: { ...state.data, [action.meta.serviceNumber]: action.payload },
+      };
+    case SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    case SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_RESET:
+      return { data: {}, loading: false, error: null };
+    default:
+      return state;
+  }
+};
 
-    case SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_SUCCESS:
-      return { loading: false, airman: action.payload };
+// ---------- OFFICER REDUCERS ----------
+export const officerPersmastReducer = (
+  state = { data: {}, loading: false, error: null },
+  action
+) => {
+  switch (action.type) {
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_REQUEST:
+      return { ...state, loading: true };
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        data: { ...state.data, [action.meta.serviceNumber]: action.payload },
+      };
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
 
-    case SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_FAIL:
-      return { loading: false, error: action.payload };
+export const officerRankHistoryReducer = (
+  state = { data: {}, loading: false, error: null },
+  action
+) => {
+  switch (action.type) {
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_REQUEST:
+      return { ...state, loading: true };
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        data: { ...state.data, [action.meta.serviceNumber]: action.payload },
+      };
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
 
-    case SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_RESET:
-      return { airman: {} };
-
+export const officerBasicPayReasonReducer = (
+  state = { data: {}, loading: false, error: null },
+  action
+) => {
+  switch (action.type) {
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_REQUEST:
+      return { ...state, loading: true };
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        data: { ...state.data, [action.meta.serviceNumber]: action.payload },
+      };
+    case SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_FAIL:
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }
