@@ -1,37 +1,26 @@
-/**
- * NewQuery.jsx
- * - Child form used inside QueryView modal
- * - Props:
- *   - service: service object (required)
- *   - onClose: function to close modal
- *   - onCreate: function(payload) called after validation and when user submits
- *
- * Note: component builds the payload and calls onCreate(payload). The parent (QueryView)
- * is responsible for persisting via data.createQuery and updating UI.
- */
-
+// NewQuery.jsx
 import React, { useMemo, useState, useRef } from "react";
 import { FiSave, FiRotateCcw, FiX, FiAlertCircle } from "react-icons/fi";
 import "./NewQuery.css";
 
-const CATEGORY_OPTIONS = {
-  Leave: ["Annual Leave", "Medical Leave", "Emergency Leave"],
-  Documents: ["Service Record", "ID Card", "NOC"],
-  Payroll: ["Salary Discrepancy", "Payslip Request", "Tax Form"],
-  IT: ["Password Reset", "Account Access", "System Issue"],
-  Other: ["General Query"],
-};
-const PRIORITY_OPTIONS = ["Low", "Medium", "High", "Urgent"];
-const MODE_OPTIONS = ["Online", "Email", "Phone", "In-Person", "Letter"];
+/**
+ * NOTE:
+ * Category / subcategory names are aligned with the labels used in data.js
+ * so createQuery can map them to codes reliably.
+ */
 
-function generateQueryNo() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const t = String(d.getHours()).padStart(2, "0") + String(d.getMinutes()).padStart(2, "0");
-  return `Q-${y}${m}${day}-${t}-${Math.floor(Math.random() * 900 + 100)}`;
-}
+const CATEGORY_OPTIONS = {
+  "LEAVE": ["Annual Leave", "Medical Leave", "Emergency Leave"],
+  "SERVICE PENSION": ["CHANGE OF DOB CHILD", "PPO Query", "Pension Calculation"],
+  "PAYROLL": ["Payslip Request", "Salary Discrepancy", "Tax Form"],
+  "DOCUMENTS": ["Service Record", "ID Card Issue", "NOC"],
+  "IDENTITY": ["ID Card Issue"],
+  "TRANSFER": ["Transfer Posting"],
+  "GENERAL": ["General Assistance"],
+};
+
+const PRIORITY_OPTIONS = ["Low", "Medium", "High", "Urgent", "Court Case"];
+const MODE_OPTIONS = ["Online", "Email", "Telephonically", "In-Person", "Letter"];
 
 export default function NewQuery({ service, onClose = () => {}, onCreate = () => {} }) {
   const [form, setForm] = useState({
@@ -47,6 +36,7 @@ export default function NewQuery({ service, onClose = () => {}, onCreate = () =>
   const refs = useRef({});
   const MESSAGE_MAX = 1000;
   const messageLen = form.queryMessage.length;
+
   const subcategoryList = useMemo(() => CATEGORY_OPTIONS[form.category] || [], [form.category]);
 
   function setField(name, value) {
@@ -82,12 +72,12 @@ export default function NewQuery({ service, onClose = () => {}, onCreate = () =>
     return true;
   }
 
-  function handleSubmit(ev) {
+  // Accept sync or async onCreate. returns created UI-object (if parent returns it).
+  async function handleSubmit(ev) {
     ev.preventDefault();
     if (!validate()) return;
 
     const payload = {
-      // include service identifiers so parent can persist correctly
       serviceNo: service.serviceNo,
       rank: service.rank,
       firstName: service.firstName,
@@ -97,23 +87,21 @@ export default function NewQuery({ service, onClose = () => {}, onCreate = () =>
       mobile: service.mobile,
       email: service.email,
 
-      // query details
       category: form.category,
       subCategory: form.subCategory,
       queryPriority: form.queryPriority,
       modeOfQuery: form.modeOfQuery,
       queryMessage: form.queryMessage,
-      // parent may add more fields (queryDate, status) when persisting
     };
 
-    // tell parent to persist
     try {
-      onCreate(payload);
-      setSubmitted(payload);
-      // NOTE: parent usually closes modal; we don't assume it but allow parent to decide.
+      const created = await Promise.resolve(onCreate(payload));
+      // If parent returns the created UI object, show it in summary; otherwise use payload
+      setSubmitted(created || payload);
+      // Do NOT automatically close modal here — let user review summary and click Close.
     } catch (err) {
-      console.error("onCreate handler threw:", err);
-      alert("Failed to create query (see console)");
+      console.error("onCreate error:", err);
+      alert("Failed to create query (see console).");
     }
   }
 
@@ -148,7 +136,6 @@ export default function NewQuery({ service, onClose = () => {}, onCreate = () =>
         </div>
       </header>
 
-      {/* service card */}
       {service && (
         <div style={{ maxWidth: 960, margin: "0 auto 12px" }}>
           <div className="svc-card card">
@@ -160,6 +147,7 @@ export default function NewQuery({ service, onClose = () => {}, onCreate = () =>
                 <div style={{ color: "var(--muted)", fontSize: 13, marginTop: 6 }}>+{service.isdCode} {service.mobile} • {service.email}</div>
               </div>
             </div>
+
             <div className="svc-right">
               <div style={{ textAlign: "right", color: "var(--muted)" }}>
                 <div>Service No</div>
@@ -170,7 +158,6 @@ export default function NewQuery({ service, onClose = () => {}, onCreate = () =>
         </div>
       )}
 
-      {/* form */}
       {!submitted ? (
         <form className="nq-form" onSubmit={handleSubmit} noValidate style={{ maxWidth: 960, margin: "0 auto" }}>
           <section className="nq-card">
@@ -239,11 +226,40 @@ export default function NewQuery({ service, onClose = () => {}, onCreate = () =>
       ) : (
         <section className="nq-card nq-summary" style={{ maxWidth: 960, margin: "0 auto" }}>
           <h2>Query Created</h2>
-          <p>The query has been created and is linked to <strong>{submitted.serviceNo}</strong>.</p>
+          <p>The query has been created and is linked to <strong>{submitted.serviceNo || service?.serviceNo}</strong>.</p>
+
+          <div className="nq-summary-grid">
+            <div>
+              <div className="nq-k">Query No</div>
+              <div className="nq-v mono">{submitted.queryNo || submitted.queryNo}</div>
+            </div>
+            <div>
+              <div className="nq-k">Date</div>
+              <div className="nq-v">{submitted.date || submitted.queryDate || (new Date()).toISOString().slice(0,10)}</div>
+            </div>
+            <div>
+              <div className="nq-k">Status</div>
+              <div className="nq-v">{submitted.status || 'Initiated'}</div>
+            </div>
+            <div>
+              <div className="nq-k">Category</div>
+              <div className="nq-v">{submitted.category || submitted.queryCategoryName}</div>
+            </div>
+            <div>
+              <div className="nq-k">Priority</div>
+              <div className="nq-v">{submitted.priority || submitted.queryPriotriyName || submitted.queryPriority}</div>
+            </div>
+            <div>
+              <div className="nq-k">Mode</div>
+              <div className="nq-v">{submitted.mode || submitted.queryModeName || submitted.modeOfQuery}</div>
+            </div>
+          </div>
+
           <pre className="nq-payload">{JSON.stringify(submitted, null, 2)}</pre>
+
           <div className="nq-summary-actions" style={{ display: "flex", gap: 8 }}>
             <button className="btn btn-secondary" onClick={() => { setSubmitted(null); handleReset(); }}>Create Another</button>
-            <button className="btn btn-secondary" onClick={onClose}>Close</button>
+            <button className="btn btn-secondary" onClick={() => { onClose(); }}>Close</button>
           </div>
         </section>
       )}

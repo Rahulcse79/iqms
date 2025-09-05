@@ -238,19 +238,19 @@ body:has(.rafale-loader) {
     transform: translate(-50%, -50%) scale(0.95);
   }
   30% {
-    offset-distance: 15%;
+    offset-distance: 10%;
     transform: translate(-50%, -52%) scale(1.03);
   }
   50% {
-    offset-distance: 45%;
+    offset-distance: 25%;
     transform: translate(-50%, -56%) scale(1.07);
   }
   50% {
-    offset-distance: 70%;
+    offset-distance: 55%;
     transform: translate(-50%, -60%) scale(1.04);
   }
-  90% {
-    offset-distance: 90%;
+  85% {
+    offset-distance: 80%;
     transform: translate(-50%, -65%) scale(1);
   }
   100% {
@@ -265,7 +265,7 @@ body:has(.rafale-loader) {
     transform: translate(-50%, -50%) scale(0.92);
   }
   5% {
-    offset-distance: 12%;
+    offset-distance: 14%;
     transform: translate(-49%, -51%) scale(0.96);
   }
   20% {
@@ -277,7 +277,7 @@ body:has(.rafale-loader) {
     transform: translate(-46%, -57%) scale(0.99);
   }
   85% {
-    offset-distance: 85%;
+    offset-distance: 80%;
     transform: translate(-44%, -63%) scale(0.96);
   }
   100% {
@@ -292,19 +292,19 @@ body:has(.rafale-loader) {
     transform: translate(-50%, -50%) scale(0.92);
   }
   16% {
-    offset-distance: 14%;
+    offset-distance: 18%;
     transform: translate(-51%, -51%) scale(0.96);
   }
   32% {
-    offset-distance: 38%;
+    offset-distance: 35%;
     transform: translate(-53%, -53%) scale(1.01);
   }
   45% {
-    offset-distance: 68%;
+    offset-distance: 75%;
     transform: translate(-56%, -58%) scale(1);
   }
-  75% {
-    offset-distance: 88%;
+  85% {
+    offset-distance: 80%;
     transform: translate(-60%, -64%) scale(0.96);
   }
   100% {
