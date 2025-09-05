@@ -1,142 +1,329 @@
+/* FreqQuery.css - Enterprise/MNC-level styles for FreqQuery component */
+
+:root {
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --text: #1a1c23;
+  --muted: #6b7280;
+  --accent: #1666c0;
+  --accent-dark: #0e4a8a;
+  --border: #d9dce3;
+  --radius: 12px;
+  --shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+  --gap: 14px;
+  --max-width: 1080px;
+
+  --danger: #e74c3c;
+  --danger-light: #fdecea;
+  --success: #2ecc71;
+  --info: #3498db;
+  --warning: #f39c12;
+}
+
 .freq-page {
-    padding: 20px;
-    font-family: "Segoe UI", sans-serif;
-    color: #222; 
+  max-width: var(--max-width);
+  margin: 24px auto;
+  padding: 20px;
+  background: var(--bg);
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--text);
+  line-height: 1.5;
 }
 
-/* ---------- HEADER ---------- */
-.page-header {
-    margin-bottom: 16px;
+.freq-header {
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 6px;
+}
+.freq-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--accent-dark);
+}
+.freq-sub {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
 }
 
-.page-header h2 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: #333;
+/* controls */
+.freq-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.freq-label {
+  font-weight: 600;
+  margin-right: 6px;
+}
+.freq-select {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #fff;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.freq-select:hover,
+.freq-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(22, 102, 192, 0.1);
+  outline: none;
 }
 
-/* ---------- FILTER ROW ---------- */
-.filter-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
-    margin-bottom: 14px;
-    flex-wrap: wrap; /* responsive */
+/* buttons */
+.freq-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: 10px;
+}
+.freq-btn {
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.freq-btn:hover {
+  background: #f9fafc;
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+.freq-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+.freq-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+}
+.freq-btn-primary:hover {
+  background: var(--accent-dark);
+}
+.freq-btn-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.freq-btn-danger:hover {
+  background: var(--danger);
+  color: #fff;
 }
 
-.filter-row label {
-    display: flex;
-    flex-direction: column;
-    font-size: 13px;
-    color: #444;
+/* meta and search */
+.freq-meta {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+}
+.freq-meta-item {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.freq-filter {
+  width: 260px;
+  margin-left: 12px;
+}
+.freq-search {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+.freq-search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(22, 102, 192, 0.1);
+  outline: none;
 }
 
-.filter-row input {
-    margin-top: 5px;
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    min-width: 160px;
+/* panel */
+.freq-panel {
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s ease;
+}
+.freq-panel:hover {
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.1);
 }
 
-.search-btn {
-    background: linear-gradient(135deg, #4a90e2, #357abd);
-    color: #fff;
-    font-weight: 600;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+/* error/loading/empty */
+.freq-error {
+  text-align: center;
+  padding: 24px;
+  border-radius: var(--radius);
+  background: var(--danger-light);
+}
+.freq-error-text {
+  color: var(--danger);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.freq-loading,
+.freq-empty {
+  padding: 22px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
 }
 
-.search-btn:hover {
-    background: linear-gradient(135deg, #357abd, #2d5aa7);
-    transform: translateY(-2px);
-}
-
-/* ---------- EXPORT BUTTONS ---------- */
-.export-row {
-    margin-bottom: 12px;
-}
-
-.export-row button {
-    margin-right: 6px;
-    padding: 6px 14px;
-    background: #000;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.export-row button:hover {
-    background: #444;
-}
-
-/* ---------- TABLE ---------- */
-.table-wrap {
-    overflow-x: auto;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-}
-
+/* table */
 .freq-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.freq-table thead th {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 2px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  background: #fafbfc;
+}
+.freq-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #f0f2f6;
+  vertical-align: middle;
+}
+.freq-table tbody tr:hover {
+  background: #f9fafc;
+}
+.freq-pers {
+  font-weight: 600;
+  color: var(--text);
+}
+.freq-count {
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+/* pagination */
+.freq-pagination-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.freq-pagination-meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+.freq-pagination {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.freq-page-btn {
+  padding: 7px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+.freq-page-btn:hover {
+  background: #f1f5f9;
+}
+.freq-page-btn.active,
+.freq-page-btn[aria-current="page"] {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 4px 14px rgba(22, 102, 192, 0.25);
+}
+.freq-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pagination-ellipsis {
+  color: var(--muted);
+  padding: 0 6px;
+}
+
+/* page size */
+.freq-pagesize {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.freq-pagesize-select {
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+.freq-pagesize-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(22, 102, 192, 0.1);
+  outline: none;
+}
+
+/* small helpers */
+.sr-only {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+
+/* responsive */
+@media (max-width: 900px) {
+  .freq-meta {
+    display: none;
+  }
+  .freq-filter {
+    width: 180px;
+  }
+}
+@media (max-width: 480px) {
+  .freq-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .freq-actions {
+    margin-left: 0;
     width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-
-.freq-table th,
-.freq-table td {
-    border: 1px solid #e0e0e0;
-    padding: 8px 12px;
-    text-align: left;
-}
-
-.freq-table th {
-    background: #f7f7f7;
-    font-weight: 600;
-    color: #333;
-}
-
-.freq-table tbody tr:nth-child(even) {
-    background: #fafafa;
-}
-
-/* ---------- FOOTER + PAGINATION ---------- */
-.footer-row {
-    margin-top: 12px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 8px;
     flex-wrap: wrap;
-}
-
-.pagination button {
-    margin: 0 3px;
-    padding: 6px 10px;
-    border: 1px solid #bbb;
-    background: #fff;
-    color: #000;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.pagination button:hover {
-    background: #eee;
-}
-
-.pagination .active {
-    background: #000;
-    color: #fff;
-    border-color: #000;
+  }
+  .freq-filter {
+    width: 100%;
+    order: 3;
+  }
+  .freq-pagination-wrap {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
 }

@@ -26,6 +26,7 @@ import QueryComparision from "./pages/Queries/QueryComparison";
 
 import NewQuery from "./Dav/NewQuery";
 import DavQuery from "./Dav/QueryView";
+import FAQPage from "./pages/FAQ";
 
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ function AppRoutes() {
         <Route path="view/profile" element={<ProfileView />} />
         <Route path="search-results" element={<SearchResults />} />
         <Route path="query/comparision" element={<QueryComparision />} />
+        <Route path="FAQ" element={<FAQPage />} />
 
         {/* DAV */}
         <Route path="home" element={<DavHome />} />

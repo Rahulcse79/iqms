@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Topbar.css";
+import { userRoleOptions } from "../constants/Enum";
 import { useCall } from "../context/CallContext";
 import { GrRefresh } from "react-icons/gr";
 
@@ -118,9 +119,14 @@ const Topbar = ({ toggleSidebar }) => {
         <div className="topbar-center">
           <select
             value={searchCategory}
-            onChange={(e) => setSearchCategory(e.target.value)}
+            onChange={(e) => setSearchCategory(Number(e.target.value))} // convert string → number
           >
-            <option value="Airmen">Airmen</option>
+            <option value="">Select Role</option>
+            {userRoleOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
           <select
             value={searchType}
