@@ -18,6 +18,25 @@ import {
   SEARCH_QUERY_BY_ID_REQUEST,
   SEARCH_QUERY_BY_ID_SUCCESS,
   SEARCH_QUERY_BY_ID_FAIL,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_REQUEST,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_SUCCESS,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_FAIL,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_REQUEST,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_SUCCESS,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_FAIL,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_REQUEST,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_SUCCESS,
+  SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_FAIL,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_REQUEST,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_SUCCESS,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_FAIL,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_REQUEST,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_SUCCESS,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_FAIL,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_REQUEST,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_SUCCESS,
+  SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_FAIL,
+
 } from "../constants/appConstants";
 
 /**
@@ -27,8 +46,142 @@ import {
  * Fallback to the on-prem IP you provided.
  */
 
-const BASE_PROFILEVIEW = `/afcao/ipas/ivrs/profileView`;
-const BASE_PERSONAL = `/afcao/ipas/ivrs`;
+// Officer Basic Pay Reason API call
+export const fetchOfficerBasicPayReason = (sno) => async (dispatch) => {
+  try {
+    dispatch({ type: SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_REQUEST });
+
+    const { data } = await axios.get(
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/basicPayReason/officer/${sno}`
+    );
+
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_SUCCESS,
+      payload: data.items || [],
+    });
+  } catch (error) {
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_FAIL,
+      payload: error.response?.data?.message || error.message || "Something went wrong",
+    });
+  }
+};
+
+// Officer Rank History API call
+export const fetchOfficerRankHistory = (sno) => async (dispatch) => {
+  try {
+    dispatch({ type: SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_REQUEST });
+
+    const { data } = await axios.get(
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/rankHistory/officer/${sno}`
+    );
+
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_SUCCESS,
+      payload: data.items || [],
+    });
+  } catch (error) {
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_RANK_HISTORY_FAIL,
+      payload:
+        error.response?.data?.message || error.message || "Something went wrong",
+    });
+  }
+};
+
+// Officer Persmast API call
+export const fetchOfficerPersmast = (sno) => async (dispatch) => {
+  try {
+    dispatch({ type: SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_REQUEST });
+
+    const { data } = await axios.get(
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/persmast/officer/${sno}`
+    );
+
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_SUCCESS,
+      payload: data.items || [],
+    });
+  } catch (error) {
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_OFFICER_PERSMAST_FAIL,
+      payload:
+        error.response?.data?.message || error.message || "Something went wrong",
+    });
+  }
+};
+
+// Fetch Airman Basic Pay Reason
+export const fetchAirmanBasicPayReason = (sno) => async (dispatch) => {
+  try {
+    dispatch({ type: SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_REQUEST });
+
+    const { data } = await axios.get(
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/basicPayReason/airmen/${sno}`
+    );
+
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_BASICPAY_REASON_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
+// Fetch Airman Rank History
+export const fetchAirmanRankHistory = (sno) => async (dispatch) => {
+  try {
+    dispatch({ type: SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_REQUEST });
+
+    const { data } = await axios.get(
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/rankHistory/airmen/${sno}`
+    );
+
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_RANKHISTORY_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
+// Action: Fetch Airman Persmast details by Service No (Sno)
+export const fetchAirmanPersmast = (sno) => async (dispatch) => {
+  try {
+    dispatch({ type: SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_REQUEST });
+
+    const { data } = await axios.get(
+      `http://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/persmast/airmen/${sno}`
+    );
+
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: SENIOR_JUNIOR_COMPARISON_AIRMAN_PERSMAST_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
 
 // Search query by Query ID (doc_id)
 export const searchQueryById = (docId) => async (dispatch) => {
