@@ -93,10 +93,6 @@ function stateToRegion(stateName = "") {
   return "Central";
 }
 
-function pad(n, len = 3) {
-  return String(n).padStart(len, "0");
-}
-
 function isoNow() {
   // match sample timezone format
   return new Date().toISOString();
