@@ -1,103 +1,174 @@
 // src/hooks/usePendingQueries.js
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const API_BASE = "http://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery";
 
 /**
- * usePendingQueries
- * - cat: category number (1 = officer, 2 = civilian)
- * - pendingWith: full code like "U1A" or null
+ * usePendingQueries(cat, pendingWith)
  *
- * Returns: { data, loading, error, refresh }
+ * - fetches the first page automatically (offset=0) when pendingWith is provided,
+ * - exposes fetchNextPage() to load subsequent pages (controlled by user),
+ * - exposes refresh() to re-fetch from offset=0,
+ * - honors links.next.href if present, otherwise uses offset + limit.
+ *
+ * Returns:
+ * {
+ *   data, loading, loadingMore, error, hasMore, offset, fetchNextPage, refresh
+ * }
  */
 export default function usePendingQueries(cat = 1, pendingWith = null) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [limit, setLimit] = useState(100);
+  const [nextHref, setNextHref] = useState(null);
+
   const abortRef = useRef(null);
 
-  const fetchAllPages = useCallback(async () => {
-    // If no pendingWith provided, clear data and return
-    if (!pendingWith) {
-      setData([]);
-      setError(null);
-      setLoading(false);
-      return;
-    }
+  // Helper: dedupe by doc_id (fallback to sno/imprno)
+  const dedupeAndMerge = (prev = [], incoming = []) => {
+    const map = new Map();
+    const keyFor = (it) =>
+      it && (it.doc_id || `${it.sno || ""}-${it.imprno || ""}-${it.subject || ""}`);
+    prev.forEach((it) => map.set(keyFor(it), it));
+    incoming.forEach((it) => map.set(keyFor(it), it));
+    return Array.from(map.values());
+  };
 
-    // Abort any previous fetch
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
+  // Core page fetcher. Returns boolean hasMore from server (or false)
+  const fetchPage = useCallback(
+    async ({ useNextHref = false, requestedOffset = 0, append = false } = {}) => {
+      // if no pendingWith (incoming tab) do nothing
+      if (!pendingWith) {
+        setData([]);
+        setHasMore(false);
+        setOffset(0);
+        setNextHref(null);
+        return false;
+      }
 
-    setLoading(true);
-    setError(null);
-    setData([]);
+      // abort any previous fetch
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const signal = controller.signal;
 
-    try {
-      let allItems = [];
-      let offset = 0;
-      let hasMore = true;
-      let guard = 0; // safety guard to avoid infinite loops
+      try {
+        if (!append) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
+        setError(null);
 
-      while (hasMore && !controller.signal.aborted && guard < 500) {
-        // Build URL like: /pendingQuery/1/U1A/?offset=100
-        const url = `${API_BASE}/${encodeURIComponent(cat)}/${encodeURIComponent(
-          pendingWith
-        )}?offset=${offset}`;
+        let url;
+        if (useNextHref && nextHref) {
+          url = nextHref;
+        } else {
+          // build using offset param
+          url = `${API_BASE}/${encodeURIComponent(cat)}/${encodeURIComponent(
+            pendingWith
+          )}?offset=${requestedOffset}`;
+        }
 
-        const resp = await fetch(url, { signal: controller.signal });
+        const resp = await fetch(url, { signal });
         if (!resp.ok) {
           throw new Error(`Server returned ${resp.status}`);
         }
-
         const json = await resp.json();
 
-        if (Array.isArray(json.items) && json.items.length > 0) {
-          allItems = allItems.concat(json.items);
+        const items = Array.isArray(json.items) ? json.items : [];
+        // determine limit returned by API or fallback
+        const returnedLimit =
+          typeof json.limit === "number" ? json.limit : items.length > 0 ? items.length : 100;
+
+        // update next offset
+        const newOffset = requestedOffset + returnedLimit;
+
+        // merge or replace
+        setData((prev) => (append ? dedupeAndMerge(prev, items) : items));
+
+        setHasMore(Boolean(json.hasMore));
+        setLimit(returnedLimit);
+        setOffset(newOffset);
+
+        // parse links array for next href if available
+        if (Array.isArray(json.links)) {
+          const next = json.links.find((l) => l.rel === "next");
+          setNextHref(next ? next.href : null);
+        } else {
+          setNextHref(null);
         }
 
-        // API indicates more with hasMore boolean
-        hasMore = Boolean(json.hasMore);
-
-        // Increase offset by returned limit if present; else fallback to items length or 100
-        const limit =
-          typeof json.limit === "number"
-            ? json.limit
-            : Array.isArray(json.items) && json.items.length > 0
-            ? json.items.length
-            : 100;
-
-        offset += limit;
-        guard += 1;
+        return Boolean(json.hasMore);
+      } catch (err) {
+        if (err.name === "AbortError") {
+          // expected when switching tabs / canceling
+          return false;
+        }
+        setError(err.message || "Failed to fetch pending queries");
+        return false;
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+        abortRef.current = null;
       }
+    },
+    // dependencies: only update when cat/pendingWith/nextHref change
+    [cat, pendingWith, nextHref]
+  );
 
-      setData(allItems);
-    } catch (err) {
-      if (err.name === "AbortError") {
-        // expected on unmount / new request
-        return;
-      }
-      setError(err.message || "Failed to load pending queries");
-    } finally {
-      setLoading(false);
-      abortRef.current = null;
-    }
-  }, [cat, pendingWith]);
+  // refresh from scratch (offset=0)
+  const refresh = useCallback(async () => {
+    setData([]);
+    setOffset(0);
+    setNextHref(null);
+    setHasMore(false);
+    return fetchPage({ useNextHref: false, requestedOffset: 0, append: false });
+  }, [fetchPage]);
 
-  // fetch when cat or pendingWith changes
+  // fetch next page (returns boolean hasMore)
+  const fetchNextPage = useCallback(async () => {
+    // nothing to do if no pendingWith
+    if (!pendingWith) return false;
+    // if there is a nextHref prefer it, else use the offset
+    const useNext = Boolean(nextHref);
+    return fetchPage({ useNextHref: useNext, requestedOffset: offset, append: true });
+  }, [fetchPage, offset, nextHref, pendingWith]);
+
+  // auto-fetch first page when pendingWith changes
   useEffect(() => {
-    fetchAllPages();
+    // on tab change or pendingWith change, load first page (if pendingWith exists)
+    if (pendingWith) {
+      refresh();
+    } else {
+      // incoming tab -> clear
+      setData([]);
+      setHasMore(false);
+      setOffset(0);
+      setNextHref(null);
+      setError(null);
+      setLoading(false);
+      setLoadingMore(false);
+    }
+
     return () => {
-      // cancel on unmount
       abortRef.current?.abort();
     };
-  }, [fetchAllPages]);
+  }, [pendingWith, refresh]);
 
   return {
     data,
     loading,
+    loadingMore,
     error,
-    refresh: fetchAllPages,
+    hasMore,
+    offset,
+    limit,
+    fetchNextPage,
+    refresh,
   };
 }
