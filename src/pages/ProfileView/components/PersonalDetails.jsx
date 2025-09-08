@@ -7,7 +7,12 @@ const formatDate = (iso) => {
   try {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleDateString('en-GB', {
+
+    // Convert UTC to IST (+5:30)
+    const istOffset = 5 * 60 + 30; // minutes
+    const istDate = new Date(d.getTime() + istOffset * 60000);
+
+    return istDate.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -16,6 +21,7 @@ const formatDate = (iso) => {
     return '-';
   }
 };
+
 
 const devLog = (...args) => {
   if (process.env.NODE_ENV !== 'production') {
@@ -34,9 +40,9 @@ const mapSex = (sexCode) => {
     M: 'Male (M)',
     F: 'Female (F)',
     O: 'Other (O)',
-    '1': 'Male (1)',
-    '2': 'Female (2)',
-    '0': 'Not Specified (0)',
+    '0': 'Male',
+    '1': 'Female',
+    '2': 'Not Specified',
   };
   return map?.[sexCode] ?? (sexCode || '-');
 };

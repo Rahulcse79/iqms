@@ -3,19 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const API_BASE = "http://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery";
 
-/**
- * usePendingQueries(cat, pendingWith)
- *
- * - fetches the first page automatically (offset=0) when pendingWith is provided,
- * - exposes fetchNextPage() to load subsequent pages (controlled by user),
- * - exposes refresh() to re-fetch from offset=0,
- * - honors links.next.href if present, otherwise uses offset + limit.
- *
- * Returns:
- * {
- *   data, loading, loadingMore, error, hasMore, offset, fetchNextPage, refresh
- * }
- */
 export default function usePendingQueries(cat = 1, pendingWith = null) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
