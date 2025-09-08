@@ -1,3 +1,4 @@
+// src/components/Topbar.jsx
 import React, { useState } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -42,15 +43,14 @@ const Topbar = ({ toggleSidebar }) => {
     console.log("Switched to role:", e.target.value);
   };
 
-  // Auto-detect Service/Query number based on digits
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
     setSearchValue(value);
 
     if (/^\d{6}$/.test(value)) {
-      setSearchType("Service"); // 6-digit → Service Number
+      setSearchType("Service");
     } else if (/^\d{8}$/.test(value)) {
-      setSearchType("Query"); // 8-digit → Query Number
+      setSearchType("Query");
     }
   };
 
@@ -66,29 +66,22 @@ const Topbar = ({ toggleSidebar }) => {
       searchValue.trim()
     )}`;
 
-    // Avoid pushing identical URL repeatedly
     if (
       location.pathname + location.search ===
       "/search-results" + targetPath.slice("/search-results".length)
     ) {
-      // Already on same search result URL — do nothing
       return;
     }
 
-    // Determine origin (only set `from` when we are not currently on search-results)
-    const state = {};
-    if (!location.pathname.startsWith("/search-results")) {
-      state.from = location.pathname + location.search;
-    }
+    // Pass caching info through state
+    const state = { from: location.pathname + location.search, enableCache: true };
 
-    // Push new entry (not replace) so user can go back through search entries
     navigate(targetPath, { state });
   };
 
   return (
     <header className="topbar">
       <div className="topbar-content">
-        {/* Left: Sidebar Toggle & Role Switch */}
         <div className="topbar-left">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             <RiMenuFill />
@@ -107,7 +100,6 @@ const Topbar = ({ toggleSidebar }) => {
           </select>
         </div>
 
-        {/* Refresh */}
         <div className="refresh-container">
           <GrRefresh
             className="refresh-button-api"
@@ -115,11 +107,10 @@ const Topbar = ({ toggleSidebar }) => {
           />
         </div>
 
-        {/* Center: Search */}
         <div className="topbar-center">
           <select
             value={searchCategory}
-            onChange={(e) => setSearchCategory(Number(e.target.value))} // convert string → number
+            onChange={(e) => setSearchCategory(e.target.value)}
           >
             <option value="">Select Role</option>
             {userRoleOptions.map((opt) => (
@@ -147,7 +138,6 @@ const Topbar = ({ toggleSidebar }) => {
           <button onClick={() => api.simulateIncoming()}>Call Trigger</button>
         </div>
 
-        {/* Right: User Info */}
         <div className="topbar-right">
           <div className="user-info">
             <span className="user-name">{userInfo.name}</span>

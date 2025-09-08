@@ -24,6 +24,7 @@ const Login = () => {
 
   useEffect(() => {
     const authUser = Cookies.get("authUser");
+    localStorage.removeItem("queryDrafts_v2");
     if (authUser) {
       navigate("/app2");
     }
