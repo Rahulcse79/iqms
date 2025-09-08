@@ -20,6 +20,7 @@ const SidebarDataPage = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    localStorage.removeItem("queryDrafts_v2");
     logout();
     navigate("/login");
   };

@@ -1,11 +1,13 @@
 // src/components/QueryView/QueryView.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./QueryView.css";
 import Comparison from "../Comparison";
 import ProfileView from "../ProfileView/ProfileView";
 import PostingHistoryTab from "../ProfileView/components/PostingHistoryTab";
 import QueryDetails from "./QueryDetails";
+
+const STORAGE_KEY = "queryDrafts_v2";
 
 const QueryView = ({ onBack }) => {
   const { id } = useParams();
@@ -15,18 +17,25 @@ const QueryView = ({ onBack }) => {
 
   const [queryType, setQueryType] = useState("Personal Data Issue");
 
-  if (!row) {
-    return (
-      <div className="qview-container">
-        <div className="qview-card">
-          <h3>Query details not found</h3>
-          <button className="btn" onClick={() => navigate(-1)}>
-            Back
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Enable cache only if URL contains search-results
+  const enableCache = location.pathname.includes("view/query");
+
+  // Unified draft state only for caching
+  const [draft, setDraft] = useState({
+    replyText: "",
+    forwardOption: "",
+    transferSection: "",
+  });
+
+  // Load draft from localStorage if exists and caching enabled
+  useEffect(() => {
+    if (enableCache && id) {
+      const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      if (allDrafts[id]) {
+        setDraft(allDrafts[id]);
+      }
+    }
+  }, [id, enableCache]);
 
   const handleClose = () => navigate(-1);
 
@@ -49,16 +58,33 @@ const QueryView = ({ onBack }) => {
     }
   };
 
+  if (!row) {
+    return (
+      <div className="qview-container">
+        <div className="qview-card">
+          <h3>Query details not found</h3>
+          <button className="btn" onClick={() => navigate(-1)}>
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="qview-container split-active">
-      {/* Close Button */}
       <button className="close-btn" onClick={handleClose}>
         ✕
       </button>
 
-      {/* Left Panel (Reusable Component) */}
+      {/* Left Panel */}
       <div className="left-panel">
-        <QueryDetails queryId={id} onBack={onBack} />
+        <QueryDetails
+          queryId={id}
+          enableCache={enableCache}
+          {...(enableCache ? { draft, setDraft } : {})} // pass only if caching
+          onBack={onBack}
+        />
       </div>
 
       {/* Right Panel */}
