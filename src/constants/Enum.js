@@ -1,4 +1,4 @@
-// src/constants/userRoles.js
+// src/constants/Enum.js
 export const UserRole = Object.freeze({
   OFFICER: 0,
   AIRMEN: 1,

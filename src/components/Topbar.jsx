@@ -1,20 +1,20 @@
-// src/components/Topbar.jsx
 import React, { useState, useContext } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Topbar.css";
-import { userRoleOptions } from "../constants/Enum";
-import { useCall } from "../context/CallContext";
+import { fetchRepliedQueries } from "../actions/allAction";
 import { GrRefresh } from "react-icons/gr";
+import { useDispatch } from "react-redux";
 import { AuthContext } from "../context/AuthContext";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { api } = useCall();
   const { auth } = useContext(AuthContext);
+  const dispatch = useDispatch();
+  const [refreshing, setRefreshing] = useState(false);
 
-  // 🟢 Extract from login data
+  // 🟢 Extract roles & categories directly from login data
   const roles = auth?.user?.airForceUserDetails?.airForceRole_Access || [];
   const categories = auth?.user?.airForceUserDetails?.categoryQuery || [];
 
@@ -23,16 +23,39 @@ const Topbar = ({ toggleSidebar }) => {
   const [searchCategory, setSearchCategory] = useState(categories[0] || "");
   const [searchType, setSearchType] = useState("Service");
 
-  // 🟢 User Info from login
-  const userInfo = {
-    name: auth?.user?.fullName || "Unknown",
-    designation: auth?.user?.airForceUserDetails?.airForceLevel?.[0] || "N/A",
-    email: auth?.user?.airForceUserDetails?.airForceServiceNumber || "",
-  };
+  // 🟢 Use already stored personal data from login phase
+  const personalData = auth?.user?.personalData || null;
 
-  const handleRefreshScreen = () => {
-    navigate("/", { replace: true });
-    window.location.reload();
+  // Pieces for the pretty line
+  const svcPart = personalData
+    ? `${personalData.sno}-${personalData.cs}`
+    : null;
+  const rankNamePart = personalData
+    ? `${personalData.rankcd} ${personalData.p_name} ${personalData.trdcd}`
+    : null;
+
+  // Fallback if no personalData yet
+  const formattedName = personalData
+    ? `${svcPart} ${rankNamePart}`
+    : auth?.user?.fullName || "Unknown";
+
+  const department =
+    auth?.user?.airForceUserDetails?.airForceDepartment?.join(", ") ||
+    personalData?.unitcd ||
+    "N/A";
+
+  const level = auth?.user?.airForceUserDetails?.airForceLevel?.[0] || "N/A";
+
+  const handleRefreshScreen = async () => {
+    setRefreshing(true);
+    try {
+      // force a fresh fetch from server (this will dispatch REPLIED_QUERY_SUCCESS on success)
+      await dispatch(fetchRepliedQueries());
+    } catch (err) {
+      console.error("Manual refresh failed", err);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleRoleChange = (e) => {
@@ -40,7 +63,6 @@ const Topbar = ({ toggleSidebar }) => {
     console.log("Switched to role:", e.target.value);
   };
 
-  // Auto-detect Service/Query number
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
     setSearchValue(value);
@@ -135,14 +157,28 @@ const Topbar = ({ toggleSidebar }) => {
             onChange={handleSearchInputChange}
           />
           <button onClick={handleSearch}>Search</button>
-          {/* <button onClick={() => api.simulateIncoming()}>Call Trigger</button> */}
         </div>
 
+        {/* ✅ Right-aligned user info card */}
         <div className="topbar-right">
-          <div className="user-info">
-            <span className="user-name">{userInfo.name}</span>
-            <span className="user-designation">{userInfo.designation}</span>
-            <span className="user-id">{userInfo.email}</span>
+          <div
+            className="user-card"
+            title={`${formattedName}\n${level}\nDept: ${department}`}
+          >
+            {personalData ? (
+              <div className="user-primary">
+                <span className="svcno">{svcPart}</span>
+                <span className="rankname">{rankNamePart}</span>
+              </div>
+            ) : (
+              <span className="user-primary">{formattedName}</span>
+            )}
+
+            <div className="user-meta">
+              <span className="badge badge-level">{level}</span>
+              <span className="dot">•</span>
+              <span className="badge badge-dept">{department}</span>
+            </div>
           </div>
         </div>
       </div>

@@ -38,15 +38,14 @@ import {
   SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_REQUEST,
   SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_SUCCESS,
   SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_FAIL,
-  
 } from "../constants/appConstants";
 
 import {
-SEARCH_QUERY_ID_REQUEST,
-SEARCH_QUERY_ID_SUCCESS,
-SEARCH_QUERY_ID_FAIL,
+  SEARCH_QUERY_ID_REQUEST,
+  SEARCH_QUERY_ID_SUCCESS,
+  SEARCH_QUERY_ID_FAIL,
 } from "../constants/queryConstants";
-
+import { loadRepliedQueries, saveRepliedQueries } from "../utils/cache";
 
 // ---------- AIRMAN REDUCERS ----------
 export const airmanPersmastReducer = (
@@ -258,7 +257,15 @@ export const searchQueryReducer = (state = { items: [] }, action) => {
   }
 };
 
-export const repliedQueryReducer = (state = { items: [] }, action) => {
+const repliedInitial = (() => {
+  const cached = loadRepliedQueries();
+  if (cached && Array.isArray(cached)) {
+    return { items: cached, loading: false, error: null };
+  }
+  return { items: [], loading: false, error: null };
+})();
+
+export const repliedQueryReducer = (state = repliedInitial, action) => {
   switch (action.type) {
     case REPLIED_QUERY_REQUEST:
       return {
@@ -267,15 +274,22 @@ export const repliedQueryReducer = (state = { items: [] }, action) => {
         error: null,
       };
     case REPLIED_QUERY_SUCCESS:
+      // persist into localStorage so reload will keep data
+      try {
+        saveRepliedQueries(action.payload);
+      } catch (e) {
+        console.warn("Could not persist replied queries", e);
+      }
       return {
         loading: false,
         items: action.payload,
+        error: null,
       };
     case REPLIED_QUERY_FAIL:
       return {
+        ...state,
         loading: false,
-        error: action.payload,
-        items: [],
+        error: action.payload, // keep prior behavior, adjust if you want to keep old items on fail
       };
     default:
       return state;
@@ -335,4 +349,3 @@ export const userReducer = (state = { user: {} }, { type, payload }) => {
       return state;
   }
 };
-

@@ -36,7 +36,6 @@ import {
   SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_REQUEST,
   SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_SUCCESS,
   SENIOR_JUNIOR_COMPARISON_OFFICER_BASIC_PAY_REASON_FAIL,
-
 } from "../constants/appConstants";
 
 /**
@@ -47,6 +46,38 @@ import {
  */
 
 // Officer Basic Pay Reason API call
+const REPLIED_STORAGE_KEY = "repliedQueries_v1";
+
+function safeGetRepliedFromStorage() {
+  try {
+    const raw = localStorage.getItem(REPLIED_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    return parsed;
+  } catch (e) {
+    console.error("Failed to parse repliedQueries from storage:", e);
+    return null;
+  }
+}
+
+function safeSaveRepliedToStorage(items) {
+  try {
+    localStorage.setItem(REPLIED_STORAGE_KEY, JSON.stringify(items || []));
+  } catch (e) {
+    // storage full or disabled — just log, app still works
+    console.warn("Failed to save repliedQueries to storage:", e);
+  }
+}
+
+function safeClearRepliedStorage() {
+  try {
+    localStorage.removeItem(REPLIED_STORAGE_KEY);
+  } catch (e) {
+    console.warn("Failed to clear repliedQueries storage:", e);
+  }
+}
+
 export const fetchOfficerBasicPayReason = (sno) => async (dispatch) => {
   try {
     dispatch({
@@ -202,7 +233,6 @@ export const fetchAirmanPersmast = (sno) => async (dispatch) => {
   }
 };
 
-
 // Search query by Query ID (doc_id)
 export const searchQueryById = (docId) => async (dispatch) => {
   try {
@@ -257,6 +287,9 @@ export const fetchRepliedQueries =
         `http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery`
       );
 
+      const items = data.items || [];
+      safeSaveRepliedToStorage(items);
+
       dispatch({
         type: REPLIED_QUERY_SUCCESS,
         payload: data.items || [],
@@ -277,6 +310,10 @@ export const refreshRepliedQueries =
       const { data } = await axios.get(
         `http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery?offset=${offset}`
       );
+
+      const items = data.items || [];
+      // save to localStorage immediately
+      safeSaveRepliedToStorage(items);
 
       dispatch({
         type: REPLIED_QUERY_SUCCESS,

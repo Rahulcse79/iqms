@@ -7,6 +7,7 @@ import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRepliedQueries } from "../actions/allAction";
 import Loader from "../components/Loader";
+import { UserRole } from "../constants/Enum";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -37,6 +38,27 @@ const Login = () => {
       const response = await fakeLoginAPI(username, password);
       if (response.status === "OK") {
         console.log("Login successfull : ", response);
+        const baseUser = response.data.airForceUserDetails;
+        const serviceNo = baseUser.airForceServiceNumber;
+        const categoryStr = baseUser.airForceCategory; // AIRMEN/OFFICER/CIVILIAN
+        const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
+
+        let personalData = null;
+        try {
+          if (serviceNo && categoryCode !== null) {
+            const res = await fetch(
+              `http://sampoorna.cao.local/afcao/ipas/ivrs/fetch_pers_data/${serviceNo}/${categoryCode}`
+            );
+            const data = await res.json();
+            if (data?.items?.length > 0) {
+              personalData = data.items[0];
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching personalData at login:", err);
+        }
+        response.data.personalData = personalData;
+
         login(response);
         await dispatch(fetchRepliedQueries());
         setInitializing(false);
@@ -60,9 +82,7 @@ const Login = () => {
   return (
     <>
       <div className="login-container-outer"></div>
-      <div className="ivrs-head">
-        INTERACTIVE VOICE RESPONSE SYSTEM (IVRS)
-      </div>
+      <div className="ivrs-head">INTERACTIVE VOICE RESPONSE SYSTEM (IVRS)</div>
       <div className="login-container">
         <div className="login-header">
           <img src={logo} alt="CRM Logo" className="login-logo" />
@@ -136,7 +156,7 @@ async function fakeLoginAPI(username, password) {
                 "ASP-VII",
                 "ASP-VIII",
               ],
-              categoryQuery: ["CIVILIAN", "AIRMEN"],
+              categoryQuery: ["AIRMEN","CIVILIAN", "OFFICER"],
             },
             sipPhoneButton: {
               mute: true,

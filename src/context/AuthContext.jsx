@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import { clearRepliedQueries } from "../utils/cache";
 
 export const AuthContext = createContext();
 
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }) => {
         roleId: loginResponse.data.roleId,
         extension: loginResponse.data.extension,
         airForceUserDetails: loginResponse.data.airForceUserDetails,
+        personalData: loginResponse.data.personalData,
         permissions: loginResponse.data.sipPhoneButton, // 👈 store feature flags
       },
     };
@@ -35,6 +37,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    try { clearRepliedQueries(); } catch(e) { /* ignore */ }
     setAuth(null);
     Cookies.remove("authData", { path: "/" });
   };
