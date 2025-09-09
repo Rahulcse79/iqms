@@ -58,44 +58,50 @@ const Login = () => {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-header">
-        <img src={logo} alt="CRM Logo" className="login-logo" />
+    <>
+      <div className="login-container-outer"></div>
+      <div className="ivrs-head">
+        INTERACTIVE VOICE RESPONSE SYSTEM (IVRS)
       </div>
-      <div className="login-box">
-        <h2 className="login-title">IQMS Login</h2>
-        {error && <p className="error-text">{error}</p>}
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="login-input"
-              autoComplete="username"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="login-input"
-              autoComplete="current-password"
-              required
-            />
-          </div>
-          <button type="submit" className="login-btn">
-            Login
-          </button>
-        </form>
+      <div className="login-container">
+        <div className="login-header">
+          <img src={logo} alt="CRM Logo" className="login-logo" />
+        </div>
+        <div className="login-box">
+          <h2 className="login-title">User Login</h2>
+          {error && <p className="error-text">{error}</p>}
+          <form className="login-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="login-input"
+                autoComplete="username"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="login-input"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <button type="submit" className="login-btn">
+              Login
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -130,7 +136,7 @@ async function fakeLoginAPI(username, password) {
                 "ASP-VII",
                 "ASP-VIII",
               ],
-              categoryQuery: ["OFFICER", "CIVILIAN", "AIRMEN"],
+              categoryQuery: ["CIVILIAN", "AIRMEN"],
             },
             sipPhoneButton: {
               mute: true,

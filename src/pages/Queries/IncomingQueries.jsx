@@ -1,63 +1,71 @@
-// src/pages/IncomingQueries/IncomingQueries.jsx
 import React, { useMemo, useState } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import "./IncomingQueries.css";
 import usePendingQueries from "../../hooks/usePendingQueries";
 
 /**
- * IncomingQueries component (tabs: Creator, Verifier, Approver only)
+ * IncomingQueries
  *
- * - cat: 1 (officer) | 2 (civilian)
- * - deptPrefix: "U" by default
- * - personnelType: "A" by default
+ * - Default tab: "Pending at Creator"
+ * - Removed "Incoming" tab entirely
+ * - Uses usePendingQueries hook for Creator, Verifier, Approver tabs
+ *
+ * Mapping to QueriesTable fields:
+ *   serviceNo -> sno
+ *   type      -> querytype (fallback to doc_type/subject)
+ *   queryId   -> doc_id (string)
+ *   date      -> submit_date (human readable)
  */
+
+const roleDigitForTab = {
+  creator: "1",
+  approver: "2",
+  verifier: "3",
+};
+
+const formatIso = (iso) => {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString();
+  } catch (e) {
+    return iso;
+  }
+};
+
 const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => {
-  // default tab is Creator (no "incoming" tab anymore)
+  // default tab set to "creator"
   const [activeTab, setActiveTab] = useState("creator");
 
-  // maps tab -> role digit (1=creator,2=approver,3=verifier)
-  const roleDigitForTab = {
-    creator: "1",
-    approver: "2",
-    verifier: "3",
-  };
-
-  // Build pendingWith for the selected tab
   const pendingWith = `${deptPrefix}${roleDigitForTab[activeTab]}${personnelType}`;
 
-  const { data, loading, loadingMore, error, hasMore, fetchNextPage, refresh } =
+  const { data, loading, loadingMore, error, hasMore, fetchNextPage, refresh, loadAll } =
     usePendingQueries(cat, pendingWith);
 
   const tabTitle = `Pending at ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`;
 
-  // Map API items shape -> QueriesTable rows
   const tableData = useMemo(() => {
     const items = Array.isArray(data) ? data : [];
     return items.map((it, idx) => ({
-      id: it.doc_id || `${it.sno}-${idx}`,
-      serviceNo: it.sno,
-      unit: it.unitcd,
-      subject: it.subject,
-      submitDate: it.submit_date,
-      actionDate: it.action_dt,
-      pendingWith: it.pending_with,
-      cell: it.cell,
+      id: it.doc_id ?? `${it.sno ?? "no-sno"}-${idx}`,
+      serviceNo: it.sno ?? it.pers ?? "",
+      type:
+        (it.querytype && String(it.querytype).replace(/_/g, " ")) ||
+        it.doc_type ||
+        it.subject ||
+        "",
+      queryId: it.doc_id
+        ? String(it.doc_id)
+        : it.imprno
+        ? String(it.imprno)
+        : `${it.sno}-${idx}`,
+      date: formatIso(it.submit_date ?? it.action_dt ?? it.last_action_dt),
       raw: it,
     }));
   }, [data]);
 
-  // Load all remaining pages (loops calling fetchNextPage until hasMore becomes false)
   const handleLoadAll = async () => {
-    try {
-      let more = true;
-      while (more) {
-        const result = await fetchNextPage();
-        more = Boolean(result);
-        if (!more) break;
-      }
-    } catch (err) {
-      // error surfaced via hook.error; optionally show a toast here
-    }
+    // loadAll is implemented inside the hook; it's safe but may be heavy for very large result sets
+    await loadAll();
   };
 
   return (
@@ -88,14 +96,16 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
       <div style={{ margin: "8px 0", display: "flex", gap: 8, alignItems: "center" }}>
         <h3 style={{ margin: 0 }}>{tabTitle}</h3>
 
-        <button onClick={refresh} style={{ marginLeft: 8 }}>
+        <button onClick={refresh} style={{ marginLeft: 8 }} disabled={loading}>
           Refresh
         </button>
 
         <div style={{ marginLeft: 8 }}>
           {loading && <small>Loading first page…</small>}
           {loadingMore && <small>Loading more…</small>}
-          {!loading && !loadingMore && <small>Loaded: {Array.isArray(data) ? data.length : 0}</small>}
+          {!loading && !loadingMore && (
+            <small>Loaded: {Array.isArray(data) ? data.length : 0}</small>
+          )}
         </div>
 
         {error && <small style={{ marginLeft: 8, color: "crimson" }}>Error: {error}</small>}
@@ -103,16 +113,18 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
 
       <QueriesTable title={tabTitle} data={tableData} loading={loading} />
 
-      {/* Pagination controls */}
       <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
-        <div />
         {hasMore ? (
           <>
             <button onClick={fetchNextPage} disabled={loadingMore} className="show-more-btn">
               {loadingMore ? "Loading more…" : "Show more"}
             </button>
 
-            <button onClick={handleLoadAll} disabled={loading || loadingMore} className="load-all-btn">
+            <button
+              onClick={handleLoadAll}
+              disabled={loading || loadingMore}
+              className="load-all-btn"
+            >
               Load all
             </button>
 

@@ -63,7 +63,7 @@ const Sidebar = ({ isCollapsed }) => {
       <SidebarNav isCollapsed={isCollapsed}>
         <SidebarHeader>
           <LogoImg src={SidebarLogo} alt="IQMS Logo" />
-          {!isCollapsed && <HeaderTitle>IQMS</HeaderTitle>}
+          {!isCollapsed && <HeaderTitle>IVRS</HeaderTitle>}
         </SidebarHeader>
         <SidebarWrap>
           {SidebarData.map((item, index) => (

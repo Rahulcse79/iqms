@@ -1,14 +1,17 @@
-
-
-/* ==================================================
-   File: src/pages/TransferredQueries/TransferredQueries.jsx
-   Purpose: Component that uses the above hook and renders
-            the table + pagination controls.
-   ==================================================*/
-
 import React, { useMemo, useState } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import useTransferredQueries from "../../hooks/useTransferredQueries";
+
+/**
+ * TransferredQueries
+ *
+ * - Uses useTransferredQueries hook (offset-based pagination).
+ * - Maps API fields to the QueriesTable shape:
+ *     serviceNo -> sno
+ *     type      -> querytype (fallback to doc_type/subject)
+ *     queryId   -> doc_id (string)
+ *     date      -> submit_date (readable)
+ */
 
 const roleDigitForTab = {
   creator: "1",
@@ -16,48 +19,55 @@ const roleDigitForTab = {
   verifier: "3",
 };
 
-const defaultDeptPrefix = "U";
-const defaultPersonnelType = "A";
-
-const formatDate = (iso) => {
+const formatIso = (iso) => {
   if (!iso) return "";
   try {
-    const d = new Date(iso);
-    return d.toLocaleString();
+    return new Date(iso).toLocaleString();
   } catch (e) {
     return iso;
   }
 };
 
-export default function TransferredQueries({ cat = 1, deptPrefix = defaultDeptPrefix, personnelType = defaultPersonnelType }) {
+const TransferredQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => {
   const [activeTab, setActiveTab] = useState("creator");
 
   const pendingWith = `${deptPrefix}${roleDigitForTab[activeTab]}${personnelType}`;
 
-  const { data, loading, loadingMore, error, hasMore, fetchNextPage, refresh, loadAll } = useTransferredQueries(cat, pendingWith);
+  const { data, loading, loadingMore, error, hasMore, fetchNextPage, refresh, loadAll } =
+    useTransferredQueries(cat, pendingWith);
 
-  const tabTitle = `Transferred — ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`;
+  const tabTitle = `Transferred Queries — ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`;
 
   const tableData = useMemo(() => {
-    return data.map((it, idx) => ({
+    const items = Array.isArray(data) ? data : [];
+    return items.map((it, idx) => ({
       id: it.doc_id ?? `${it.sno ?? "no-sno"}-${idx}`,
-      serviceNo: it.sno,
-      unit: it.unitcd,
-      subject: it.subject,
-      submitDate: it.submit_date ?? it.submitDate ?? formatDate(it.submit_date),
-      actionDate: it.last_action_dt ?? it.last_action_dt ?? formatDate(it.last_action_dt),
-      pendingWith: it.pending_with ?? it.pendingWith,
-      cell: it.cell,
+      serviceNo: it.sno ?? it.pers ?? "",
+      type: (it.querytype && String(it.querytype).replace(/_/g, " ")) || it.doc_type || it.subject || "",
+      queryId: it.doc_id ? String(it.doc_id) : it.imprno ? String(it.imprno) : `${it.sno}-${idx}`,
+      date: formatIso(it.submit_date ?? it.last_action_dt ?? it.action_dt),
       raw: it,
     }));
   }, [data]);
 
+  const handleLoadAll = async () => {
+    await loadAll();
+  };
+
   return (
     <>
       <div className="tab-buttons">
-        <button className={activeTab === "creator" ? "active" : ""} onClick={() => setActiveTab("creator")}>Creator</button>
-        <button className={activeTab === "verifier" ? "active" : ""} onClick={() => setActiveTab("verifier")}>Verifier</button>
-        <button className={activeTab === "approver" ? "active" : ""} onClick={() => setActiveTab("approver")}>Approver</button>
+        <button className={activeTab === "creator" ? "active" : ""} onClick={() => setActiveTab("creator")}>
+          Creator
+        </button>
+
+        <button className={activeTab === "verifier" ? "active" : ""} onClick={() => setActiveTab("verifier")}>
+          Verifier
+        </button>
+
+        <button className={activeTab === "approver" ? "active" : ""} onClick={() => setActiveTab("approver")}>
+          Approver
+        </button>
       </div>
 
       <div style={{ margin: "8px 0", display: "flex", gap: 8, alignItems: "center" }}>
@@ -70,7 +80,7 @@ export default function TransferredQueries({ cat = 1, deptPrefix = defaultDeptPr
         <div style={{ marginLeft: 8 }}>
           {loading && <small>Loading first page…</small>}
           {loadingMore && <small>Loading more…</small>}
-          {!loading && !loadingMore && <small>Loaded: {data.length}</small>}
+          {!loading && !loadingMore && <small>Loaded: {Array.isArray(data) ? data.length : 0}</small>}
         </div>
 
         {error && <small style={{ marginLeft: 8, color: "crimson" }}>Error: {error}</small>}
@@ -85,16 +95,18 @@ export default function TransferredQueries({ cat = 1, deptPrefix = defaultDeptPr
               {loadingMore ? "Loading more…" : "Show more"}
             </button>
 
-            <button onClick={() => loadAll()} disabled={loading || loadingMore} className="load-all-btn">
+            <button onClick={handleLoadAll} disabled={loading || loadingMore} className="load-all-btn">
               Load all
             </button>
 
-            <small style={{ marginLeft: 8 }}>{data.length} items loaded — more available.</small>
+            <small style={{ marginLeft: 8 }}>{(Array.isArray(data) ? data.length : 0)} items loaded — more available.</small>
           </>
         ) : (
-          <small style={{ color: "#444" }}>{data.length} items loaded — no more pages.</small>
+          <small style={{ color: "#444" }}>{(Array.isArray(data) ? data.length : 0)} items loaded — no more pages.</small>
         )}
       </div>
     </>
   );
-}
+};
+
+export default TransferredQueries;
