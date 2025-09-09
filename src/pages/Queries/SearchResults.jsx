@@ -1,7 +1,14 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import "./SearchResults.css";
+import { UserRoleLabel, UserRole } from "../../constants/Enum";
 
 export default function SearchResults() {
   const navigate = useNavigate();
@@ -43,7 +50,15 @@ export default function SearchResults() {
         try {
           let url = "";
           if (type === "Service") {
-            url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/1`;
+            // find numeric code by matching label with selected category
+            const roleCode = Object.keys(UserRoleLabel).find(
+              (key) =>
+                UserRoleLabel[key].toLowerCase() === category.toLowerCase()
+            );
+
+            url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${
+              roleCode
+            }`;
           } else {
             url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
           }
@@ -79,7 +94,11 @@ export default function SearchResults() {
       try {
         let url = "";
         if (type === "Service") {
-          url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/1`;
+          const roleCode = Object.keys(UserRoleLabel).find(
+            (key) => 
+              UserRoleLabel[key].toLowerCase() === category.toLowerCase()
+          )
+          url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${roleCode}`;
         } else {
           url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
         }
@@ -95,7 +114,9 @@ export default function SearchResults() {
         if (err.name !== "CanceledError") {
           console.error("API error:", err);
           // unify error message and avoid duplicate lines
-          setError(`Failed to fetch ${type} results for "${queryValue}" in ${category}.`);
+          setError(
+            `Failed to fetch ${type} results for "${queryValue}" in ${category}.`
+          );
           setData([]); // ensure empty on error
         }
       } finally {
@@ -113,7 +134,9 @@ export default function SearchResults() {
     // If cached, show it immediately and run a silent background refresh
     if (cacheRef.current[key]) {
       setData(cacheRef.current[key]);
-      fetchData({ controller, showLoading: false, forceRefresh: false }).catch(() => {});
+      fetchData({ controller, showLoading: false, forceRefresh: false }).catch(
+        () => {}
+      );
       return () => controller.abort();
     }
 
@@ -127,16 +150,25 @@ export default function SearchResults() {
     const q = search.toLowerCase();
     return data.filter(
       (item) =>
-        String(item.doc_id || "").toLowerCase().includes(q) ||
-        (String(item.querytype || "").toLowerCase().includes(q)) ||
-        (String(item.pending_with_dec || "").toLowerCase().includes(q))
+        String(item.doc_id || "")
+          .toLowerCase()
+          .includes(q) ||
+        String(item.querytype || "")
+          .toLowerCase()
+          .includes(q) ||
+        String(item.pending_with_dec || "")
+          .toLowerCase()
+          .includes(q)
     );
   }, [data, search]);
 
   // Pagination + Sorting
   const paginatedData = useMemo(() => {
     const startIndex = (page - 1) * rowsPerPage;
-    let currentPageItems = filteredData.slice(startIndex, startIndex + rowsPerPage);
+    let currentPageItems = filteredData.slice(
+      startIndex,
+      startIndex + rowsPerPage
+    );
 
     if (sortConfig.key) {
       currentPageItems = [...currentPageItems].sort((a, b) => {
@@ -153,14 +185,17 @@ export default function SearchResults() {
 
   const requestSort = (key) => {
     let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") direction = "desc";
+    if (sortConfig.key === key && sortConfig.direction === "asc")
+      direction = "desc";
     setSortConfig({ key, direction });
   };
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   const handleView = (row) => {
-    navigate(`/view/query/${encodeURIComponent(row.doc_id)}`, { state: { row } });
+    navigate(`/view/query/${encodeURIComponent(row.doc_id)}`, {
+      state: { row },
+    });
   };
 
   // Close/back behavior:
@@ -178,7 +213,9 @@ export default function SearchResults() {
   return (
     <div className="search-container">
       <div className="search-header">
-        <h2>Search Results for {type} Number - {queryValue}</h2>
+        <h2>
+          Search Results for {type} Number - {queryValue}
+        </h2>
         <button className="close-btn" onClick={handleClose}>
           ✕
         </button>
@@ -198,7 +235,15 @@ export default function SearchResults() {
         <div className="error-box">
           <p>{error}</p>
           <div style={{ marginTop: 8 }}>
-            <button onClick={() => fetchData({ controller: new AbortController(), showLoading: true })} disabled={loading}>
+            <button
+              onClick={() =>
+                fetchData({
+                  controller: new AbortController(),
+                  showLoading: true,
+                })
+              }
+              disabled={loading}
+            >
               Retry
             </button>
           </div>
@@ -208,7 +253,9 @@ export default function SearchResults() {
       {/* No results (only shown when not loading and no error and empty) */}
       {!loading && !error && data.length === 0 ? (
         <div className="error-box">
-          <p>No {type} results found for "{queryValue}" in {category}.</p>
+          <p>
+            No {type} results found for "{queryValue}" in {category}.
+          </p>
         </div>
       ) : null}
 
@@ -217,10 +264,18 @@ export default function SearchResults() {
         <>
           <div className="search-toolbar">
             <div className="export-buttons">
-              <button className="btn export-btn" onClick={() => alert("Copy")}>Copy</button>
-              <button className="btn export-btn" onClick={() => alert("CSV")}>CSV</button>
-              <button className="btn export-btn" onClick={() => alert("Print")}>Print</button>
-              <button className="btn export-btn" onClick={() => alert("PDF")}>PDF</button>
+              <button className="btn export-btn" onClick={() => alert("Copy")}>
+                Copy
+              </button>
+              <button className="btn export-btn" onClick={() => alert("CSV")}>
+                CSV
+              </button>
+              <button className="btn export-btn" onClick={() => alert("Print")}>
+                Print
+              </button>
+              <button className="btn export-btn" onClick={() => alert("PDF")}>
+                PDF
+              </button>
             </div>
             <div className="search-box">
               <input
@@ -228,7 +283,10 @@ export default function SearchResults() {
                 placeholder="Search in results..."
                 className="search-bar"
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
               />
             </div>
           </div>
@@ -248,14 +306,27 @@ export default function SearchResults() {
                 <tr key={i}>
                   <td>{row.doc_id}</td>
                   <td>{row.querytype}</td>
-                  <td>{row.submit_date ? new Date(row.submit_date).toLocaleDateString() : "N/A"}</td>
                   <td>
-                    <span className={`status-badge ${String(row.pending_with_dec || "").toLowerCase()}`}>
+                    {row.submit_date
+                      ? new Date(row.submit_date).toLocaleDateString()
+                      : "N/A"}
+                  </td>
+                  <td>
+                    <span
+                      className={`status-badge ${String(
+                        row.pending_with_dec || ""
+                      ).toLowerCase()}`}
+                    >
                       {row.pending_with_dec}
                     </span>
                   </td>
                   <td>
-                    <button className="action-btn" onClick={() => handleView(row)}>View</button>
+                    <button
+                      className="action-btn"
+                      onClick={() => handleView(row)}
+                    >
+                      View
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -273,16 +344,30 @@ export default function SearchResults() {
                 }}
               >
                 {[5, 10, 20].map((n) => (
-                  <option key={n} value={n}>{n}</option>
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
                 ))}
               </select>
               entries
             </label>
 
             <div className="pagination-buttons">
-              <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</button>
-              <span>{page} / {totalPages || 1}</span>
-              <button disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>Next</button>
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Previous
+              </button>
+              <span>
+                {page} / {totalPages || 1}
+              </span>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </button>
             </div>
           </div>
         </>

@@ -32,7 +32,7 @@ const DashboardLayout = () => {
       <Sidebar isCollapsed={isSidebarCollapsed} />
       <div className="main-content">
         <Topbar className="topbar" toggleSidebar={toggleSidebar} />
-        <Dialpad className="dialpad" />
+        {/* <Dialpad className="dialpad" /> */}
         <main className="content">
           <Outlet />
         </main>

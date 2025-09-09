@@ -1,26 +1,23 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { USERS } from "../utils/constants";
 import { AuthContext } from "../context/AuthContext";
 import "./login.css";
 import Cookies from "js-cookie";
 import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRepliedQueries } from "../actions/allAction";
-import { userRoleOptions, UserRoleLabel } from "../constants/Enum";
 import Loader from "../components/Loader";
 
 const Login = () => {
-  const [category, setCategory] = useState("Civilian");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [initializing, setInitializing] = useState(false); // 🔹 new state
+  const [initializing, setInitializing] = useState(false);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { loading } = useSelector((state) => state.replied_queries); // optional check
+  const { loading } = useSelector((state) => state.replied_queries);
 
   useEffect(() => {
     const authUser = Cookies.get("authUser");
@@ -28,32 +25,31 @@ const Login = () => {
     if (authUser) {
       navigate("/app2");
     }
+    const authData = Cookies.get("authData");
+    if (authData) navigate("/");
   }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setError("");
+    setInitializing(true);
     try {
-      const foundUser = USERS.find(
-        (u) => u.username === username && u.password === password
-      );
-
-      if (foundUser) {
-        setInitializing(true); // 🔹 show loader
-        await login(foundUser);
-
-        // fetch all initial APIs here
+      const response = await fakeLoginAPI(username, password);
+      if (response.status === "OK") {
+        console.log("Login successfull : ", response);
+        login(response);
         await dispatch(fetchRepliedQueries());
-
-        setInitializing(false); // 🔹 hide loader
+        setInitializing(false);
         navigate("/");
       } else {
+        setInitializing(false);
+        console.error("Login error:", response.message);
         setError("Invalid username or password");
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError("Something went wrong. Please try again.");
       setInitializing(false);
+      setError("Something went wrong. Please try again.");
     }
   };
 
@@ -71,22 +67,6 @@ const Login = () => {
         {error && <p className="error-text">{error}</p>}
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <div className="form-group">
-              <label htmlFor="category">Select Category</label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(Number(e.target.value))} // store as number
-                className="login-select"
-              >
-                <option value="">-- Select --</option>
-                {userRoleOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
             <label htmlFor="username">Username</label>
             <input
               type="text"
@@ -118,5 +98,52 @@ const Login = () => {
     </div>
   );
 };
+
+async function fakeLoginAPI(username, password) {
+  return new Promise((resolve) =>
+    setTimeout(() => {
+      if (username === "916369" && password === "Sri@v.369") {
+        resolve({
+          status: "OK",
+          message: "Authenticated",
+          data: {
+            token: "abc123",
+            refreshToken: "refresh123",
+            userId: 139,
+            userName: "916369",
+            fullName: "Srikanth Vrutti",
+            roles: ["ROLE_AGENT"],
+            roleId: [34],
+            extension: "4000",
+            airForceUserDetails: {
+              airForceServiceNumber: "916369",
+              airForceCategory: "AIRMEN",
+              airForceDepartment: ["CQC"],
+              airForceLevel: ["CLERK"],
+              airForceRole_Access: [
+                "ASP-I",
+                "ASP-II",
+                "ASP-III",
+                "ASP-IV",
+                "ASP-V",
+                "ASP-VI",
+                "ASP-VII",
+                "ASP-VIII",
+              ],
+              categoryQuery: ["OFFICER", "CIVILIAN", "AIRMEN"],
+            },
+            sipPhoneButton: {
+              mute: true,
+              hold: true,
+              crm: true,
+            },
+          },
+        });
+      } else {
+        resolve({ status: "ERROR", message: "Invalid credentials" });
+      }
+    }, 1000)
+  );
+}
 
 export default Login;

@@ -3,13 +3,13 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useContext(AuthContext);
+  const { auth } = useContext(AuthContext);
 
-  if (!user) {
+  if (!auth) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && !auth.user.roles.some(role => allowedRoles.includes(role))) {
     return <Navigate to="/unauthorized" replace />;
   }
 

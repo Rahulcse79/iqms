@@ -32,7 +32,7 @@ import FAQPage from "./pages/FAQ";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user } = useContext(AuthContext);
+  const { auth } = useContext(AuthContext);
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -47,7 +47,9 @@ function AppRoutes() {
         <Route
           index
           element={
-            user?.role === "officer" ? <DashboardOfficer /> : <Dashboard />
+            auth?.user?.roles?.includes("ROLE_OFFICER")
+              ? <DashboardOfficer />
+              : <Dashboard />
           }
         />
         <Route path="search-query" element={<SearchQuery />} />

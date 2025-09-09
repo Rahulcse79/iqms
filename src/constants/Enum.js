@@ -7,9 +7,9 @@ export const UserRole = Object.freeze({
 
 // map numeric code -> display label
 export const UserRoleLabel = Object.freeze({
-  [UserRole.OFFICER]: "Officer",
-  [UserRole.AIRMEN]: "Airmen",
-  [UserRole.CIVILIAN]: "Civilian",
+  [UserRole.OFFICER]: "OFFICER",
+  [UserRole.AIRMEN]: "AIRMEN",
+  [UserRole.CIVILIAN]: "CIVILIAN",
 });
 
 // helper: get label from code

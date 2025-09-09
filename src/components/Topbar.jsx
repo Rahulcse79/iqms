@@ -1,36 +1,33 @@
 // src/components/Topbar.jsx
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Topbar.css";
 import { userRoleOptions } from "../constants/Enum";
 import { useCall } from "../context/CallContext";
 import { GrRefresh } from "react-icons/gr";
+import { AuthContext } from "../context/AuthContext";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedRole, setSelectedRole] = useState("Admin");
-  const [searchValue, setSearchValue] = useState("");
-  const [searchCategory, setSearchCategory] = useState("Airmen");
-  const [searchType, setSearchType] = useState("Service");
   const { api } = useCall();
+  const { auth } = useContext(AuthContext);
 
-  const roles = [
-    "ASP - I",
-    "ASP - II",
-    "ASP - III",
-    "ASP - IV",
-    "ASP - V",
-    "ASP - VI",
-    "ASP - VII",
-    "ASP - VIII",
-  ];
+  // 🟢 Extract from login data
+  const roles = auth?.user?.airForceUserDetails?.airForceRole_Access || [];
+  const categories = auth?.user?.airForceUserDetails?.categoryQuery || [];
 
+  const [selectedRole, setSelectedRole] = useState(roles[0] || "");
+  const [searchValue, setSearchValue] = useState("");
+  const [searchCategory, setSearchCategory] = useState(categories[0] || "");
+  const [searchType, setSearchType] = useState("Service");
+
+  // 🟢 User Info from login
   const userInfo = {
-    name: "Admin",
-    designation: "System Admin",
-    email: "123456",
+    name: auth?.user?.fullName || "Unknown",
+    designation: auth?.user?.airForceUserDetails?.airForceLevel?.[0] || "N/A",
+    email: auth?.user?.airForceUserDetails?.airForceServiceNumber || "",
   };
 
   const handleRefreshScreen = () => {
@@ -43,6 +40,7 @@ const Topbar = ({ toggleSidebar }) => {
     console.log("Switched to role:", e.target.value);
   };
 
+  // Auto-detect Service/Query number
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
     setSearchValue(value);
@@ -73,8 +71,10 @@ const Topbar = ({ toggleSidebar }) => {
       return;
     }
 
-    // Pass caching info through state
-    const state = { from: location.pathname + location.search, enableCache: true };
+    const state = {};
+    if (!location.pathname.startsWith("/search-results")) {
+      state.from = location.pathname + location.search;
+    }
 
     navigate(targetPath, { state });
   };
@@ -112,10 +112,10 @@ const Topbar = ({ toggleSidebar }) => {
             value={searchCategory}
             onChange={(e) => setSearchCategory(e.target.value)}
           >
-            <option value="">Select Role</option>
-            {userRoleOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
+            <option value="">Select Category</option>
+            {categories.map((cat, idx) => (
+              <option key={idx} value={cat}>
+                {cat}
               </option>
             ))}
           </select>
@@ -135,7 +135,7 @@ const Topbar = ({ toggleSidebar }) => {
             onChange={handleSearchInputChange}
           />
           <button onClick={handleSearch}>Search</button>
-          <button onClick={() => api.simulateIncoming()}>Call Trigger</button>
+          {/* <button onClick={() => api.simulateIncoming()}>Call Trigger</button> */}
         </div>
 
         <div className="topbar-right">
