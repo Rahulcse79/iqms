@@ -8,7 +8,7 @@ import React, {
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import "./SearchResults.css";
-import { UserRoleLabel, UserRole } from "../../constants/Enum";
+import { UserRoleLabel } from "../../constants/Enum";
 
 export default function SearchResults() {
   const navigate = useNavigate();
@@ -193,9 +193,14 @@ export default function SearchResults() {
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   const handleView = (row) => {
-    navigate(`/view/query/${encodeURIComponent(row.doc_id)}`, {
-      state: { row },
-    });
+    const key = `${type}|${category}|${String(queryValue)}`;
+  
+    navigate(
+      `/view/query/${encodeURIComponent(row.doc_id)}?category=${encodeURIComponent(
+        category
+      )}&type=${encodeURIComponent(type)}&q=${encodeURIComponent(queryValue)}`,
+      { state: { row, key } }
+    );
   };
 
   // Close/back behavior:
