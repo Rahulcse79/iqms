@@ -235,27 +235,27 @@ body:has(.rafale-loader) {
 @keyframes fly-center {
   0% {
     offset-distance: 0%;
-    transform: translate(-50%, -50%) scale(0.95);
+    transform: translate(-50%, -50%) scale(0.92);
   }
-  30% {
-    offset-distance: 10%;
-    transform: translate(-50%, -52%) scale(1.03);
+  5% {
+    offset-distance: 14%;
+    transform: translate(-49%, -51%) scale(0.96);
   }
-  50% {
-    offset-distance: 25%;
-    transform: translate(-50%, -56%) scale(1.07);
+  20% {
+    offset-distance: 35%;
+    transform: translate(-48%, -53%) scale(1);
   }
-  50% {
-    offset-distance: 55%;
-    transform: translate(-50%, -60%) scale(1.04);
+  55% {
+    offset-distance: 65%;
+    transform: translate(-46%, -57%) scale(0.99);
   }
   85% {
     offset-distance: 80%;
-    transform: translate(-50%, -65%) scale(1);
+    transform: translate(-44%, -63%) scale(0.96);
   }
   100% {
     offset-distance: 100%;
-    transform: translate(-50%, -70%) scale(0.97);
+    transform: translate(-40%, -70%) scale(0.94);
   }
 }
 
@@ -288,23 +288,23 @@ body:has(.rafale-loader) {
 
 @keyframes fly-right {
   0% {
-    offset-distance: 0%;
+    offset-distance: 10%;
     transform: translate(-50%, -50%) scale(0.92);
   }
-  16% {
-    offset-distance: 18%;
+  5% {
+    offset-distance: 20%;
     transform: translate(-51%, -51%) scale(0.96);
   }
-  32% {
-    offset-distance: 35%;
+  20% {
+    offset-distance: 40%;
     transform: translate(-53%, -53%) scale(1.01);
   }
-  45% {
-    offset-distance: 75%;
+  55% {
+    offset-distance: 70%;
     transform: translate(-56%, -58%) scale(1);
   }
   85% {
-    offset-distance: 80%;
+    offset-distance: 90%;
     transform: translate(-60%, -64%) scale(0.96);
   }
   100% {
