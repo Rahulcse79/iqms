@@ -1,4 +1,3 @@
-// src/components/QueryView/QueryView.jsx
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./QueryView.css";
@@ -6,6 +5,11 @@ import Comparison from "../Comparison";
 import ProfileView from "../ProfileView/ProfileView";
 import PostingHistoryTab from "../ProfileView/components/PostingHistoryTab";
 import QueryDetails from "./QueryDetails";
+import PersonalDetails from "../ProfileView/components/PersonalDetails";
+import GCIHistory from "../ProfileView/components/GCIHistoryTab";
+import { fetchPersonalData } from "../../actions/ProfileAction";
+import { useDispatch, useSelector } from "react-redux";
+import { UserRoleLabel } from "../../constants/Enum";
 
 const STORAGE_KEY = "queryDrafts_v2";
 
@@ -17,7 +21,9 @@ const QueryView = ({ onBack }) => {
 
   const [queryType, setQueryType] = useState("Personal Data Issue");
 
-  // Enable cache only if URL contains search-results
+  const dispatch = useDispatch();
+  const personalDataState = useSelector((state) => state.personalData);
+  const { loading, error, data: personalData } = personalDataState;
   const enableCache = location.pathname.includes("view/query");
 
   // Unified draft state only for caching
@@ -27,6 +33,27 @@ const QueryView = ({ onBack }) => {
     transferSection: "",
   });
 
+  const searchParams = new URLSearchParams(location.search);
+  const category = searchParams.get("category"); 
+  const queryValue = searchParams.get("q"); 
+
+  // helper: map "Airmen" -> 1, "Officer" -> 0, "Civilian" -> 2
+  const getCategoryCode = (category) => {
+    const entry = Object.entries(UserRoleLabel).find(
+      ([code, label]) => label.toLowerCase() === String(category).toLowerCase()
+    );
+    return entry ? Number(entry[0]) : null;
+  };
+
+  // fetch personal data when category + service no are available
+  useEffect(() => {
+    if (queryValue && category) {
+      const catCode = getCategoryCode(category);
+      if (catCode !== null) {
+        dispatch(fetchPersonalData(queryValue, catCode));
+      }
+    }
+  }, [queryValue, category, dispatch]);
   // Load draft from localStorage if exists and caching enabled
   useEffect(() => {
     if (enableCache && id) {
@@ -42,13 +69,19 @@ const QueryView = ({ onBack }) => {
   const renderRightPanel = () => {
     switch (queryType) {
       case "Personal Data Issue":
-        return <h2>Personal Data Issue Page</h2>;
+        return (
+          <PersonalDetails
+            data={personalData}
+            loading={loading}
+            error={error}
+          />
+        );
       case "Pay Related Issue":
         return <h2>Pay Related Issue Page</h2>;
       case "Comparison Issue":
         return <Comparison />;
       case "Allowance Related Issue":
-        return <h2>Allowance Related Issue Page</h2>;
+        return <GCIHistory />;
       case "POR Issue":
         return <PostingHistoryTab />;
       case "Profile View":
