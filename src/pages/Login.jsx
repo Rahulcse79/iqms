@@ -23,7 +23,7 @@ const Login = () => {
     const authUser = Cookies.get("authUser");
     localStorage.removeItem("queryDrafts_v2");
     if (authUser) {
-      navigate("/app2");
+      navigate("/");
     }
     const authData = Cookies.get("authData");
     if (authData) navigate("/");
