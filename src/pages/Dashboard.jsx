@@ -95,13 +95,6 @@ const QueryCard = ({ title, data, className, link }) => {
         {data.map((item, index) => (
           <div className="card-row" key={index}>
             <span className="card-label">{item.label}</span>
-            {item.value !== "-" ? (
-              <span className="card-value-link" onClick={() => navigate(link)}>
-                {item.value}
-              </span>
-            ) : (
-              <span>-</span>
-            )}
           </div>
         ))}
       </div>

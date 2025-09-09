@@ -254,7 +254,7 @@ export const fetchRepliedQueries =
       dispatch({ type: REPLIED_QUERY_REQUEST });
 
       const { data } = await axios.get(
-        `http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery?offset=${offset}`
+        `http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery`
       );
 
       dispatch({
