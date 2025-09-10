@@ -1,21 +1,9 @@
-/* Footer component using theme tokens */
-
 .footer {
-  background-color: var(--surface-3);
-  border-top: 1px solid var(--border);
-  padding: var(--space-sm) var(--space-md);
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 10px;
   text-align: center;
-  color: var(--text-secondary);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-normal);
+  color: #64748b;
   margin-top: auto;
 }
 
-.footer a {
-  color: var(--primary-500);
-  text-decoration: none;
-  font-weight: var(--fw-medium);
-}
-.footer a:hover {
-  text-decoration: underline;
-}

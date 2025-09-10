@@ -1,78 +1,68 @@
-/* Queries component using theme tokens */
-
 .queries-container {
-  background: var(--surface-3);
-  padding: var(--space-lg);
-  margin: var(--space-lg) auto;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
+  background: #fff;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   max-width: 1200px;
 }
 
 .queries-header h2 {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--space-md);
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
 }
 
 .queries-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-md);
+  margin-bottom: 16px;
   flex-wrap: wrap;
-  gap: var(--space-sm);
+  gap: 10px;
 }
 
 .export-buttons {
   display: flex;
-  gap: var(--space-sm);
+  gap: 10px;
 }
 
 .btn.export-btn {
-  background-color: var(--primary-500);
-  color: var(--text-inverse);
+  background-color: #1976d2;
+  color: white;
   border: none;
   padding: 8px 14px;
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: var(--transition);
+  transition: 0.3s ease;
 }
 
 .btn.export-btn:hover {
-  background-color: var(--primary-600);
+  background-color: #1565c0;
 }
 
 .search-box .search-bar {
   padding: 8px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-sm);
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
   min-width: 250px;
-  background-color: var(--surface-3);
-  color: var(--text-primary);
-  transition: box-shadow var(--transition), border-color var(--transition);
-}
-.search-box .search-bar:focus {
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 4px var(--focus-ring);
 }
 
 .action-btn {
-  background-color: var(--success-500);
-  color: var(--text-inverse);
+  background-color: #28a745;
+  color: #fff;
   border: none;
   padding: 6px 12px;
-  font-size: var(--fs-xs);
-  border-radius: var(--radius-sm);
+  font-size: 13px;
+  border-radius: 5px;
   cursor: pointer;
-  font-weight: var(--fw-medium);
-  transition: var(--transition);
+  transition: 0.3s ease;
 }
 
 .action-btn:hover {
-  background-color: #24963F; /* darker shade of success */
+  background-color: #218838;
 }

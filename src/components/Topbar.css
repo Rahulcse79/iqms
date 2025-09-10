@@ -1,16 +1,9 @@
-/* -------------------- Topbar -------------------- */
-
 .topbar {
   width: 100%;
-  height: 90px;
-  background-color: var(--surface-1);
-  color: var(--text-primary);
-  min-height: 64px;
-  padding: var(--space-sm) var(--space-lg);
-  display: flex;
-  align-items: center;
-  box-shadow: var(--shadow-sm);
-  z-index: 20;
+  background-color: #1e293b; /* dark gray-blue */
+  color: #fff;
+  min-height: 90px;
+  padding: 12px 20px;
 }
 
 .topbar-content {
@@ -18,7 +11,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  gap: var(--space-sm);
+  gap: 12px;
 }
 
 .topbar-left,
@@ -28,9 +21,10 @@
   flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 10px;
 }
 
+/* keep center centered; keep right pinned to the right */
 .topbar-left {
   justify-content: flex-start;
 }
@@ -42,18 +36,14 @@
   justify-content: flex-end;
 }
 
-/* -------------------- Controls -------------------- */
-
+/* Controls */
 select,
 input,
 button {
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
   outline: none;
-  font-size: var(--fs-sm);
-  background: var(--surface-2);
-  color: var(--text-primary);
 }
 
 input {
@@ -61,18 +51,15 @@ input {
 }
 
 button {
-  background-color: var(--primary-500);
-  color: var(--text-inverse);
+  background-color: #3b82f6;
+  color: white;
   cursor: pointer;
-  font-weight: var(--fw-medium);
-  transition: transform 0.1s ease, box-shadow 0.15s ease,
-    background 0.15s ease;
-  box-shadow: var(--shadow-sm);
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
 }
 button:hover {
-  background-color: var(--primary-600);
+  background-color: #2563eb;
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
 }
 button:active {
   transform: translateY(0);
@@ -80,27 +67,31 @@ button:active {
 }
 
 .refresh-button-api {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
+  font-size: 22px;
+  font-weight: 700;
   cursor: pointer;
-  color: var(--primary-500);
 }
 
-/* -------------------- User Card -------------------- */
+/* ---------- Beautiful right-side user card ---------- */
 
 .user-card {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md);
+  gap: 6px;
+  padding: 10px 14px;
   max-width: 520px;
 
-  /* glassy effect */
-  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  /* glassy card */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.05)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+
   backdrop-filter: saturate(140%) blur(6px);
   -webkit-backdrop-filter: saturate(140%) blur(6px);
 }
@@ -108,30 +99,29 @@ button:active {
 .user-primary {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  font-weight: var(--fw-bold);
-  font-size: var(--fs-sm);
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
   letter-spacing: 0.2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--text-primary);
+  color: #f8fafc;
 }
 
-/* Service number chip */
+/* Service no. chip: 916369-T */
 .svcno {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
   font-variant-numeric: tabular-nums;
   padding: 2px 8px;
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  font-size: var(--fs-xs);
+  border-radius: 8px;
+  background: rgba(148, 163, 184, 0.18);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #e5e7eb;
 }
 
-/* Rank + name + trade */
+/* Rank + name + trade (e.g., 5 ARUN PANWAR 2E) */
 .rankname {
   white-space: nowrap;
   overflow: hidden;
@@ -142,11 +132,12 @@ button:active {
 .user-meta {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  color: var(--text-tertiary);
-  font-size: var(--fs-xs);
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 12px;
 }
 
+/* Tiny dot between badges */
 .dot {
   opacity: 0.5;
 }
@@ -157,29 +148,26 @@ button:active {
   border-radius: 999px;
   line-height: 1.6;
   white-space: nowrap;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  font-size: var(--fs-xs);
-  color: var(--text-secondary);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(148, 163, 184, 0.16);
 }
 
 /* Level pill (e.g., CLERK) */
 .badge-level {
-  background: var(--primary-100);
-  border-color: var(--primary-300);
-  color: var(--primary-700);
+  background: rgba(59, 130, 246, 0.25); /* blue-ish pill */
+  border-color: rgba(59, 130, 246, 0.45);
+  color: #f1f5f9; /* light gray/white for contrast */
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-weight: var(--fw-semibold);
+  font-weight: 600;
 }
 
 /* Department pill (CQC / IT / etc.) */
 .badge-dept {
-  background: var(--accent-100);
-  border-color: var(--accent-300);
-  color: var(--accent-700);
+  background: rgba(16, 185, 129, 0.25); /* green-ish pill */
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #f1f5f9; /* light gray/white for contrast */
 }
-
 
 /* Flicker red placeholder when error */
 .input-error::placeholder {
@@ -188,21 +176,21 @@ button:active {
   opacity: 0.9;
 }
 
-/* -------------------- Responsive -------------------- */
 
 
+/* Responsive polish */
 @media (max-width: 1024px) {
   .user-card {
-    padding: var(--space-xs) var(--space-sm);
+    padding: 8px 12px;
     max-width: 420px;
   }
   .user-primary {
-    font-size: var(--fs-xs);
+    font-size: 14px;
   }
 }
 
 @media (max-width: 640px) {
   .badge-dept {
     display: none;
-  }
+  } /* keep it clean on small screens */
 }

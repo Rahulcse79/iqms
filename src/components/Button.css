@@ -1,71 +1,26 @@
-/* Button component using theme tokens */
-
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   padding: 10px 20px;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 5px;
   cursor: pointer;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  transition: background-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Primary button */
 .btn.primary {
-  background-color: var(--primary-500);
-  color: var(--text-inverse);
-  box-shadow: none;
+  background-color: #007bff;
+  color: white;
 }
+
 .btn.primary:hover {
-  background-color: var(--primary-600);
-  transform: translateY(-1px);
+  background-color: #0056b3;
 }
 
-/* Secondary button */
 .btn.secondary {
-  background-color: var(--surface-1);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
+  background-color: #6c757d;
+  color: white;
 }
+
 .btn.secondary:hover {
-  background-color: var(--surface-2);
-}
-
-/* Outline button */
-.btn.outline {
-  background: transparent;
-  border: 1px solid var(--primary-500);
-  color: var(--primary-700);
-}
-.btn.outline:hover {
-  background: var(--primary-100);
-}
-
-/* Ghost button */
-.btn.ghost {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-}
-.btn.ghost:hover {
-  background: var(--surface-2);
-  color: var(--text-primary);
-}
-
-/* Accent button */
-.btn.accent {
-  background-color: var(--accent-500);
-  color: var(--text-inverse);
-}
-.btn.accent:hover {
-  background-color: var(--accent-700);
+  background-color: #5a6268;
 }

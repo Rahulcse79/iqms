@@ -5,107 +5,93 @@ import styled from "styled-components";
 // A styled NavLink for actual navigation items
 const SidebarNavLink = styled(NavLink)`
   display: flex;
+  color: #2c3e50;
   align-items: center;
-  padding: var(--space-sm) var(--space-xs);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--text-secondary);
+  padding: 12px 10px;
   text-decoration: none;
+  font-size: 14px;
+  transition: 0.3s;
   white-space: nowrap;
   border-left: 4px solid transparent;
-  border-radius: var(--radius-sm);
-  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 
   &:hover {
-    background: var(--surface-2);
-    border-left: 4px solid var(--primary-500);
-    color: var(--text-primary);
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
     cursor: pointer;
   }
 
   &.active {
-    background: var(--surface-3);
-    border-left: 4px solid var(--primary-500);
-    color: var(--primary-600);
+    background: #ecf0f1;
+    border-left: 4px solid #3498db;
   }
 `;
 
 // Styled div for toggleable menus (with subNav)
 const SidebarToggle = styled.div`
   display: flex;
+  color: #2c3e50;
   align-items: center;
-  padding: var(--space-sm) var(--space-xs);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--text-secondary);
+  padding: 12px 10px;
+  font-size: 14px;
+  transition: 0.3s;
   white-space: nowrap;
   cursor: pointer;
   border-left: 4px solid transparent;
-  border-radius: var(--radius-sm);
-  transition: background-color 0.25s ease, border-color 0.25s ease;
 
   &:hover {
-    background: var(--surface-2);
-    border-left: 4px solid var(--primary-500);
-    color: var(--text-primary);
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
   }
 `;
 
 // Styled button for actions like Logout
 const SidebarButton = styled.button`
   display: flex;
+  color: #2c3e50;
   align-items: center;
-  padding: var(--space-sm) var(--space-xs);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--text-secondary);
+  padding: 12px 10px;
+  font-size: 14px;
   background: none;
   border: none;
   width: 100%;
   text-align: left;
+  transition: 0.3s;
   white-space: nowrap;
   cursor: pointer;
   border-left: 4px solid transparent;
-  border-radius: var(--radius-sm);
-  transition: background-color 0.25s ease, border-color 0.25s ease;
 
   &:hover {
-    background: var(--surface-2);
-    border-left: 4px solid var(--primary-500);
-    color: var(--text-primary);
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
   }
 `;
 
 const SidebarLabel = styled.span`
-  margin-left: var(--space-sm);
+  margin-left: 16px;
   display: ${({ isCollapsed }) => (isCollapsed ? "none" : "inline-block")};
-  font-size: var(--fs-sm);
-  color: var(--text-secondary);
 `;
 
-// Dropdown links (for submenus)
 const DropdownLink = styled(NavLink)`
-  background: var(--surface-2);
+  background: #f8f9fa;
   height: 40px;
-  padding-left: calc(var(--space-lg) + 1rem);
+  padding-left: 3rem;
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: var(--text-tertiary);
-  font-size: var(--fs-xs);
-  transition: background-color 0.25s ease, color 0.25s ease;
+  color: #555;
+  font-size: 12px;
+  transition: 0.3s;
 
   &:hover {
-    background: var(--surface-3);
-    color: var(--primary-500);
+    background: #e9ecef;
+    color: #3498db;
   }
 
   &.active {
-    background: var(--surface-3);
-    color: var(--primary-600);
+    background: #e9ecef;
+    color: #3498db;
   }
 `;
-
 
 const SubMenu = ({ item, isOpen, onToggle, isCollapsed }) => {
   // Function to truncate the title
