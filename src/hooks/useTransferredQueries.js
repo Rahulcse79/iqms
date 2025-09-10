@@ -1,227 +1,185 @@
-/* ==================================================
-   File: src/hooks/useTransferredQueries.js
-   Purpose: Custom hook to fetch `transferredQuery` pages
-   Features:
-     - pagination via offset
-     - aborts in-flight requests when switching tabs
-     - deduplicates items by doc_id
-     - exposes fetchNextPage(), loadAll(), refresh()
-     - simple in-memory cache per (cat,pendingWith)
-   ==================================================*/
-
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const API_BASE = "http://sampoorna.cao.local/afcao/ipas/ivrs/transferredQuery";
-const DEFAULT_PAGE_SIZE = 100;
-const CACHE_TTL_MS = 1000 * 60 * 2; // 2 minutes (tunable)
 
-export default function useTransferredQueries(cat = 1, pendingWith, pageSize = DEFAULT_PAGE_SIZE) {
-  const cacheRef = useRef(new Map()); // key -> { pages, hasMore, offset, ts }
-  const inFlightRef = useRef(null); // AbortController for the current request
-  const pendingOffsetsRef = useRef(new Set()); // offsets currently being requested
-
-  const [pages, setPages] = useState([]); // array of pages (each page: array of items)
-  const [loading, setLoading] = useState(false); // initial/refresh loading
-  const [loadingMore, setLoadingMore] = useState(false); // fetching additional pages
+/**
+ * useTransferredQueries(cat, pendingWith)
+ *
+ * - Same design as usePendingQueries
+ * - Auto-fetch first page on mount/tab change
+ * - Supports offset & links.next
+ * - Dedupes by doc_id
+ * - Safe aborts on tab switch/unmount
+ */
+export default function useTransferredQueries(cat = 1, pendingWith = null) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [offset, setOffset] = useState(0);
+  const [limit, setLimit] = useState(100);
 
-  const cacheKey = `${cat}:${pendingWith}`;
+  const nextHrefRef = useRef(null);
+  const abortRef = useRef(null);
+  const mountedRef = useRef(true);
 
-  // Flatten pages but dedupe by doc_id (keep first seen)
-  const data = useMemo(() => {
-    const seen = new Set();
-    const out = [];
-    for (const page of pages) {
-      if (!Array.isArray(page)) continue;
-      for (const item of page) {
-        const id = item && (item.doc_id ?? item.id ?? item.sno);
-        if (id == null) {
-          out.push(item);
-          continue;
-        }
-        if (!seen.has(id)) {
-          seen.add(id);
-          out.push(item);
-        }
-      }
-    }
-    return out;
-  }, [pages]);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
 
-  // build fetch helper
+  // dedupe helper
+  const keyFor = (it) =>
+    it &&
+    (it.doc_id || `${it.sno || ""}-${it.imprno || ""}-${it.subject || ""}`);
+
+  const dedupeAndMerge = (prev = [], incoming = []) => {
+    const map = new Map();
+    prev.forEach((it) => map.set(keyFor(it), it));
+    incoming.forEach((it) => map.set(keyFor(it), it));
+    return Array.from(map.values());
+  };
+
   const fetchPage = useCallback(
-    async (offsetToFetch = 0) => {
+    async ({ useNext = false, requestedOffset = 0, append = false } = {}) => {
       if (!pendingWith) {
-        return { items: [], hasMore: false, offset: 0 };
+        setData([]);
+        setHasMore(false);
+        setOffset(0);
+        setLimit(100);
+        nextHrefRef.current = null;
+        return false;
       }
 
-      // prevent duplicate simultaneous requests for same offset
-      if (pendingOffsetsRef.current.has(offsetToFetch)) {
-        return { items: [], hasMore: false, offset: offsetToFetch };
-      }
-
-      pendingOffsetsRef.current.add(offsetToFetch);
-
-      // abort previous request (we only allow one inflight fetch at a time for simplicity)
-      if (inFlightRef.current) {
-        try {
-          inFlightRef.current.abort();
-        } catch (e) {
-          // ignore
-        }
-      }
-
-      const ac = new AbortController();
-      inFlightRef.current = ac;
-
-      const url = `${API_BASE}/${encodeURIComponent(cat)}/${encodeURIComponent(pendingWith)}?offset=${encodeURIComponent(
-        offsetToFetch
-      )}`;
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const signal = controller.signal;
 
       try {
-        const res = await fetch(url, { signal: ac.signal });
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        const json = await res.json();
+        if (!append) setLoading(true);
+        else setLoadingMore(true);
+        setError(null);
 
-        const items = Array.isArray(json.items) ? json.items : [];
-        const nextOffset = typeof json.offset === "number" ? json.offset : offsetToFetch + items.length;
-        const resHasMore = Boolean(json.hasMore);
-
-        pendingOffsetsRef.current.delete(offsetToFetch);
-        inFlightRef.current = null;
-
-        return { items, hasMore: resHasMore, offset: nextOffset, raw: json };
-      } catch (err) {
-        pendingOffsetsRef.current.delete(offsetToFetch);
-        inFlightRef.current = null;
-        // normalize abort error
-        if (err && err.name === "AbortError") {
-          throw err; // let caller decide what to do
+        let url;
+        if (useNext && nextHrefRef.current) {
+          url = nextHrefRef.current;
+        } else {
+          const o = Number.isFinite(requestedOffset) ? requestedOffset : 0;
+          url = `${API_BASE}/${encodeURIComponent(cat)}/${encodeURIComponent(
+            pendingWith
+          )}?offset=${o}`;
         }
-        throw err;
+
+        const resp = await fetch(url, { signal });
+        if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+
+        const json = await resp.json();
+        const items = Array.isArray(json.items) ? json.items : [];
+
+        const returnedLimit =
+          typeof json.limit === "number" ? json.limit : items.length || 100;
+
+        const newOffset =
+          (Number.isFinite(requestedOffset) ? requestedOffset : 0) +
+          returnedLimit;
+
+        if (!mountedRef.current) return false;
+        setData((prev) => (append ? dedupeAndMerge(prev, items) : items));
+        setHasMore(Boolean(json.hasMore));
+        setLimit(returnedLimit);
+        setOffset(newOffset);
+
+        if (Array.isArray(json.links)) {
+          const nextLink = json.links.find((l) => l.rel === "next");
+          nextHrefRef.current = nextLink ? nextLink.href : null;
+        } else {
+          nextHrefRef.current = json.nextHref || null;
+        }
+
+        return Boolean(json.hasMore);
+      } catch (err) {
+        if (err.name === "AbortError") return false;
+        if (!mountedRef.current) return false;
+        setError(err.message || "Failed to fetch transferred queries");
+        return false;
+      } finally {
+        if (mountedRef.current) {
+          setLoading(false);
+          setLoadingMore(false);
+        }
+        if (abortRef.current === controller) abortRef.current = null;
       }
     },
     [cat, pendingWith]
   );
 
-  // fetch the first page (or use cache)
-  useEffect(() => {
-    let mounted = true;
-
-    // reset state when pendingWith changes
-    setPages([]);
-    setError(null);
+  const refresh = useCallback(async () => {
+    if (!mountedRef.current) return false;
+    setData([]);
     setOffset(0);
+    nextHrefRef.current = null;
     setHasMore(false);
+    setError(null);
+    return fetchPage({ useNext: false, requestedOffset: 0, append: false });
+  }, [fetchPage]);
 
-    if (!pendingWith) return;
-
-    const cached = cacheRef.current.get(cacheKey);
-    const now = Date.now();
-    if (cached && now - cached.ts < CACHE_TTL_MS) {
-      setPages(cached.pages);
-      setHasMore(cached.hasMore);
-      setOffset(cached.offset ?? cached.pages.reduce((s, p) => s + (Array.isArray(p) ? p.length : 0), 0));
-      return;
-    }
-
-    (async () => {
-      setLoading(true);
-      try {
-        const first = await fetchPage(0);
-        if (!mounted) return;
-        setPages([first.items]);
-        setHasMore(first.hasMore);
-        setOffset(first.offset ?? first.items.length);
-        cacheRef.current.set(cacheKey, { pages: [first.items], hasMore: first.hasMore, offset: first.offset ?? 0, ts: Date.now() });
-      } catch (err) {
-        if (err && err.name === "AbortError") return;
-        setError(err ? String(err) : "Unknown error");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-      if (inFlightRef.current) inFlightRef.current.abort();
-    };
-  }, [cacheKey, fetchPage, pendingWith]);
-
-  // fetch next page (returns boolean -> hasMore after the call)
   const fetchNextPage = useCallback(async () => {
-    // compute the next offset as the total items we've loaded (pages flattened length)
-    const currentLoaded = pages.reduce((s, p) => s + (Array.isArray(p) ? p.length : 0), 0);
-    const nextOffset = currentLoaded;
+    if (!pendingWith) return false;
+    const useNext = Boolean(nextHrefRef.current);
+    return fetchPage({ useNext, requestedOffset: offset, append: true });
+  }, [fetchPage, offset, pendingWith]);
 
-    // if already no more, return false
-    if (!hasMore && currentLoaded > 0) return false;
-
-    setLoadingMore(true);
-    try {
-      const result = await fetchPage(nextOffset);
-      if (result.items && result.items.length > 0) {
-        setPages((prev) => {
-          const updated = [...prev, result.items];
-          // update cache
-          cacheRef.current.set(cacheKey, { pages: updated, hasMore: result.hasMore, offset: result.offset ?? nextOffset + result.items.length, ts: Date.now() });
-          return updated;
-        });
+  const loadAll = useCallback(
+    async (opts = { maxIterations: 1000 }) => {
+      if (!pendingWith) return;
+      if (
+        (data.length === 0 && !loading && !loadingMore) ||
+        (!hasMore && data.length === 0)
+      ) {
+        await refresh();
       }
-      setHasMore(result.hasMore);
-      setOffset(result.offset ?? nextOffset + (result.items ? result.items.length : 0));
-      return Boolean(result.hasMore);
-    } catch (err) {
-      if (err && err.name === "AbortError") return false;
-      setError(err ? String(err) : "Unknown error");
-      return false;
-    } finally {
+
+      let iterations = 0;
+      const maxIter = opts?.maxIterations ?? 1000;
+
+      while (mountedRef.current) {
+        if (iterations >= maxIter) break;
+        iterations += 1;
+        if (!hasMore) break;
+        const more = await fetchNextPage();
+        if (!more) break;
+      }
+    },
+    [
+      pendingWith,
+      data.length,
+      loading,
+      loadingMore,
+      hasMore,
+      refresh,
+      fetchNextPage,
+    ]
+  );
+
+  useEffect(() => {
+    if (pendingWith) {
+      refresh();
+    } else {
+      setData([]);
+      setHasMore(false);
+      setOffset(0);
+      nextHrefRef.current = null;
+      setError(null);
+      setLoading(false);
       setLoadingMore(false);
     }
-  }, [cacheKey, fetchPage, hasMore, pages]);
-
-  // Refresh (clear cache for this key and fetch first page again)
-  const refresh = useCallback(async () => {
-    // abort any inflight
-    if (inFlightRef.current) inFlightRef.current.abort();
-    cacheRef.current.delete(cacheKey);
-    setPages([]);
-    setError(null);
-    setOffset(0);
-    setHasMore(false);
-
-    try {
-      setLoading(true);
-      const first = await fetchPage(0);
-      setPages([first.items]);
-      setHasMore(first.hasMore);
-      setOffset(first.offset ?? first.items.length);
-      cacheRef.current.set(cacheKey, { pages: [first.items], hasMore: first.hasMore, offset: first.offset ?? 0, ts: Date.now() });
-    } catch (err) {
-      if (err && err.name === "AbortError") return;
-      setError(err ? String(err) : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  }, [cacheKey, fetchPage]);
-
-  // Load all pages until hasMore becomes false. Returns final {success, loaded}
-  const loadAll = useCallback(async (opts = {}) => {
-    // opts can include onProgress(optional function)
-    try {
-      let keepGoing = true;
-      while (keepGoing) {
-        const more = await fetchNextPage();
-        keepGoing = Boolean(more);
-        if (!keepGoing) break;
-      }
-      return { success: true, loaded: pages.reduce((s,p)=> s + (Array.isArray(p)?p.length:0), 0) };
-    } catch (err) {
-      return { success: false, error: err ? String(err) : "Unknown" };
-    }
-  }, [fetchNextPage, pages]);
+    return () => abortRef.current?.abort();
+  }, [pendingWith, refresh]);
 
   return {
     data,
@@ -230,6 +188,7 @@ export default function useTransferredQueries(cat = 1, pendingWith, pageSize = D
     error,
     hasMore,
     offset,
+    limit,
     fetchNextPage,
     refresh,
     loadAll,
