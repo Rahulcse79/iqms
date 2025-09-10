@@ -6,7 +6,7 @@ import { IconContext } from "react-icons";
 import SidebarLogo from '../assets/Images/sidebar-logo.png';
 
 const SidebarNav = styled.nav`
-  background-color: #ffffff;
+  background-color: var(--secondary-0);
   width: ${({ isCollapsed }) => (isCollapsed ? "80px" : "220px")};
   height: 100vh;
   display: flex;
@@ -17,16 +17,16 @@ const SidebarNav = styled.nav`
   transition: width 350ms ease-in-out;
   z-index: 10;
   overflow-x: hidden;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid var(--border);
 `;
 
 const SidebarHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
+  padding: 0 var(--space-md);
   height: 90px;
-  border-bottom: 1px solid #e5e7eb; /* Light theme border */
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 `;
 
@@ -36,19 +36,32 @@ const LogoImg = styled.img`
   flex-shrink: 0;
 `;
 
-const HeaderTitle = styled.span` 
-  margin-left: 12px;
-  font-weight: bold;
-  font-size: 22px;
-  color: #1f2937;
+const HeaderTitle = styled.span`
+  margin-left: var(--space-sm);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-lg);
+  color: var(--text-primary);
 `;
 
 const SidebarWrap = styled.div`
   width: 100%;
   flex: 1;
   overflow-y: auto;
-  padding-top: 10px;
+  padding-top: var(--space-sm);
+  
+  /* Scrollbar styling (optional, themed) */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: var(--radius-sm);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-200);
+  }
 `;
+
 
 const Sidebar = ({ isCollapsed }) => {
   const SidebarData = SidebarDataPage();

@@ -7,29 +7,16 @@
 
 .results-grid2 {
   display: flex;
-  gap: 20px; /* space between panels */
+  gap: var(--space-lg); /* space between panels */
   justify-content: space-between; /* spread them evenly */
 }
 
 .query-view-panel {
   flex: 1; /* each takes equal width */
-  background: #f9f9f9; /* optional */
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-
-
-:root {
-  --bg: #f7f8fa;
-  --border: #e5e7eb;
-  --text: #1f2937;
-  --muted: #6b7280;
-  --primary: #0d6efd;
-  --primary-dark: #0b5ed7;
-  --card-bg: #ffffff;
-  --shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
 }
 
 html, body, #root {
@@ -38,40 +25,40 @@ html, body, #root {
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-family: var(--font-sans, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif);
   overflow-x: hidden;
 }
 
 /* B. Container */
 .comparison-container {
-  padding: 28px 18px 40px;
+  padding: var(--space-xl) var(--space-md) var(--space-2xl);
   max-width: 100%;
   margin: 0 auto;
 }
 
 .comparison-container h2 {
-  margin: 0 0 18px;
-  font-size: 24px;
-  font-weight: 700;
+  margin: 0 0 var(--space-md);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
   text-align: center;
 }
 
 /* C. Form Card */
 .comparison-form {
-  background: var(--card-bg);
+  background: var(--surface-1);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 18px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-md);
 }
 
 /* multi-input row */
 .service-numbers-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  gap: var(--space-sm);
 }
 
 .input-block {
@@ -81,18 +68,18 @@ body {
 }
 
 .input-block label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 6px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
 }
 
 .input-block input,
 .input-block select {
-  padding: 10px 12px;
-  border: 1px solid #cfd4dc;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
   transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
   width: 100%;
@@ -100,52 +87,52 @@ body {
 
 .input-block input:focus,
 .input-block select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px var(--primary-100);
 }
 
 .input-block input.invalid {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+  border-color: var(--danger-500);
+  box-shadow: 0 0 0 3px var(--danger-100);
 }
 
 .field-error {
-  margin-top: 6px;
-  color: #b91c1c;
-  font-size: 12px;
+  margin-top: var(--space-xs);
+  color: var(--danger-600);
+  font-size: var(--fs-xs);
 }
 
 /* Actions */
 .actions-row {
   display: flex;
-  gap: 10px;
+  gap: var(--space-sm);
   justify-content: center;
   align-items: center;
-  margin-top: 14px;
+  margin-top: var(--space-sm);
 }
 
 .btn {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-weight: 600;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
   cursor: pointer;
 }
 
 .btn.primary {
-  background: var(--primary);
+  background: var(--primary-500);
   color: #fff;
   border-color: transparent;
 }
 
 .btn.primary:hover {
-  background: var(--primary-dark);
+  background: var(--primary-600);
 }
 
 .btn.ghost {
-  background: #fff;
-  color: var(--text);
+  background: var(--surface-1);
+  color: var(--text-primary);
 }
 
 .btn:disabled {
@@ -155,31 +142,31 @@ body {
 
 /* Form error banner */
 .form-error {
-  margin-top: 12px;
-  padding: 10px 12px;
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-  color: #b91c1c;
-  border-radius: 8px;
+  margin-top: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--danger-50);
+  border: 1px solid var(--danger-200);
+  color: var(--danger-700);
+  border-radius: var(--radius-md);
   text-align: center;
 }
 
 /* D. Results Grid */
 .results-grid {
-  margin-top: 20px;
+  margin-top: var(--space-md);
   display: grid;
-  gap: 16px;
+  gap: var(--space-sm);
   /* columns set dynamically via style attr */
 }
 
 .empty-page-note {
-  background: var(--card-bg);
+  background: var(--surface-1);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 24px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-lg);
   text-align: center;
-  color: var(--muted);
+  color: var(--text-secondary);
 }
 
 /* E. Panel Card */
@@ -187,31 +174,31 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0; /* critical to prevent overflow in grid children */
-  background: var(--card-bg);
+  background: var(--surface-1);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   overflow: hidden; /* contain inner table */
 }
 
 .card-header {
-  padding: 12px 14px;
+  padding: var(--space-sm) var(--space-md);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .card-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-sm);
   min-width: 0;
 }
 
 .card-title h3 {
-  font-size: 16px;
+  font-size: var(--fs-sm);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -221,23 +208,23 @@ body {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
   border-radius: 999px;
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  color: #3730a3;
-  font-weight: 700;
-  font-size: 12px;
+  background: var(--primary-50);
+  border: 1px solid var(--primary-200);
+  color: var(--primary-700);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-xs);
 }
 
 .card-subtitle {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
 }
 
 .card-body {
-  padding: 12px;
+  padding: var(--space-sm);
 }
 
 /* Scroll area for table so page width never grows */
@@ -245,14 +232,14 @@ body {
   width: 100%;
   max-height: 60vh;
   overflow: auto;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 /* Panel empty */
 .panel-empty {
-  padding: 24px;
+  padding: var(--space-lg);
   text-align: center;
-  color: var(--muted);
+  color: var(--text-secondary);
 }
 
 /* F. DataTable overrides (react-data-table-component) */
