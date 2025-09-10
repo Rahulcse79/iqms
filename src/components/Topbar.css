@@ -169,6 +169,15 @@ button:active {
   color: #f1f5f9; /* light gray/white for contrast */
 }
 
+/* Flicker red placeholder when error */
+.input-error::placeholder {
+  color: #f87171;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+
+
 /* Responsive polish */
 @media (max-width: 1024px) {
   .user-card {

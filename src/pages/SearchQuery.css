@@ -71,3 +71,10 @@
 .search-btn:hover {
     background-color: #0056b3;
 }
+
+.error-message {
+  display: block;
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}

@@ -13,6 +13,8 @@ const Topbar = ({ toggleSidebar }) => {
   const { auth } = useContext(AuthContext);
   const dispatch = useDispatch();
   const [refreshing, setRefreshing] = useState(false);
+  const [errorPlaceholder, setErrorPlaceholder] = useState("");
+  const [isError, setIsError] = useState(false);
 
   // 🟢 Extract roles & categories directly from login data
   const roles = auth?.user?.airForceUserDetails?.airForceRole_Access || [];
@@ -76,7 +78,15 @@ const Topbar = ({ toggleSidebar }) => {
 
   const handleSearch = () => {
     if (!searchValue.trim()) {
-      alert("Please enter a value to search");
+      setIsError(true);
+      setErrorPlaceholder("No input value");
+      setSearchValue("");
+
+      setTimeout(() => {
+        setIsError(false);
+        setErrorPlaceholder("");
+      }, 2000);
+
       return;
     }
 
@@ -133,14 +143,19 @@ const Topbar = ({ toggleSidebar }) => {
           <select
             value={searchCategory}
             onChange={(e) => setSearchCategory(e.target.value)}
+            disabled={categories.length === 0}
           >
-            <option value="">Select Category</option>
-            {categories.map((cat, idx) => (
-              <option key={idx} value={cat}>
-                {cat}
-              </option>
-            ))}
+            {categories.length > 0 ? (
+              categories.map((cat, idx) => (
+                <option key={idx} value={cat}>
+                  {cat}
+                </option>
+              ))
+            ) : (
+              <option disabled>No categories available</option>
+            )}
           </select>
+
           <select
             value={searchType}
             onChange={(e) => setSearchType(e.target.value)}
@@ -151,7 +166,8 @@ const Topbar = ({ toggleSidebar }) => {
           <input
             type="text"
             placeholder={
-              searchType === "Query" ? "Enter Query ID" : "Enter Service No."
+              errorPlaceholder ||
+              (searchType === "Query" ? "Enter Query ID" : "Enter Service No.")
             }
             value={searchValue}
             onChange={handleSearchInputChange}

@@ -1,26 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "./SearchQuery.css";
+import { AuthContext } from "../context/AuthContext";
 
 const SearchQuery = () => {
   const [activeTab, setActiveTab] = useState("serviceNumber");
   const [serviceNumber, setServiceNumber] = useState("");
   const [queryID, setQueryID] = useState("");
-  const [category, setCategory] = useState("1"); // default category
+  const [error, setError] = useState("");
+
+  const { auth } = useContext(AuthContext);
+  const categories = auth?.user?.airForceUserDetails?.categoryQuery || [];
+  const [category, setCategory] = useState(categories[0] || "");
+
   const navigate = useNavigate();
 
-  // 🔹 Function to handle search
   const handleSearch = (e) => {
     e.preventDefault();
+    setError("");
 
-    if (activeTab === "serviceNumber" && serviceNumber.trim()) {
+    if (activeTab === "serviceNumber") {
+      if (!serviceNumber.trim()) {
+        setError("Please enter a Service Number");
+        return;
+      }
       navigate(
-        `/search-results?type=Service&category=${category}&q=${serviceNumber}`
+        `/search-results?type=Service&category=${encodeURIComponent(
+          category
+        )}&q=${serviceNumber}`
       );
-    } else if (activeTab === "queryID" && queryID.trim()) {
+    } else if (activeTab === "queryID") {
+      if (!queryID.trim()) {
+        setError("Please enter a Query ID");
+        return;
+      }
       navigate(`/search-results?type=Query&q=${queryID}`);
-    } else {
-      alert("Please enter a valid input");
     }
   };
 
@@ -28,31 +42,45 @@ const SearchQuery = () => {
     <div className="search-query-container">
       <div className="tab-buttons">
         <button
-          onClick={() => setActiveTab("serviceNumber")}
-          className={`tab-button ${
-            activeTab === "serviceNumber" ? "active" : ""
-          }`}
+          onClick={() => {
+            setActiveTab("serviceNumber");
+            setError("");
+          }}
+          className={`tab-button ${activeTab === "serviceNumber" ? "active" : ""}`}
         >
           Search by Service Number
         </button>
         <button
-          onClick={() => setActiveTab("queryID")}
+          onClick={() => {
+            setActiveTab("queryID");
+            setError("");
+          }}
           className={`tab-button ${activeTab === "queryID" ? "active" : ""}`}
         >
           Search by Query ID
         </button>
       </div>
 
-      {/* Tab Content */}
       {activeTab === "serviceNumber" && (
         <div className="tab-content">
           <h3>Search by Service Number</h3>
           <form className="search-form" onSubmit={handleSearch}>
             <label>
               Category:
-              <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                <option value="1">Airmen/ NCS(E)</option>
-                {/* Add more categories if available */}
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                disabled={categories.length === 0}
+              >
+                {categories.length > 0 ? (
+                  categories.map((cat, idx) => (
+                    <option key={idx} value={cat}>
+                      {cat}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No categories available</option>
+                )}
               </select>
             </label>
             <label>
@@ -64,6 +92,7 @@ const SearchQuery = () => {
                 onChange={(e) => setServiceNumber(e.target.value)}
               />
             </label>
+            {error && <span className="error-message">{error}</span>}
             <button type="submit" className="search-btn">
               Search
             </button>
@@ -84,6 +113,7 @@ const SearchQuery = () => {
                 onChange={(e) => setQueryID(e.target.value)}
               />
             </label>
+            {error && <span className="error-message">{error}</span>}
             <button type="submit" className="search-btn">
               Search
             </button>
