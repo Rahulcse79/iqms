@@ -49,6 +49,7 @@ const Topbar = ({ toggleSidebar }) => {
   const level = auth?.user?.airForceUserDetails?.airForceLevel?.[0] || "N/A";
 
   const handleRefreshScreen = async () => {
+    navigate("/")
     setRefreshing(true);
     try {
       // force a fresh fetch from server (this will dispatch REPLIED_QUERY_SUCCESS on success)

@@ -1,3 +1,4 @@
+// src/pages/IncomingQueries/IncomingQueries.jsx
 import React, { useMemo, useState } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import "./IncomingQueries.css";
@@ -6,15 +7,9 @@ import usePendingQueries from "../../hooks/usePendingQueries";
 /**
  * IncomingQueries
  *
- * - Default tab: "Pending at Creator"
- * - Removed "Incoming" tab entirely
- * - Uses usePendingQueries hook for Creator, Verifier, Approver tabs
- *
- * Mapping to QueriesTable fields:
- *   serviceNo -> sno
- *   type      -> querytype (fallback to doc_type/subject)
- *   queryId   -> doc_id (string)
- *   date      -> submit_date (human readable)
+ * - default tab: creator
+ * - uses usePendingQueries hook for Creator, Verifier, Approver tabs
+ * - maps incoming items into QueriesTable shape
  */
 
 const roleDigitForTab = {
@@ -33,13 +28,21 @@ const formatIso = (iso) => {
 };
 
 const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => {
-  // default tab set to "creator"
   const [activeTab, setActiveTab] = useState("creator");
 
+  // compute pendingWith string (memo not strictly necessary)
   const pendingWith = `${deptPrefix}${roleDigitForTab[activeTab]}${personnelType}`;
 
-  const { data, loading, loadingMore, error, hasMore, fetchNextPage, refresh, loadAll } =
-    usePendingQueries(cat, pendingWith);
+  const {
+    data,
+    loading,
+    loadingMore,
+    error,
+    hasMore,
+    fetchNextPage,
+    refresh,
+    loadAll,
+  } = usePendingQueries(cat, pendingWith);
 
   const tabTitle = `Pending at ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`;
 
@@ -53,19 +56,35 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
         it.doc_type ||
         it.subject ||
         "",
-      queryId: it.doc_id
-        ? String(it.doc_id)
-        : it.imprno
-        ? String(it.imprno)
-        : `${it.sno}-${idx}`,
+      queryId: it.doc_id ? String(it.doc_id) : it.imprno ? String(it.imprno) : `${it.sno}-${idx}`,
       date: formatIso(it.submit_date ?? it.action_dt ?? it.last_action_dt),
       raw: it,
     }));
   }, [data]);
 
+  // handler wrappers with basic error handling
   const handleLoadAll = async () => {
-    // loadAll is implemented inside the hook; it's safe but may be heavy for very large result sets
-    await loadAll();
+    try {
+      await loadAll({ maxIterations: 2000 });
+    } catch (e) {
+      console.error("loadAll failed", e);
+    }
+  };
+
+  const handleRefresh = async () => {
+    try {
+      await refresh();
+    } catch (e) {
+      console.error("refresh failed", e);
+    }
+  };
+
+  const handleFetchNext = async () => {
+    try {
+      await fetchNextPage();
+    } catch (e) {
+      console.error("fetchNextPage failed", e);
+    }
   };
 
   return (
@@ -74,6 +93,7 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
         <button
           className={activeTab === "creator" ? "active" : ""}
           onClick={() => setActiveTab("creator")}
+          disabled={loading || loadingMore}
         >
           Pending at Creator
         </button>
@@ -81,6 +101,7 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
         <button
           className={activeTab === "verifier" ? "active" : ""}
           onClick={() => setActiveTab("verifier")}
+          disabled={loading || loadingMore}
         >
           Pending at Verifier
         </button>
@@ -88,6 +109,7 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
         <button
           className={activeTab === "approver" ? "active" : ""}
           onClick={() => setActiveTab("approver")}
+          disabled={loading || loadingMore}
         >
           Pending at Approver
         </button>
@@ -96,16 +118,14 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
       <div style={{ margin: "8px 0", display: "flex", gap: 8, alignItems: "center" }}>
         <h3 style={{ margin: 0 }}>{tabTitle}</h3>
 
-        <button onClick={refresh} style={{ marginLeft: 8 }} disabled={loading}>
+        <button onClick={handleRefresh} style={{ marginLeft: 8 }} disabled={loading}>
           Refresh
         </button>
 
         <div style={{ marginLeft: 8 }}>
           {loading && <small>Loading first page…</small>}
           {loadingMore && <small>Loading more…</small>}
-          {!loading && !loadingMore && (
-            <small>Loaded: {Array.isArray(data) ? data.length : 0}</small>
-          )}
+          {!loading && !loadingMore && <small>Loaded: {Array.isArray(data) ? data.length : 0}</small>}
         </div>
 
         {error && <small style={{ marginLeft: 8, color: "crimson" }}>Error: {error}</small>}
@@ -116,15 +136,11 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
       <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
         {hasMore ? (
           <>
-            <button onClick={fetchNextPage} disabled={loadingMore} className="show-more-btn">
+            <button onClick={handleFetchNext} disabled={loadingMore} className="show-more-btn">
               {loadingMore ? "Loading more…" : "Show more"}
             </button>
 
-            <button
-              onClick={handleLoadAll}
-              disabled={loading || loadingMore}
-              className="load-all-btn"
-            >
+            <button onClick={handleLoadAll} disabled={loading || loadingMore} className="load-all-btn">
               Load all
             </button>
 
