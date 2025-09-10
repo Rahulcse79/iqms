@@ -4,13 +4,20 @@ import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import jsPDF from "jspdf";
 import "./QueriesTable.css";
+import { getUserRoleLabel } from "../constants/Enum";
 
 const QueriesTable = ({ title, data = [] }) => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   const handleView = (row) => {
-    navigate(`/view/query/${encodeURIComponent(row.queryId)}`, { state: { row } });
+    const category = getUserRoleLabel(row.raw.cat);
+    const queryParams = new URLSearchParams({
+      category: category,
+      type: "Service",
+      q: row.serviceNo,
+    });
+    navigate(`/view/query/${encodeURIComponent(row.queryId)}?${queryParams.toString()}`, { state: { row } });
   };
 
   const columns = [
