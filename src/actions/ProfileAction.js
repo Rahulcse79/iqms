@@ -261,7 +261,7 @@ export const getGCIHistory =
     dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey } });
     const url = `${BASE_PROFILEVIEW}/gciHist/${encodeURIComponent(
       serviceNo
-    )}/${encodeURIComponent(category)}/${encodeURIComponent(abc)}`;
+    )}/${encodeURIComponent(abc)}`;
     log.group("getGCIHistory");
     log.debug("GET", url, { serviceNo, category, abc });
 

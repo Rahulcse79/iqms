@@ -88,7 +88,7 @@ export default function usePendingQueries(cat = 1, pendingWith = null) {
           const o = Number.isFinite(requestedOffset) ? requestedOffset : 0;
           url = `${API_BASE}/${encodeURIComponent(cat)}/${encodeURIComponent(
             pendingWith
-          )}/?offset=${o}`;
+          )}?offset=${o}`;
         }
 
         const resp = await fetch(url, { signal });
