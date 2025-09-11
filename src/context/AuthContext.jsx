@@ -43,12 +43,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const syncAuth = () => {
-      const storedAuth = Cookies.get("authData");
-      setAuth(storedAuth ? JSON.parse(storedAuth) : null);
-    };
-    window.addEventListener("storage", syncAuth);
-    return () => window.removeEventListener("storage", syncAuth);
+    const storedAuth = Cookies.get("authData");
+    setAuth(storedAuth ? JSON.parse(storedAuth) : null);
   }, []);
 
   return (

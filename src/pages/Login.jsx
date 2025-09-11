@@ -21,11 +21,7 @@ const Login = () => {
   const { loading } = useSelector((state) => state.replied_queries);
 
   useEffect(() => {
-    const authUser = Cookies.get("authUser");
     localStorage.removeItem("queryDrafts_v2");
-    if (authUser) {
-      navigate("/");
-    }
     const authData = Cookies.get("authData");
     if (authData) navigate("/");
   }, [navigate]);
