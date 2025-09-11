@@ -22,19 +22,23 @@ const RepliedQueries = () => {
   if (error)
     return <p style={{ color: "red" }}>Error fetching queries: {error}</p>;
 
-  const data = items.map((q, index) => ({
-    id: index + 1,
-    serviceNo: q?.sno ? String(q.sno) : "",
-    type: "Replied",
-    queryId: q?.doc_id ?? "",
-    date: q?.action_dt ? new Date(q.action_dt).toLocaleDateString() : "N/A",
-    subject: q?.subject ?? "",
-    pers: q?.pers ?? "",
-    queryType: q?.querytype ?? "",
-    pendingWith: q?.pending_with ?? "",
-    cell: q?.cell ?? "",
-    docStatus: q?.doc_status ?? "",
-  }));
+  const data = items.map((q, index) => {
+    return {
+      id: index + 1,
+      serviceNo: q?.sno ? String(q.sno) : "",
+      type: "Replied",
+      queryId: q?.doc_id ?? "",
+      cat: q?.cat !== undefined && q?.cat !== null ? q.cat : null,
+      date: q?.action_dt ? new Date(q.action_dt).toLocaleDateString() : "N/A",
+      subject: q?.subject ?? "",
+      pers: q?.pers ?? "",
+      queryType: q?.querytype ?? "",
+      pendingWith: q?.pending_with ?? "",
+      cell: q?.cell ?? "",
+      docStatus: q?.doc_status ?? "",
+    };
+  });
+  
 
   return <QueriesTable title="Replied Queries" data={data} />;
 };

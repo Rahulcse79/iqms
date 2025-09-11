@@ -11,7 +11,7 @@ const QueriesTable = ({ title, data = [] }) => {
   const navigate = useNavigate();
 
   const handleView = (row) => {
-    const category = getUserRoleLabel(row.raw.cat);
+    const category = getUserRoleLabel(row.cat);
     const queryParams = new URLSearchParams({
       category: category,
       type: "Service",
