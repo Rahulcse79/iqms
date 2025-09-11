@@ -1,0 +1,344 @@
+// TradeHistoryTab.jsx
+import React, { useState, useMemo, useEffect } from 'react';
+
+/* ---------------- Utilities ---------------- */
+const formatDate = (iso) => {
+  if (!iso) return '-';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return '-';
+  }
+};
+
+const devLog = (...args) => {
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.debug('[TradeHistoryTab]', ...args);
+  }
+};
+
+/* ---------------- Styles (JS objects for easy drop-in) ---------------- */
+const styles = {
+  container: {
+    padding: 20,
+    fontFamily: "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+    color: '#111827',
+  },
+  controlsRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  leftControls: {
+    display: 'flex',
+    gap: 12,
+    alignItems: 'center',
+  },
+  rowsSelect: {
+    padding: '6px 8px',
+    borderRadius: 6,
+    border: '1px solid #d1d5db',
+    background: '#fff',
+  },
+  sortButton: {
+    padding: '6px 10px',
+    borderRadius: 6,
+    border: '1px solid #d1d5db',
+    background: '#f8fafc',
+    cursor: 'pointer',
+  },
+  tableWrap: {
+    overflowX: 'auto',
+    borderRadius: 8,
+    boxShadow: '0 1px 2px rgba(15,23,42,0.05)',
+    border: '1px solid #e6eaea',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    minWidth: 720,
+  },
+  thead: {
+    background: '#f8fafc',
+    color: '#0f172a',
+    fontSize: 14,
+    textAlign: 'left',
+  },
+  th: {
+    padding: '12px 14px',
+    borderBottom: '1px solid #e6eaea',
+    fontWeight: 600,
+    verticalAlign: 'middle',
+  },
+  thSortable: {
+    cursor: 'pointer',
+    userSelect: 'none',
+  },
+  tbodyRow: {
+    background: '#ffffff',
+  },
+  tbodyRowAlt: {
+    background: '#fbfbfb',
+  },
+  td: {
+    padding: '12px 14px',
+    borderBottom: '1px solid #f1f5f9',
+    verticalAlign: 'middle',
+    fontSize: 14,
+  },
+  footer: {
+    marginTop: 12,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  navButton: {
+    padding: '6px 10px',
+    borderRadius: 6,
+    border: '1px solid #e2e8f0',
+    background: '#fff',
+    cursor: 'pointer',
+  },
+  pageInput: {
+    width: 72,
+    padding: '6px 8px',
+    borderRadius: 6,
+    border: '1px solid #d1d5db',
+  },
+  metaText: {
+    fontSize: 13,
+    color: '#374151',
+  },
+};
+
+/* ---------------- Component ---------------- */
+export default function TradeHistoryTab({ items = [], loading, error }) {
+  /* ---------------- Hooks (always at top) ---------------- */
+  const [pageSize, setPageSize] = useState(10); // 10, 20, 50
+  const [page, setPage] = useState(1);
+  const [sortDir, setSortDir] = useState(null); // null | 'asc' | 'desc'
+
+  /* ---------------- Data cleaning (stable via useMemo) ---------------- */
+  const cleanedRows = useMemo(() => {
+    if (!Array.isArray(items)) return [];
+    return items.map((row, idx) => {
+      devLog('Raw Trade Data:', row);
+      const wefRaw = row.wef ? new Date(row.wef) : null;
+      return {
+        _idx: idx,
+        branch: row.branch ?? '-',
+        occId: row.occ_id ?? row.occId ?? '-',
+        wefRaw: wefRaw && !Number.isNaN(wefRaw.getTime()) ? wefRaw : null,
+        wefFormatted: formatDate(row.wef),
+        irla: row.irla ?? row.irla_action ?? '-',
+        __raw: row,
+      };
+    });
+  }, [items]);
+
+  /* ---------------- Sorting (wef column only) ---------------- */
+  const sortedRows = useMemo(() => {
+    if (!sortDir) return cleanedRows;
+    const rows = [...cleanedRows];
+    rows.sort((a, b) => {
+      // missing dates are pushed to the end
+      if (!a.wefRaw && !b.wefRaw) return 0;
+      if (!a.wefRaw) return 1;
+      if (!b.wefRaw) return -1;
+      const diff = a.wefRaw.getTime() - b.wefRaw.getTime();
+      return sortDir === 'asc' ? diff : -diff;
+    });
+    return rows;
+  }, [cleanedRows, sortDir]);
+
+  /* ---------------- Pagination ---------------- */
+  const total = sortedRows.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  // keep page valid when pageSize/total changes
+  useEffect(() => {
+    if (page > totalPages) setPage(1);
+  }, [totalPages, page]);
+
+  // reset to first page on major changes (predictable behavior)
+  useEffect(() => {
+    setPage(1);
+  }, [items, pageSize, sortDir]);
+
+  const startIndex = (page - 1) * pageSize;
+  const pageRows = sortedRows.slice(startIndex, startIndex + pageSize);
+
+  /* ---------------- Handlers ---------------- */
+  const toggleSort = () => setSortDir((d) => (d === null ? 'asc' : d === 'asc' ? 'desc' : null));
+
+  const onHeaderKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleSort();
+    }
+  };
+
+  /* ---------------- Early UI states (after hooks) ---------------- */
+  if (loading) return <p style={{ padding: 20 }}>Loading trade history...</p>;
+  if (error) return <p style={{ padding: 20, color: 'red' }}>Error: {String(error)}</p>;
+  if (!Array.isArray(items) || items.length === 0) return <p style={{ padding: 20 }}>No trade history available.</p>;
+
+  /* ---------------- Render ---------------- */
+  const sortIcon = sortDir === 'asc' ? '▲' : sortDir === 'desc' ? '▼' : '↕';
+
+  return (
+    <div style={styles.container}>
+      {/* Controls */}
+      <div style={styles.controlsRow}>
+        <div style={styles.leftControls}>
+          <label style={{ fontSize: 14, color: '#374151' }}>
+            Rows per page:{' '}
+            <select
+              aria-label="Rows per page"
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              style={styles.rowsSelect}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </label>
+
+          <div style={styles.metaText}>
+            Showing <strong>{Math.min(total, startIndex + 1)}</strong> - <strong>{Math.min(total, startIndex + pageRows.length)}</strong> of <strong>{total}</strong>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setPage(1)}
+            disabled={page === 1}
+            style={styles.navButton}
+            aria-label="First page"
+          >
+            ⏮
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            style={styles.navButton}
+            aria-label="Previous page"
+          >
+            ◀ Prev
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            style={styles.navButton}
+            aria-label="Next page"
+          >
+            Next ▶
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage(totalPages)}
+            disabled={page === totalPages}
+            style={styles.navButton}
+            aria-label="Last page"
+          >
+            ⏭
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div style={styles.tableWrap}>
+        <table style={styles.table} role="table" aria-label="Trade history table">
+          <thead style={styles.thead}>
+            <tr>
+              <th style={{ ...styles.th, width: 80 }}>S No</th>
+              <th style={styles.th}>Branch</th>
+              <th style={styles.th}>OCC ID</th>
+
+              {/* Sortable header */}
+              <th
+                style={{ ...styles.th, ...styles.thSortable }}
+                role="button"
+                tabIndex={0}
+                aria-sort={sortDir ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                onClick={toggleSort}
+                onKeyDown={onHeaderKey}
+                title="Toggle sort: none → ascending → descending"
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>With Effect From</span>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>{sortIcon}</span>
+                </div>
+              </th>
+
+              <th style={styles.th}>IRLA Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {pageRows.map((row, idx) => {
+              const isAlt = (startIndex + idx) % 2 === 1;
+              return (
+                <tr
+                  key={`${row.occId ?? row._idx}-${startIndex + idx}`}
+                  style={isAlt ? styles.tbodyRowAlt : styles.tbodyRow}
+                >
+                  <td style={styles.td}>{startIndex + idx + 1}</td>
+                  <td style={styles.td}>{row.branch}</td>
+                  <td style={styles.td}>{row.occId}</td>
+                  <td style={styles.td}>{row.wefFormatted}</td>
+                  <td style={styles.td}>{row.irla}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Footer: page info and jump to page */}
+      <div style={styles.footer}>
+        <div style={{ color: '#374151' }}>
+          Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: '#374151' }}>
+            Go to page:
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={page}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                if (Number.isNaN(v)) return;
+                setPage(Math.min(Math.max(1, v), totalPages));
+              }}
+              style={styles.pageInput}
+            />
+          </label>
+
+          <div style={{ color: '#6b7280', fontSize: 13 }}>
+            Rows per page: <strong>{pageSize}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
