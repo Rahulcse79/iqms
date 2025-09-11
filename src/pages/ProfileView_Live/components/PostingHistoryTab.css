@@ -1,0 +1,25 @@
+.posting-history {
+  padding: 16px;
+}
+
+.posting-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.posting-table th,
+.posting-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+.posting-table th {
+  background-color: #f3f3f3;
+  font-weight: bold;
+}
+
+.posting-table tr:nth-child(even) {
+  background-color: #fafafa;
+}

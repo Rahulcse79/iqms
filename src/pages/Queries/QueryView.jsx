@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./QueryView.css";
 import Comparison from "../Comparison";
 import ProfileView from "../ProfileView/ProfileView";
+import ProfileViewLive from "../ProfileView_Live/ProfileView";
 import PostingHistoryTab from "../ProfileView/components/PostingHistoryTab";
 import QueryDetails from "./QueryDetails";
 import PersonalDetails from "../ProfileView/components/PersonalDetails";
@@ -35,7 +36,7 @@ const QueryView = ({ onBack }) => {
 
   const searchParams = new URLSearchParams(location.search);
   const category = searchParams.get("category"); 
-  const queryValue = searchParams.get("q"); 
+  const queryValue = 100101  // searchParams.get("q"); 
 
   // helper: map "Airmen" -> 1, "Officer" -> 0, "Civilian" -> 2
   const getCategoryCode = (category) => {
@@ -86,6 +87,9 @@ const QueryView = ({ onBack }) => {
         return <PostingHistoryTab />;
       case "Profile View":
         return <ProfileView />;
+      case "Profile View Live":
+        return <ProfileViewLive category={getCategoryCode(category)}
+        queryValue={queryValue} />;
       default:
         return null;
     }
@@ -136,6 +140,7 @@ const QueryView = ({ onBack }) => {
             </option>
             <option value="POR Issue">POR Issue</option>
             <option value="Profile View">Profile View</option>
+            <option value="Profile View Live">Profile View live</option>
           </select>
         </div>
         {renderRightPanel()}
