@@ -36,7 +36,7 @@ const QueryView = ({ onBack }) => {
 
   const searchParams = new URLSearchParams(location.search);
   const category = searchParams.get("category"); 
-  const queryValue = 100101  // searchParams.get("q"); 
+  const queryValue = searchParams.get("q"); 
 
   // helper: map "Airmen" -> 1, "Officer" -> 0, "Civilian" -> 2
   const getCategoryCode = (category) => {
