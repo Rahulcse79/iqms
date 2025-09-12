@@ -2,6 +2,7 @@ import { createStore, combineReducers, applyMiddleware, compose } from "redux";
 import { thunk } from "redux-thunk"; 
 import { userReducer, repliedQueryReducer, officerBasicPayReasonReducer, officerRankHistoryReducer, searchQueryReducer, officerPersmastReducer, searchQueryByIdReducer, airmanBasicPayReasonReducer, searchQueryIdReducer, airmanRankHistoryReducer, airmanPersmastReducer } from "../reducers/reducers";
 import {personalDataReducer, ProfileViewReducer, abcCodesReducer} from "../reducers/ProfileReducers";
+import {apwReducer, cpwReducer, opwReducer} from "../reducers/MISReducers";
 import frqQryReducer, { faqReducer, queryReducer } from "../reducers/queryReducer";
 import pendingQueryReducer from "../reducers/pendingQueryReducer";
 
@@ -32,7 +33,9 @@ const reducer = combineReducers({
   officerPersmast: officerPersmastReducer,
   officerRankHistory: officerRankHistoryReducer,
   officerBasicPayReason: officerBasicPayReasonReducer,
-
+  apwReducer: apwReducer,
+  cpwReducer: cpwReducer,
+  opwReducer: opwReducer,
 
   faqReducer: faqReducer,
   frqQryReducer: frqQryReducer,
