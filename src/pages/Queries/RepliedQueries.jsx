@@ -16,13 +16,15 @@ const RepliedQueries = () => {
       dispatch(fetchRepliedQueries());
     }
   }, [dispatch, items]);
-  
+
   if (loading) return <Loader text="Loading Replied Queries..." />;
 
-  if (error)
+  if (error) {
     return <p style={{ color: "red" }}>Error fetching queries: {error}</p>;
+  }
 
-  const data = items.map((q, index) => {
+  const safeItems = Array.isArray(items) ? items : [];
+  const data = safeItems.map((q, index) => {
     return {
       id: index + 1,
       serviceNo: q?.sno ? String(q.sno) : "",
@@ -38,7 +40,6 @@ const RepliedQueries = () => {
       docStatus: q?.doc_status ?? "",
     };
   });
-  
 
   return <QueriesTable title="Replied Queries" data={data} />;
 };

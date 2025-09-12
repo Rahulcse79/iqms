@@ -1,9 +1,8 @@
-// src/components/QueryView/QueryDetails.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./QueryDetails.css";
 import { useQuery } from "@tanstack/react-query";
-import FeedbackDialog from "../../components/FeedbackDialog";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const STORAGE_KEY = "queryDrafts_v2";
 
@@ -12,7 +11,6 @@ const STORAGE_KEY = "queryDrafts_v2";
  */
 const decodeHtml = (html) => {
   if (!html && html !== "") return html;
-  // safe DOM decode for entities like &amp;
   try {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -24,16 +22,13 @@ const decodeHtml = (html) => {
 
 const tryParseDate = (dateStr) => {
   if (!dateStr) return null;
-  // try direct parse
   const direct = new Date(dateStr);
   if (!isNaN(direct.getTime())) return direct;
 
-  // replace dashes with spaces and try again (e.g. "15-Jan-2024")
   const replaced = dateStr.replace(/-/g, " ");
   const parsed2 = new Date(replaced);
   if (!isNaN(parsed2.getTime())) return parsed2;
 
-  // Last resort: return null (we'll fallback to showing raw string)
   return null;
 };
 
@@ -45,14 +40,7 @@ const formatDateFlexible = (dateStr) => {
 };
 
 /**
- * Fetcher: NEW endpoint as requested
- * Endpoint: http://sampoorna.cao.local/afcao/ipas/ivrs/queryDetails/:queryId
- *
- * We return a merged object:
- *  - raw top-level fields (doc_id, sno, pers, etc.)
- *  - details: parsed object from json_data (first element if array)
- *  - parsedJsonArray: original parsed json_data array (if needed)
- *  - history: normalized array of replies (Adjutant / SAO / wings replies)
+ * Fetch query details
  */
 const fetchQueryDetails = async (queryId) => {
   const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/queryDetails/${queryId}`;
@@ -63,23 +51,18 @@ const fetchQueryDetails = async (queryId) => {
   }
 
   const raw = data.items[0];
-
-  // parse json_data (it's a JSON string)
   let parsedJsonArray = [];
   try {
     parsedJsonArray = raw.json_data ? JSON.parse(raw.json_data) : [];
-  } catch (err) {
-    // fallback to empty
+  } catch {
     parsedJsonArray = [];
-    // optionally you can console.error here in dev
-    // console.error("Failed to parse json_data:", err);
   }
 
-  const details = Array.isArray(parsedJsonArray) && parsedJsonArray.length > 0
-    ? parsedJsonArray[0]
-    : {};
+  const details =
+    Array.isArray(parsedJsonArray) && parsedJsonArray.length > 0
+      ? parsedJsonArray[0]
+      : {};
 
-  // Build history: Adjutant, SAO, wings_reply entries
   const history = [];
 
   if (details["Adjutant Reply"] || details["Adjutant Reply Date"]) {
@@ -90,7 +73,6 @@ const fetchQueryDetails = async (queryId) => {
     });
   }
 
-  // SAO uses "SAO Reply" and "SAO Reply Dated" in your sample
   if (details["SAO Reply"] || details["SAO Reply Dated"]) {
     history.push({
       by: "SAO",
@@ -99,7 +81,6 @@ const fetchQueryDetails = async (queryId) => {
     });
   }
 
-  // wings_reply: pair "X" and "X Date"
   const wings = details.wings_reply || {};
   const wingDateMap = {};
   Object.keys(wings).forEach((k) => {
@@ -109,17 +90,12 @@ const fetchQueryDetails = async (queryId) => {
     }
   });
   Object.keys(wings).forEach((k) => {
-    if (/\bdate$/i.test(k)) return; // skip date keys
+    if (/\bdate$/i.test(k)) return;
     const prefix = k;
     const date = wingDateMap[prefix] || null;
-    history.push({
-      by: prefix,
-      text: wings[k],
-      date,
-    });
+    history.push({ by: prefix, text: wings[k], date });
   });
 
-  // sort history: newest first when date parsable
   history.sort((a, b) => {
     const da = tryParseDate(a.date);
     const db = tryParseDate(b.date);
@@ -129,27 +105,20 @@ const fetchQueryDetails = async (queryId) => {
     return 0;
   });
 
-  // Return merged object
-  return {
-    ...raw,
-    details,
-    parsedJsonArray,
-    history,
-  };
+  return { ...raw, details, parsedJsonArray, history };
 };
 
 const QueryDetails = ({
   queryId,
   draft,
   setDraft,
-  enableCache = false, // Only enable caching for search-results
+  enableCache = false,
   onBack,
 }) => {
   const [activeTab, setActiveTab] = useState("details");
   const [formError, setFormError] = useState("");
-  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Local state for pages without cache
   const [internalDraft, setInternalDraft] = useState({
     replyText: "",
     forwardOption: "",
@@ -159,7 +128,6 @@ const QueryDetails = ({
   const localDraft = enableCache ? draft : internalDraft;
   const localSetDraft = enableCache ? setDraft : setInternalDraft;
 
-  // Load draft from localStorage only if caching is enabled
   useEffect(() => {
     if (enableCache && queryId) {
       const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
@@ -178,8 +146,8 @@ const QueryDetails = ({
   });
 
   const handleChange = (field, value) => {
-    localSetDraft((prevDraft) => {
-      const newDraft = { ...prevDraft, [field]: value };
+    localSetDraft((prev) => {
+      const newDraft = { ...prev, [field]: value };
       if (enableCache) {
         const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
         allDrafts[queryId] = newDraft;
@@ -207,9 +175,12 @@ const QueryDetails = ({
     }
 
     setFormError("");
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmSubmit = () => {
     console.log("Submitted:", localDraft);
 
-    // Clear draft from localStorage if caching
     if (enableCache) {
       const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
       delete allDrafts[queryId];
@@ -217,7 +188,7 @@ const QueryDetails = ({
     }
 
     localSetDraft({ replyText: "", forwardOption: "", transferSection: "" });
-    setShowFeedbackDialog(true);
+    setShowConfirmDialog(false);
   };
 
   if (isLoading) return <div className="qdetails-container">Loading...</div>;
@@ -236,27 +207,48 @@ const QueryDetails = ({
     );
   if (!item) return <div className="qdetails-container">No data found</div>;
 
-  // Prefer values from parsed details, fallback to top-level item fields
   const details = item.details || {};
   const subject =
     decodeHtml(details.Subject || details.subject || item.subject || "");
   const submitDate = details.submit_date || item.submit_date || "";
-  const queryBy = details["Query by"] || details["Query By"] || details["QueryBy"] || item.pers || "N/A";
+  const queryBy =
+    details["Query by"] ||
+    details["Query By"] ||
+    details["QueryBy"] ||
+    item.pers ||
+    "N/A";
   const serviceNo = item.sno || details["Pers Details"] || "N/A";
-  const pendingWith = item.pen_with_cap || item.pending_with || details["pending_with"] || "N/A";
+  const pendingWith =
+    item.pen_with_cap ||
+    item.pending_with ||
+    details["pending_with"] ||
+    "N/A";
 
   const unit = decodeHtml(details.unit || item.unit || "");
   const head = decodeHtml(details.head || item.head || "");
-  const porRef = decodeHtml(details["POR Reference(s)"] || details["POR References"] || details["POR Reference"] || "");
-  const voip = details["VoIP"] || details.VoIP || details.voip || item.VoIP || item.voip || "";
+  const porRef = decodeHtml(
+    details["POR Reference(s)"] ||
+      details["POR References"] ||
+      details["POR Reference"] ||
+      ""
+  );
+  const voip =
+    details["VoIP"] ||
+    details.VoIP ||
+    details.voip ||
+    item.VoIP ||
+    item.voip ||
+    "";
 
-  // Query text
-  const rawQueryText = details["Query Details"] || details["Query details"] || details["QueryDetails"] || "";
+  const rawQueryText =
+    details["Query Details"] ||
+    details["Query details"] ||
+    details["QueryDetails"] ||
+    "";
 
   const renderMultiline = (text) => {
     if (!text && text !== "") return null;
     const decoded = decodeHtml(text || "");
-    // preserve empty lines
     return decoded.split(/\r?\n/).map((line, i) => (
       <p key={i} style={{ margin: "6px 0" }}>
         {line}
@@ -338,7 +330,7 @@ const QueryDetails = ({
               <div className="query-body">{renderMultiline(rawQueryText)}</div>
             </div>
 
-            {/* Wings Reply preview (if any) */}
+            {/* Wings Reply */}
             {details.wings_reply && (
               <div className="wings-card">
                 <h4>Wings Replies</h4>
@@ -356,9 +348,17 @@ const QueryDetails = ({
                       return (
                         <div key={idx} className="wings-entry">
                           <strong>{k}:</strong>
-                          <div style={{ marginTop: 6 }}>{renderMultiline(details.wings_reply[k])}</div>
+                          <div style={{ marginTop: 6 }}>
+                            {renderMultiline(details.wings_reply[k])}
+                          </div>
                           {dateVal && (
-                            <div style={{ marginTop: 6, fontSize: 12, color: "#666" }}>
+                            <div
+                              style={{
+                                marginTop: 6,
+                                fontSize: 12,
+                                color: "#666",
+                              }}
+                            >
                               <em>{formatDateFlexible(dateVal)}</em>
                             </div>
                           )}
@@ -431,9 +431,19 @@ const QueryDetails = ({
             {item.history && item.history.length > 0 ? (
               item.history.map((h, i) => (
                 <div key={i} className="history-entry">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <strong>{h.by}</strong>
-                    {h.date && <span style={{ fontSize: 12, color: "#666" }}>{formatDateFlexible(h.date)}</span>}
+                    {h.date && (
+                      <span style={{ fontSize: 12, color: "#666" }}>
+                        {formatDateFlexible(h.date)}
+                      </span>
+                    )}
                   </div>
                   <div style={{ marginTop: 6 }}>{renderMultiline(h.text)}</div>
                   <hr style={{ margin: "12px 0" }} />
@@ -446,9 +456,11 @@ const QueryDetails = ({
         )}
       </div>
 
-      <FeedbackDialog
-        open={showFeedbackDialog}
-        onClose={() => setShowFeedbackDialog(false)}
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={showConfirmDialog}
+        onConfirm={handleConfirmSubmit}
+        onCancel={() => setShowConfirmDialog(false)}
       />
     </div>
   );

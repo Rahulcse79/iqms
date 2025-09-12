@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./QueryView.css";
 import Comparison from "../Comparison";
-import ProfileView from "../ProfileView/ProfileView";
 import ProfileViewLive from "../ProfileView_Live/ProfileView";
 import PostingHistoryTab from "../ProfileView/components/PostingHistoryTab";
 import QueryDetails from "./QueryDetails";
@@ -72,9 +71,9 @@ const QueryView = ({ onBack }) => {
       case "Personal Data Issue":
         return (
           <PersonalDetails
-            data={personalData}
+            data={personalData && !error ? personalData : null}
             loading={loading}
-            error={error}
+            error={error || (personalData && personalData.error ? personalData.error : null)}
           />
         );
       case "Pay Related Issue":
@@ -86,8 +85,6 @@ const QueryView = ({ onBack }) => {
       case "POR Issue":
         return <PostingHistoryTab />;
       case "Profile View":
-        return <ProfileView />;
-      case "Profile View Live":
         return <ProfileViewLive category={getCategoryCode(category)}
         queryValue={queryValue} />;
       default:
@@ -140,7 +137,6 @@ const QueryView = ({ onBack }) => {
             </option>
             <option value="POR Issue">POR Issue</option>
             <option value="Profile View">Profile View</option>
-            <option value="Profile View Live">Profile View live</option>
           </select>
         </div>
         {renderRightPanel()}
