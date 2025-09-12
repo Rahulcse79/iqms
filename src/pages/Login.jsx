@@ -5,7 +5,7 @@ import "./login.css";
 import Cookies from "js-cookie";
 import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchRepliedQueries } from "../actions/allAction";
+import { fetchRepliedQueries } from "../actions/repliedQueryAction";
 import Loader from "../components/Loader";
 import { UserRole } from "../constants/Enum";
 

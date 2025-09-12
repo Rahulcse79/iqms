@@ -1,14 +1,12 @@
 import React, { useState, useContext } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate, useLocation } from "react-router-dom";
+import { fetchRepliedQueries } from "../actions/repliedQueryAction";
 import { GrRefresh } from "react-icons/gr";
 import { useDispatch } from "react-redux";
 import { AuthContext } from "../context/AuthContext";
-import { fetchRepliedQueries } from "../actions/allAction";
 import useTheme from "../hooks/useTheme";
-
 import "./Topbar.css";
-import "../layouts/DashboardLayout.css";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();

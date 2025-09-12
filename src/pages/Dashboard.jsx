@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchRepliedQueries } from "../actions/allAction";
+import { fetchRepliedQueries } from "../actions/repliedQueryAction";
 import Loader from "../components/Loader";
 
 // --- CSS Styles ---

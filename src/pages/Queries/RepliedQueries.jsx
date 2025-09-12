@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import QueriesTable from "../../components/QueriesTable";
-import { fetchRepliedQueries } from "../../actions/allAction";
+import { fetchRepliedQueries } from "../../actions/repliedQueryAction";
 import Loader from "../../components/Loader";
 
 const RepliedQueries = () => {
