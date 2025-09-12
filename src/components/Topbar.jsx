@@ -1,11 +1,14 @@
 import React, { useState, useContext } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./Topbar.css";
-import { fetchRepliedQueries } from "../actions/allAction";
 import { GrRefresh } from "react-icons/gr";
 import { useDispatch } from "react-redux";
 import { AuthContext } from "../context/AuthContext";
+import { fetchRepliedQueries } from "../actions/allAction";
+import useTheme from "../hooks/useTheme";
+
+import "./Topbar.css";
+import "../layouts/DashboardLayout.css";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -16,7 +19,6 @@ const Topbar = ({ toggleSidebar }) => {
   const [errorPlaceholder, setErrorPlaceholder] = useState("");
   const [isError, setIsError] = useState(false);
 
-  // 🟢 Extract roles & categories directly from login data
   const roles = auth?.user?.airForceUserDetails?.airForceRole_Access || [];
   const categories = auth?.user?.airForceUserDetails?.categoryQuery || [];
 
@@ -25,18 +27,12 @@ const Topbar = ({ toggleSidebar }) => {
   const [searchCategory, setSearchCategory] = useState(categories[0] || "");
   const [searchType, setSearchType] = useState("Service");
 
-  // 🟢 Use already stored personal data from login phase
   const personalData = auth?.user?.personalData || null;
-
-  // Pieces for the pretty line
-  const svcPart = personalData
-    ? `${personalData.sno}-${personalData.cs}`
-    : null;
+  const svcPart = personalData ? `${personalData.sno}-${personalData.cs}` : null;
   const rankNamePart = personalData
     ? `${personalData.rankcd} ${personalData.p_name} ${personalData.trdcd}`
     : null;
 
-  // Fallback if no personalData yet
   const formattedName = personalData
     ? `${svcPart} ${rankNamePart}`
     : auth?.user?.fullName || "Unknown";
@@ -49,10 +45,9 @@ const Topbar = ({ toggleSidebar }) => {
   const level = auth?.user?.airForceUserDetails?.airForceLevel?.[0] || "N/A";
 
   const handleRefreshScreen = async () => {
-    navigate("/")
+    navigate("/");
     setRefreshing(true);
     try {
-      // force a fresh fetch from server (this will dispatch REPLIED_QUERY_SUCCESS on success)
       await dispatch(fetchRepliedQueries());
     } catch (err) {
       console.error("Manual refresh failed", err);
@@ -112,9 +107,12 @@ const Topbar = ({ toggleSidebar }) => {
     navigate(targetPath, { state });
   };
 
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <header className="topbar">
       <div className="topbar-content">
+        {/* Left side: Sidebar + Role */}
         <div className="topbar-left">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             <RiMenuFill />
@@ -133,9 +131,10 @@ const Topbar = ({ toggleSidebar }) => {
           </select>
         </div>
 
+        {/* Middle: Refresh + Search */}
         <div className="refresh-container">
           <GrRefresh
-            className="refresh-button-api"
+            className={`refresh-button-api ${refreshing ? "spinning" : ""}`}
             onClick={handleRefreshScreen}
           />
         </div>
@@ -172,12 +171,23 @@ const Topbar = ({ toggleSidebar }) => {
             }
             value={searchValue}
             onChange={handleSearchInputChange}
+            className={isError ? "input-error" : ""}
           />
           <button onClick={handleSearch}>Search</button>
         </div>
 
-        {/* ✅ Right-aligned user info card */}
+        {/* Right side: User + Theme toggle */}
         <div className="topbar-right">
+          <div
+            className="theme-toggle"
+            onClick={toggleTheme}
+            role="button"
+            aria-label="Toggle theme"
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+          >
+            {theme === "dark" ? "🌙 Dark" : "🌤 Light"}
+          </div>
+
           <div
             className="user-card"
             title={`${formattedName}\n${level}\nDept: ${department}`}
@@ -192,9 +202,9 @@ const Topbar = ({ toggleSidebar }) => {
             )}
 
             <div className="user-meta">
-              <span className="badge-topbar badge-level">{level}</span>
+              <span className="badge badge-level">{level}</span>
               <span className="dot">•</span>
-              <span className="badge-topbar badge-dept">{department}</span>
+              <span className="badge badge-dept">{department}</span>
             </div>
           </div>
         </div>

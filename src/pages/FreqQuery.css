@@ -1,24 +1,6 @@
 /* FreqQuery.css - Enterprise/MNC-level styles for FreqQuery component */
 
-:root {
-  --bg: #f4f6f9;
-  --panel: #ffffff;
-  --text: #1a1c23;
-  --muted: #6b7280;
-  --accent: #1666c0;
-  --accent-dark: #0e4a8a;
-  --border: #d9dce3;
-  --radius: 12px;
-  --shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
-  --gap: 14px;
-  --max-width: 1080px;
 
-  --danger: #e74c3c;
-  --danger-light: #fdecea;
-  --success: #2ecc71;
-  --info: #3498db;
-  --warning: #f39c12;
-}
 
 .freq-page {
   max-width: var(--max-width);

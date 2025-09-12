@@ -44,7 +44,7 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
     loadAll,
   } = usePendingQueries(cat, pendingWith);
 
-  const tabTitle = `Pending at ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`;
+  const tabTitle = `Pending Queries - ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`;
 
   const tableData = useMemo(() => {
     const items = Array.isArray(data) ? data : [];
@@ -116,7 +116,7 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
       </div>
 
       <div style={{ margin: "8px 0", display: "flex", gap: 8, alignItems: "center" }}>
-        <h3 style={{ margin: 0 }}>{tabTitle}</h3>
+        <h3 style={{ margin: 0, color: "var(--text)" }}>{tabTitle}</h3>
 
         <button onClick={handleRefresh} style={{ marginLeft: 8 }} disabled={loading}>
           Refresh
@@ -125,10 +125,10 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
         <div style={{ marginLeft: 8 }}>
           {loading && <small>Loading first page…</small>}
           {loadingMore && <small>Loading more…</small>}
-          {!loading && !loadingMore && <small>Loaded: {Array.isArray(data) ? data.length : 0}</small>}
+          {!loading && !loadingMore && <small style={{color: "var(--text)"}}>Loaded: {Array.isArray(data) ? data.length : 0}</small>}
         </div>
 
-        {error && <small style={{ marginLeft: 8, color: "crimson" }}>Error: {error}</small>}
+        {error && <small style={{ marginLeft: 8, color: "var(--text)" }}>Error: {error}</small>}
       </div>
 
       <QueriesTable title={tabTitle} data={tableData} loading={loading} />
@@ -149,7 +149,7 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
             </small>
           </>
         ) : (
-          <small style={{ color: "#444" }}>
+          <small style={{ color: "var(--text)" }}>
             {(Array.isArray(data) ? data.length : 0)} items loaded — no more pages.
           </small>
         )}

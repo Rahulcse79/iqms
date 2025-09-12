@@ -1,55 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Space+Grotesk:wght@400;600&display=swap');
+
+:root {
+  --font-family: "Inter", "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 80px;
+  --footer-height: 60px;
+  --radius-lg: 16px;
+  --radius-sm: 8px;
+  --transition-fast: 0.18s;
+}
+
+/* Light theme tokens */
+/* ---------------- LIGHT THEME ---------------- */
+.theme-light {
+  /* Backgrounds */
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-accent: #f0f4f8;
+
+  /* Text */
+  --text: #1e293b;
+  --muted: #64748b;
+
+  /* Buttons */
+  --button-bg: #0ea5a4;
+  --button-hover: #08918f;
+
+  /* Brand/accents */
+  --primary: #0ea5a4;
+  --accent: #6366f1;
+
+  /* Status colors */
+  --red: #ef4444;             /* error / pending */
+  --red-bg: #fee2e2;
+  --red-hover: #fecaca;
+  --red-text: #991b1b;
+
+  --blue: #6366f1;            /* info / transferred */
+  --blue-bg: #e0e7ff;
+  --blue-hover: #c7d2fe;
+  --blue-text: #3730a3;
+
+  --green: #22c55e;           /* success / replied */
+  --green-bg: #dcfce7;
+  --green-hover: #bbf7d0;
+  --green-text: #166534;
+
+  /* Borders & shadows */
+  --border: rgba(15,23,42,0.08);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+
+  /* Glass/blurred states */
+  --glass: rgba(255,255,255,0.6);
+}
+
+.theme-dark {
+  /* Backgrounds */
+  --bg: #2a3c66;
+  --surface: #1e293b;
+  --surface-accent: #273548;
+
+  /* Text */
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+
+  /* Buttons */
+  --button-bg: #06b6d4;
+  --button-hover: #0ea5a4;
+
+  /* Brand/accents */
+  --primary: #06b6d4;
+  --accent: #8b5cf6;
+
+  /* Status colors */
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.15);
+  --red-hover: rgba(248,113,113,0.25);
+  --red-text: #fee2e2;
+
+  --blue: #a78bfa;
+  --blue-bg: rgba(167,139,250,0.15);
+  --blue-hover: rgba(167,139,250,0.25);
+  --blue-text: #ede9fe;
+
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,0.15);
+  --green-hover: rgba(74,222,128,0.25);
+  --green-text: #dcfce7;
+
+  /* Borders & shadows */
+  --border: rgba(255,255,255,0.06);
+  --shadow: 0 6px 20px rgba(0,0,0,0.6);
+
+  /* Glass/blurred states */
+  --glass: rgba(255,255,255,0.05);
+}
+
+
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-family);
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f4f7fa;
+  background: var(--bg);
+}
+
+/* Sidebar: keep it generic so your existing Sidebar component can use these tokens */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, var(--surface), rgba(0,0,0,0.02));
+  box-shadow: var(--shadow);
+  border-top-right-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+  padding: 18px;
+  transition: width 0.28s var(--transition-fast), background 0.25s;
+  overflow: hidden;
+}
+
+.dashboard-layout.sidebar-collapsed .sidebar {
+  width: var(--sidebar-collapsed-width);
+}
+
+.main-content {
+  flex-grow: 1;
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--footer-height);
+}
+
+.dashboard-layout.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
 }
 
 .topbar {
   position: sticky;
   top: 0;
   z-index: 1000;
-}
-
-.main-content {
-  flex-grow: 1;
-  /* This is the key change */
-  margin-left: 220px; /* Match this value to your sidebar's width */
-  transition: margin-left 0.3s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 50px;
-}
-
-/* Adjust margin when the sidebar is collapsed */
-.dashboard-layout.sidebar-collapsed .main-content {
-  margin-left: 80px; 
-}
-.dashboard-layout.sidebar-collapsed .footer{
-  left: 80px; 
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
 }
 
 .content {
   padding: 24px;
-  flex-grow: 1; /* Ensures the content area fills the space and pushes the footer down */
-}
-.dialpad{
-  z-index: 1000 !important;
+  flex-grow: 1;
 }
 
 .footer {
   position: fixed;
   bottom: 0;
-  left: 220px; /* Default sidebar width */
+  left: var(--sidebar-width);
   right: 0;
-  height: 60px;
+  height: var(--footer-height);
   padding: 12px 24px;
   text-align: center;
-  border-top: 1px solid #eee;
-  background: #fff;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
   z-index: 999;
-  transition: left 0.3s ease-in-out;
+  transition: left 0.3s ease-in-out, background 0.25s, color 0.25s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .dashboard-layout.sidebar-collapsed .footer {
-  left: 0px;
+  left: var(--sidebar-collapsed-width);
 }
+
+/* common UI tokens */
+.card {
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  border: 1px solid var(--border);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.card:hover { transform: translateY(-6px); }
+
+.btn {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:10px;
+  /* background: transparent; */
+  border:1px solid var(--border);
+  cursor:pointer;
+  font-weight:600;
+}
+
+/* theme toggle pill */
+.theme-toggle {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+}
+
+/* pager with curved prev/next */
+.pager { display:flex; gap:8px; align-items:center; }
+.pager .prev { border-radius: 12px 0 0 12px; padding:8px 12px; background:var(--surface); border:1px solid var(--border); }
+.pager .next { border-radius: 0 12px 12px 0; padding:8px 12px; background:var(--surface); border:1px solid var(--border); }
+
+.h1 { font-size: 1.25rem; font-weight:700; }
+.p-muted { color: var(--muted); }
+
+a { color:var(--primary); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+@media (max-width: 900px) {
+  .main-content { margin-left: var(--sidebar-collapsed-width); }
+  .sidebar { width: var(--sidebar-collapsed-width); }
+  .dashboard-layout:not(.sidebar-collapsed) .main-content { margin-left: var(--sidebar-collapsed-width); }
+  .footer { left: var(--sidebar-collapsed-width); }
+}
+

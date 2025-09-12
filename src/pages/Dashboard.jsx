@@ -8,8 +8,9 @@ import Loader from "../components/Loader";
 const styles = `
   .dashboard-section {
     padding: 2rem;
-    background-color: #f4f6f9;
-    font-family: sans-serif;
+    background-color: var(--bg);
+    font-family: var(--font-family, sans-serif);
+    color: var(--text);
   }
 
   .dashboard-grid {
@@ -19,24 +20,25 @@ const styles = `
   }
 
   .query-card {
-    background-color: #ffffff;
+    background-color: var(--surface);
     border-radius: 0.75rem;
     padding: 1.5rem;
-    color: #313131ff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e5e7eb;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
     border-top: 4px solid transparent;
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   }
 
   .query-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow);
   }
 
-  .query-card.pending { border-top-color: #f63b3bff; }
-  .query-card.transferred { border-top-color: #6366f1; }
-  .query-card.replied { border-top-color: #22c55e; }
+  /* Status border colors */
+  .query-card.pending { border-top-color: var(--red); }
+  .query-card.transferred { border-top-color: var(--blue); }
+  .query-card.replied { border-top-color: var(--green); }
 
   .card-header {
     font-size: 1.125rem;
@@ -44,9 +46,9 @@ const styles = `
     margin-bottom: 1.5rem;
   }
 
-  .pending .card-header { color: #f63b3bff; }
-  .transferred .card-header { color: #6366f1; }
-  .replied .card-header { color: #22c55e; }
+  .pending .card-header { color: var(--red); }
+  .transferred .card-header { color: var(--blue); }
+  .replied .card-header { color: var(--green); }
 
   .card-body {
     display: flex;
@@ -62,7 +64,7 @@ const styles = `
   }
 
   .card-label {
-    color: #4b5563;
+    color: var(--muted);
   }
 
   .card-value-link {
@@ -75,13 +77,22 @@ const styles = `
     cursor: pointer;
   }
 
-  .pending .card-value-link { background-color: #fedbdbff; color: #af1e1eff; }
-  .transferred .card-value-link { background-color: #e0e7ff; color: #3730a3; }
-  .replied .card-value-link { background-color: #dcfce7; color: #166534; }
+  .pending .card-value-link {
+    background-color: var(--red-bg);
+    color: var(--red-text);
+  }
+  .transferred .card-value-link {
+    background-color: var(--blue-bg);
+    color: var(--blue-text);
+  }
+  .replied .card-value-link {
+    background-color: var(--green-bg);
+    color: var(--green-text);
+  }
 
-  .pending .card-value-link:hover { background-color: #febfbfff; }
-  .transferred .card-value-link:hover { background-color: #c7d2fe; }
-  .replied .card-value-link:hover { background-color: #bbf7d0; }
+  .pending .card-value-link:hover { background-color: var(--red-hover); }
+  .transferred .card-value-link:hover { background-color: var(--blue-hover); }
+  .replied .card-value-link:hover { background-color: var(--green-hover); }
 `;
 
 // --- Card Component ---

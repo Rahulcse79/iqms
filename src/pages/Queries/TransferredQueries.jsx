@@ -1,12 +1,15 @@
 import React, { useMemo, useState } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import useTransferredQueries from "../../hooks/useTransferredQueries";
+import "../../layouts/DashboardLayout.css"; // ensure theme variables are available
 
 /**
  * TransferredQueries
  *
  * - Uses useTransferredQueries hook (offset-based pagination).
  * - Maps API fields to the QueriesTable shape.
+ *
+ * Styling: no hardcoded colors — uses theme CSS variables (e.g. --text, --muted, --red, --blue, --green).
  */
 
 const roleDigitForTab = {
@@ -117,14 +120,16 @@ const TransferredQueries = ({
       </div>
 
       <div
+        className="page-actions"
         style={{
           margin: "8px 0",
           display: "flex",
-          gap: 8,
+          gap: "8px",
           alignItems: "center",
+          flexWrap: "wrap",
         }}
       >
-        <h3 style={{ margin: 0 }}>{tabTitle}</h3>
+        <h3 style={{ margin: 0, color: "var(--text)" }}>{tabTitle}</h3>
 
         <button
           onClick={handleRefresh}
@@ -134,7 +139,10 @@ const TransferredQueries = ({
           Refresh
         </button>
 
-        <div style={{ marginLeft: 8 }}>
+        <div
+          className="meta-info"
+          style={{ marginLeft: 8, color: "var(--muted)", fontSize: "0.9rem" }}
+        >
           {loading && <small>Loading first page…</small>}
           {loadingMore && <small>Loading more…</small>}
           {!loading && !loadingMore && (
@@ -143,7 +151,13 @@ const TransferredQueries = ({
         </div>
 
         {error && (
-          <small style={{ marginLeft: 8, color: "crimson" }}>
+          <small
+            style={{
+              marginLeft: 8,
+              color: "var(--red, #ef4444)",
+              fontSize: "0.9rem",
+            }}
+          >
             Error: {error}
           </small>
         )}
@@ -152,14 +166,20 @@ const TransferredQueries = ({
       <QueriesTable title={tabTitle} data={tableData} loading={loading} />
 
       <div
-        style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}
+        className="page-actions"
+        style={{
+          marginTop: 12,
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
       >
         {hasMore ? (
           <>
             <button
               onClick={handleFetchNext}
               disabled={loadingMore}
-              className="show-more-btn"
             >
               {loadingMore ? "Loading more…" : "Show more"}
             </button>
@@ -167,18 +187,17 @@ const TransferredQueries = ({
             <button
               onClick={handleLoadAll}
               disabled={loading || loadingMore}
-              className="load-all-btn"
             >
               Load all
             </button>
 
-            <small style={{ marginLeft: 8 }}>
+            <small style={{ marginLeft: 8, color: "var(--muted)" }}>
               {Array.isArray(data) ? data.length : 0} items loaded — more
               available.
             </small>
           </>
         ) : (
-          <small style={{ color: "#444" }}>
+          <small style={{ color: "var(--muted)" }}>
             {Array.isArray(data) ? data.length : 0} items loaded — no more
             pages.
           </small>

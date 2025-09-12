@@ -6,23 +6,7 @@
    - Drop this file next to FAQPage.jsx and import it: import "./FAQ.css";
 */
 
-:root{
-  --page-bg: #f4f7fb;
-  --panel-bg: #ffffff;
-  --text: #0b1220;
-  --muted: #6b7280;
-  --accent: #0369a1;       /* primary brand */
-  --accent-600: #045c8a;
-  --accent-100: #dbeffd;
-  --border: #e6e9ef;
-  --radius: 12px;
-  --shadow-sm: 0 6px 18px rgba(12,20,40,0.06);
-  --focus-ring: 3px solid rgba(3,105,161,0.14);
-  --transition: 180ms cubic-bezier(.2,.9,.3,1);
-  --max-width: 980px;
-  --gap: 18px;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
-}
+
 
 /* Base */
 * { box-sizing: border-box; }
@@ -113,7 +97,7 @@ body { margin: 0; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Robo
   padding:8px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: #fff;
+  /* background: #fff; */
   color: var(--text);
   cursor: pointer;
   transition: background var(--transition), transform var(--transition), box-shadow var(--transition);

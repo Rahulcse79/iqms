@@ -6,7 +6,6 @@ import { IconContext } from "react-icons";
 import SidebarLogo from '../assets/Images/sidebar-logo.png';
 
 const SidebarNav = styled.nav`
-  background-color: #ffffff;
   width: ${({ isCollapsed }) => (isCollapsed ? "80px" : "220px")};
   height: 100vh;
   display: flex;
@@ -14,11 +13,15 @@ const SidebarNav = styled.nav`
   position: fixed;
   top: 0;
   left: 0;
-  transition: width 350ms ease-in-out;
+  transition: width 350ms ease-in-out, background 0.25s ease;
   z-index: 10;
   overflow-x: hidden;
-  border-right: 1px solid #e5e7eb;
+  margin-top: 5px;
+  background: var(--surface);   /* <-- add this */
+  border-top-right-radius: 16px;   /* match CSS */
+  border-bottom-right-radius: 16px;
 `;
+
 
 const SidebarHeader = styled.div`
   display: flex;

@@ -1,12 +1,10 @@
-// src/layouts/DashboardLayout.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import Footer from "../components/Footer";
 import "./DashboardLayout.css";
-import Dialpad from "../components/Dialpad/Dialpad";
-import { useEffect } from "react";
+import useTheme from "../hooks/useTheme";
 import { useDispatch } from "react-redux";
 import { refreshRepliedQueries } from "../actions/allAction";
 
@@ -14,6 +12,9 @@ const DashboardLayout = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
   const dispatch = useDispatch();
+
+  // theme hook
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -24,22 +25,22 @@ const DashboardLayout = () => {
   }, [dispatch]);
 
   return (
-    <div
-      className={`dashboard-layout ${
-        isSidebarCollapsed ? "sidebar-collapsed" : ""
-      }`}
-    >
+    <div className={`dashboard-layout ${isSidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       <Sidebar isCollapsed={isSidebarCollapsed} />
+
       <div className="main-content">
-        <Topbar className="topbar" toggleSidebar={toggleSidebar} />
-        {/* <Dialpad className="dialpad" /> */}
+        {/* Pass theme & toggleTheme to Topbar if you want the toggle displayed there */}
+        <Topbar className="topbar" toggleSidebar={toggleSidebar} theme={theme} toggleTheme={toggleTheme} />
+
         <main className="content">
           <Outlet />
         </main>
-        <Footer className="footer" />
+
+        {/* <Footer className="footer" /> */}
       </div>
     </div>
   );
 };
 
 export default DashboardLayout;
+

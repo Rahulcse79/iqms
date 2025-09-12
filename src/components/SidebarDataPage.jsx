@@ -89,7 +89,7 @@ const SidebarDataPage = () => {
     {
       title: "Logout",
       icon: <RiLogoutBoxRLine style={{ color: "#009688" }} />,
-      onClick: handleLogout, 
+      onClick: handleLogout,
     },
   ];
 

@@ -1,14 +1,15 @@
 .tab-buttons {
   display: flex;
   gap: 8px;
-  border-bottom: 2px solid #ddd;
+  border-bottom: 2px solid var(--border);
   padding-bottom: 6px;
+  color: var(--primary);
   margin-bottom: 20px;
 }
 
 .tab-buttons button {
-  background: #f8f8f8;
-  border: 1px solid #ddd;
+  background: var(--surface-accent);
+  border: 1px solid var(--border);
   border-bottom: none;
   border-radius: 6px 6px 0 0;
   padding: 10px 16px;
@@ -16,17 +17,24 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #555;
+  color: var(--muted);
 }
 
 .tab-buttons button:hover {
-  background: #eaeaea;
+  background: var(--surface);
+  color: var(--text);
 }
 
 .tab-buttons button.active {
-  background: #ffffff;
-  color: #007bff;
-  border: 1px solid #ddd;
-  border-bottom: 2px solid #ffffff;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--surface);
   font-weight: 600;
+}
+
+.main-content small{
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 16px;
 }

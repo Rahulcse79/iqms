@@ -21,16 +21,6 @@
 
 
 
-:root {
-  --bg: #f7f8fa;
-  --border: #e5e7eb;
-  --text: #1f2937;
-  --muted: #6b7280;
-  --primary: #0d6efd;
-  --primary-dark: #0b5ed7;
-  --card-bg: #ffffff;
-  --shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
-}
 
 html, body, #root {
   height: 100%;
