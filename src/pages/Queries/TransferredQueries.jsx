@@ -67,6 +67,7 @@ const TransferredQueries = ({
         ? String(it.imprno)
         : `${it.sno}-${idx}`,
       date: formatIso(it.submit_date ?? it.last_action_dt ?? it.action_dt),
+      cat: it?.cat !== undefined && it?.cat !== null ? it.cat : null,
       raw: it,
     }));
   }, [data]);
