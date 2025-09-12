@@ -7,6 +7,7 @@ import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRepliedQueries } from "../actions/repliedQueryAction";
 import { fetchPendingQueries } from "../actions/pendingQueryAction";
+import { fetchTransferredQueries } from "../actions/transferredQueryAction";
 import Loader from "../components/Loader";
 import { UserRole } from "../constants/Enum";
 
@@ -70,9 +71,12 @@ const Login = () => {
           ...pendingTabs.map((pw) =>
             dispatch(fetchPendingQueries({ cat: 1, pendingWith: pw }))
           ),
+          ...pendingTabs.map((pw) =>
+            dispatch(fetchTransferredQueries({ cat: 1, pendingWith: pw }))
+          ),
         ];
         await Promise.all(tasks);
-        
+
         setInitializing(false);
         navigate("/");
       } else {

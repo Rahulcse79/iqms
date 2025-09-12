@@ -1,15 +1,15 @@
+// src/pages/TransferredQueries/TransferredQueries.jsx
 import React, { useMemo, useState } from "react";
 import QueriesTable from "../../components/QueriesTable";
-import useTransferredQueries from "../../hooks/useTransferredQueries";
-import "../../layouts/DashboardLayout.css"; // ensure theme variables are available
+import { useSelector, useDispatch } from "react-redux";
+import "../../layouts/DashboardLayout.css";
+import { refreshTransferredQueries } from "../../actions/transferredQueryAction";
 
 /**
- * TransferredQueries
+ * TransferredQueries (reads cache)
  *
- * - Uses useTransferredQueries hook (offset-based pagination).
- * - Maps API fields to the QueriesTable shape.
- *
- * Styling: no hardcoded colors — uses theme CSS variables (e.g. --text, --muted, --red, --blue, --green).
+ * - Data comes from Redux transferred_queries.byKey[pendingWith]
+ * - No Show more / Load all in UI: Refresh button triggers full fetch (refreshTransferredQueries)
  */
 
 const roleDigitForTab = {
@@ -33,27 +33,25 @@ const TransferredQueries = ({
   personnelType = "A",
 }) => {
   const [activeTab, setActiveTab] = useState("creator");
+  const dispatch = useDispatch();
 
   const pendingWith = `${deptPrefix}${roleDigitForTab[activeTab]}${personnelType}`;
 
-  const {
-    data,
-    loading,
-    loadingMore,
-    error,
-    hasMore,
-    fetchNextPage,
-    refresh,
-    loadAll,
-  } = useTransferredQueries(cat, pendingWith);
+  const cachedEntry =
+    useSelector(
+      (state) => state.transferred_queries.byKey[pendingWith] || {}
+    ) || {};
 
-  const tabTitle = `Transferred Queries — ${
+  const items = Array.isArray(cachedEntry.items) ? cachedEntry.items : [];
+  const loading = Boolean(cachedEntry.loading);
+  const error = cachedEntry.error || null;
+
+  const tabTitle = `Transferred Queries - ${
     activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
   }`;
 
   const tableData = useMemo(() => {
-    const items = Array.isArray(data) ? data : [];
-    return items.map((it, idx) => ({
+    return (items || []).map((it, idx) => ({
       id: it.doc_id ?? `${it.sno ?? "no-sno"}-${idx}`,
       serviceNo: it.sno ?? it.pers ?? "",
       type:
@@ -66,34 +64,17 @@ const TransferredQueries = ({
         : it.imprno
         ? String(it.imprno)
         : `${it.sno}-${idx}`,
-      date: formatIso(it.submit_date ?? it.last_action_dt ?? it.action_dt),
-      cat: it?.cat !== undefined && it?.cat !== null ? it.cat : null,
+      date: formatIso(it.submit_date ?? it.action_dt ?? it.last_action_dt),
+      cat: it?.cat ?? null,
       raw: it,
     }));
-  }, [data]);
-
-  // Wrap handlers like IncomingQueries
-  const handleLoadAll = async () => {
-    try {
-      await loadAll({ maxIterations: 2000 });
-    } catch (e) {
-      console.error("loadAll failed", e);
-    }
-  };
+  }, [items]);
 
   const handleRefresh = async () => {
     try {
-      await refresh();
-    } catch (e) {
-      console.error("refresh failed", e);
-    }
-  };
-
-  const handleFetchNext = async () => {
-    try {
-      await fetchNextPage();
-    } catch (e) {
-      console.error("fetchNextPage failed", e);
+      await dispatch(refreshTransferredQueries({ cat, pendingWith }));
+    } catch (err) {
+      console.error("Refresh transferred failed", err);
     }
   };
 
@@ -103,62 +84,57 @@ const TransferredQueries = ({
         <button
           className={activeTab === "creator" ? "active" : ""}
           onClick={() => setActiveTab("creator")}
+          disabled={loading}
         >
-          Creator
+          Transferred at Creator
         </button>
+
         <button
           className={activeTab === "verifier" ? "active" : ""}
           onClick={() => setActiveTab("verifier")}
+          disabled={loading}
         >
-          Verifier
+          Transferred at Verifier
         </button>
+
         <button
           className={activeTab === "approver" ? "active" : ""}
           onClick={() => setActiveTab("approver")}
+          disabled={loading}
         >
-          Approver
+          Transferred at Approver
         </button>
       </div>
 
       <div
-        className="page-actions"
         style={{
           margin: "8px 0",
           display: "flex",
-          gap: "8px",
+          gap: 8,
           alignItems: "center",
-          flexWrap: "wrap",
         }}
       >
         <h3 style={{ margin: 0, color: "var(--text)" }}>{tabTitle}</h3>
 
         <button
           onClick={handleRefresh}
-          style={{ marginLeft: 8 }}
+          style={{ marginLeft: 8, background: "var(--button-bg)" }}
           disabled={loading}
         >
-          Refresh
+          {loading ? "Refreshing…" : "Refresh"}
         </button>
 
-        <div
-          className="meta-info"
-          style={{ marginLeft: 8, color: "var(--muted)", fontSize: "0.9rem" }}
-        >
-          {loading && <small>Loading first page…</small>}
-          {loadingMore && <small>Loading more…</small>}
-          {!loading && !loadingMore && (
-            <small>Loaded: {Array.isArray(data) ? data.length : 0}</small>
+        <div style={{ marginLeft: 8 }}>
+          {loading && <small>Loading first page / refreshing…</small>}
+          {!loading && (
+            <small style={{ color: "var(--text)" }}>
+              Loaded: {items.length}
+            </small>
           )}
         </div>
 
         {error && (
-          <small
-            style={{
-              marginLeft: 8,
-              color: "var(--red, #ef4444)",
-              fontSize: "0.9rem",
-            }}
-          >
+          <small style={{ marginLeft: 8, color: "crimson" }}>
             Error: {error}
           </small>
         )}
@@ -166,43 +142,11 @@ const TransferredQueries = ({
 
       <QueriesTable title={tabTitle} data={tableData} loading={loading} />
 
-      <div
-        className="page-actions"
-        style={{
-          marginTop: 12,
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        {hasMore ? (
-          <>
-            <button
-              onClick={handleFetchNext}
-              disabled={loadingMore}
-            >
-              {loadingMore ? "Loading more…" : "Show more"}
-            </button>
-
-            <button
-              onClick={handleLoadAll}
-              disabled={loading || loadingMore}
-            >
-              Load all
-            </button>
-
-            <small style={{ marginLeft: 8, color: "var(--muted)" }}>
-              {Array.isArray(data) ? data.length : 0} items loaded — more
-              available.
-            </small>
-          </>
-        ) : (
-          <small style={{ color: "var(--muted)" }}>
-            {Array.isArray(data) ? data.length : 0} items loaded — no more
-            pages.
-          </small>
-        )}
+      {/* No show-more UI — refresh triggers full fetch */}
+      <div style={{ marginTop: 12 }}>
+        <small style={{ color: "var(--text)" }}>
+          {items.length} items cached.
+        </small>
       </div>
     </>
   );

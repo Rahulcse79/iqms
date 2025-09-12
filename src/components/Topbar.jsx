@@ -8,6 +8,7 @@ import { AuthContext } from "../context/AuthContext";
 import useTheme from "../hooks/useTheme";
 import "./Topbar.css";
 import { refreshPendingQueries } from "../actions/pendingQueryAction";
+import { refreshTransferredQueries } from "../actions/transferredQueryAction";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -62,8 +63,15 @@ const Topbar = ({ toggleSidebar }) => {
         return dispatch(refreshPendingQueries({ cat: 1, pendingWith }));
       });
 
+      const transferredPromises = Object.values(roleDigitForTab).map(
+        (digit) => {
+          const pendingWith = `${deptPrefix}${digit}${personnelType}`;
+          return dispatch(refreshTransferredQueries({ cat: 1, pendingWith }));
+        }
+      );
+
       // wait for all to finish (replied + pending)
-      await Promise.all([repliedTask, ...pendingPromises]);
+      await Promise.all([repliedTask, ...pendingPromises, ...transferredPromises]);
     } catch (err) {
       console.error("Manual refresh failed", err);
     } finally {

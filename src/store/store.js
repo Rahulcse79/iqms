@@ -5,6 +5,7 @@ import {personalDataReducer, ProfileViewReducer, abcCodesReducer} from "../reduc
 import {apwReducer, cpwReducer, opwReducer} from "../reducers/MISReducers";
 import frqQryReducer, { faqReducer, queryReducer } from "../reducers/queryReducer";
 import pendingQueryReducer from "../reducers/pendingQueryReducer";
+import transferredQueryReducer from "../reducers/transferredQueryReducer";
 
 const initialState = {
   login_user: {
@@ -41,7 +42,8 @@ const reducer = combineReducers({
   frqQryReducer: frqQryReducer,
   
   pending_queries: pendingQueryReducer,
-  
+  transferred_queries: transferredQueryReducer,
+
 });
 
 const middleware = [thunk];
