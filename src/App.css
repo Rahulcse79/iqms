@@ -1,7 +1,7 @@
 /* Apply to any scrollable element */
 ::-webkit-scrollbar {
-  width: .1px;              /* Vertical scrollbar width */
-  height: .1px;             /* Horizontal scrollbar height */
+  width: 10px;              /* Vertical scrollbar width */
+  height: 10px;             /* Horizontal scrollbar height */
 }
 
 ::-webkit-scrollbar-track {

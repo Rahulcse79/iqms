@@ -192,9 +192,9 @@ const Topbar = ({ toggleSidebar }) => {
             )}
 
             <div className="user-meta">
-              <span className="badge badge-level">{level}</span>
+              <span className="badge-topbar badge-level">{level}</span>
               <span className="dot">•</span>
-              <span className="badge badge-dept">{department}</span>
+              <span className="badge-topbar badge-dept">{department}</span>
             </div>
           </div>
         </div>
