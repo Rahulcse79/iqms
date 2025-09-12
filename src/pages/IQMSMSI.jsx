@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import "./ConsolidatedQueries.css";
+import "./ConsolidatedQueries.css"; 
 
 const sampleSummary = [
     { key: "AFG", name: "AFG", received: 1391, replied: 1353, pending: 38 },
