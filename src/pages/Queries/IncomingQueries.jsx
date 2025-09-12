@@ -58,6 +58,7 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
         "",
       queryId: it.doc_id ? String(it.doc_id) : it.imprno ? String(it.imprno) : `${it.sno}-${idx}`,
       date: formatIso(it.submit_date ?? it.action_dt ?? it.last_action_dt),
+      cat: it?.cat !== undefined && it?.cat !== null ? it.cat : null,
       raw: it,
     }));
   }, [data]);
