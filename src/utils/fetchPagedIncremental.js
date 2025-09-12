@@ -14,25 +14,33 @@ export async function fetchPagedIncremental(baseUrl, { signal, onPage } = {}) {
   while (hasMore) {
     try {
       // Request the page (don't send hardcoded limit)
-      const { data } = await axios.get(`${baseUrl}?offset=${offset}`, { signal });
+      const { data } = await axios.get(`${baseUrl}?offset=${offset}`, {
+        signal,
+      });
 
       const items = data?.items || [];
       allItems = [...allItems, ...items];
 
-      if (onPage) onPage(items, allItems);
+      if (typeof onPage === "function") {
+        try {
+          onPage(items, allItems);
+        } catch (cbErr) {
+          console.warn("onPage callback error", cbErr);
+        }
+      }
 
       // Server-driven paging
       hasMore = Boolean(data?.hasMore);
 
       // Use server-provided limit/offset to advance
-      const pageLimit = data?.limit ?? items.length ?? 0;
+      const pageLimit = Number.isFinite(data?.limit) ? data.limit : items.length || 0;
       offset += pageLimit;
 
-      // Safety: if server forgets to return limit, break to avoid infinite loop
       if (!pageLimit) {
-        console.warn("No limit returned by server, stopping paging.");
+        console.warn("No page limit returned by server; stopping incremental fetch to avoid infinite loop.");
         break;
       }
+      
     } catch (err) {
       if (axios.isCancel(err)) throw err;
       console.error("Paged fetch failed at offset", offset, err.message);

@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { AuthContext } from "../context/AuthContext";
 import useTheme from "../hooks/useTheme";
 import "./Topbar.css";
+import { refreshPendingQueries } from "../actions/pendingQueryAction";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -26,7 +27,9 @@ const Topbar = ({ toggleSidebar }) => {
   const [searchType, setSearchType] = useState("Service");
 
   const personalData = auth?.user?.personalData || null;
-  const svcPart = personalData ? `${personalData.sno}-${personalData.cs}` : null;
+  const svcPart = personalData
+    ? `${personalData.sno}-${personalData.cs}`
+    : null;
   const rankNamePart = personalData
     ? `${personalData.rankcd} ${personalData.p_name} ${personalData.trdcd}`
     : null;
@@ -46,7 +49,21 @@ const Topbar = ({ toggleSidebar }) => {
     navigate("/");
     setRefreshing(true);
     try {
-      await dispatch(fetchRepliedQueries());
+      // Use the "full refresh" action for replied queries (not the first-page-only fetch)
+      const repliedTask = dispatch(fetchRepliedQueries());
+
+      const deptPrefix = "U";
+      const personnelType = "A";
+      const roleDigitForTab = { creator: "1", approver: "2", verifier: "3" };
+
+      // prepare all pending refresh promises in parallel
+      const pendingPromises = Object.values(roleDigitForTab).map((digit) => {
+        const pendingWith = `${deptPrefix}${digit}${personnelType}`;
+        return dispatch(refreshPendingQueries({ cat: 1, pendingWith }));
+      });
+
+      // wait for all to finish (replied + pending)
+      await Promise.all([repliedTask, ...pendingPromises]);
     } catch (err) {
       console.error("Manual refresh failed", err);
     } finally {

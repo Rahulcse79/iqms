@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRepliedQueries } from "../actions/repliedQueryAction";
+import { fetchPendingQueries } from "../actions/pendingQueryAction";
 import Loader from "../components/Loader";
 import { UserRole } from "../constants/Enum";
 
@@ -56,7 +57,22 @@ const Login = () => {
         response.data.personalData = personalData;
 
         login(response);
+
         await dispatch(fetchRepliedQueries());
+        const deptPrefix = "U";
+        const personnelType = "A";
+        const roleDigitForTab = { creator: "1", approver: "2", verifier: "3" };
+        const pendingTabs = Object.values(roleDigitForTab).map(
+          (digit) => `${deptPrefix}${digit}${personnelType}`
+        );
+        const tasks = [
+          dispatch(fetchRepliedQueries()),
+          ...pendingTabs.map((pw) =>
+            dispatch(fetchPendingQueries({ cat: 1, pendingWith: pw }))
+          ),
+        ];
+        await Promise.all(tasks);
+        
         setInitializing(false);
         navigate("/");
       } else {
@@ -152,7 +168,7 @@ async function fakeLoginAPI(username, password) {
                 "ASP-VII",
                 "ASP-VIII",
               ],
-              categoryQuery: ["AIRMEN","CIVILIAN", "OFFICER"],
+              categoryQuery: ["AIRMEN", "CIVILIAN", "OFFICER"],
             },
             sipPhoneButton: {
               mute: true,

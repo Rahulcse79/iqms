@@ -3,6 +3,7 @@ import { thunk } from "redux-thunk";
 import { userReducer, repliedQueryReducer, officerBasicPayReasonReducer, officerRankHistoryReducer, searchQueryReducer, officerPersmastReducer, searchQueryByIdReducer, airmanBasicPayReasonReducer, searchQueryIdReducer, airmanRankHistoryReducer, airmanPersmastReducer } from "../reducers/reducers";
 import {personalDataReducer, ProfileViewReducer, abcCodesReducer} from "../reducers/ProfileReducers";
 import frqQryReducer, { faqReducer, queryReducer } from "../reducers/queryReducer";
+import pendingQueryReducer from "../reducers/pendingQueryReducer";
 
 const initialState = {
   login_user: {
@@ -35,7 +36,9 @@ const reducer = combineReducers({
 
   faqReducer: faqReducer,
   frqQryReducer: frqQryReducer,
-
+  
+  pending_queries: pendingQueryReducer,
+  
 });
 
 const middleware = [thunk];
