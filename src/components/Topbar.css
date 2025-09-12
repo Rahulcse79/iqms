@@ -7,11 +7,8 @@
   width: 100%;
   background-color: var(--surface);
   color: var(--text);
-  min-height: 90px;
+  height: 90px;
   padding: 12px 20px;
-  margin-top: 5px;
-  border-radius: 5px;
-  margin-left: 5px;
   border: 1px solid var(--border);
   transition: background 0.25s ease, color 0.25s ease;
 }
@@ -46,25 +43,22 @@
 }
 
 /* ---------- Controls ---------- */
-select,
-input,
-button {
+.topbar select,
+.topbar input,
+ button {
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid var(--border);
   outline: none;
-  background: var(--surface);
-  color: var(--text);
   transition: background 0.25s ease, color 0.25s ease, border 0.25s ease;
 }
 
-input {
+.topbar input {
   width: 220px;
 }
-
 button {
   background-color: var(--primary);
-  color: #fff;
+  color: var(--text);
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.12s ease,
     background 0.25s ease, color 0.25s ease;
@@ -73,7 +67,7 @@ button:hover {
   background-color: var(--accent);
   transform: translateY(-1px);
 }
-button:active {
+ button:active {
   transform: translateY(0);
   box-shadow: none;
 }
@@ -90,19 +84,14 @@ button:active {
 .user-card {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 6px;
   padding: 10px 14px;
   max-width: 520px;
-
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: var(--shadow);
-
   backdrop-filter: saturate(140%) blur(6px);
   -webkit-backdrop-filter: saturate(140%) blur(6px);
-
   color: var(--text);
   transition: background 0.25s ease, color 0.25s ease;
 }
@@ -141,6 +130,7 @@ button:active {
 .user-meta {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   color: var(--text);
   font-size: 12px;

@@ -7,6 +7,61 @@ import "./QueriesTable.css";
 import { getUserRoleLabel } from "../constants/Enum";
 
 const QueriesTable = ({ title, data = [] }) => {
+  // Put this near your component (or in a helpers file)
+  const customStyles = {
+    table: {
+      style: {
+        backgroundColor: "var(--surface)",
+        borderRadius: "12px",
+        overflow: "hidden",
+      },
+    },
+    header: {
+      style: {
+        minHeight: "56px",
+        paddingLeft: "16px",
+        paddingRight: "8px",
+      },
+    },
+    headRow: {
+      style: {
+        backgroundColor: "var(--surface-accent)",
+        borderBottom: "1px solid var(--border)",
+        minHeight: "48px",
+      },
+    },
+    headCells: {
+      style: {
+        color: "var(--text)",
+        fontSize: "14px",
+        fontWeight: "600",
+        paddingLeft: "12px",
+        paddingRight: "12px",
+      },
+    },
+    rows: {
+      style: {
+        backgroundColor: "var(--surface)",
+        minHeight: "52px", // overrides row height
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: "12px",
+        paddingRight: "12px",
+        color: "var(--text)",
+        fontSize: "14px",
+      },
+    },
+    pagination: {
+      style: {
+        padding: "8px",
+        color: "var(--text)",
+        backgroundColor: "transparent",
+      },
+    },
+  };
+
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
@@ -17,20 +72,40 @@ const QueriesTable = ({ title, data = [] }) => {
       type: "Service",
       q: row.serviceNo,
     });
-    navigate(`/view/query/${encodeURIComponent(row.queryId)}?${queryParams.toString()}`, { state: { row } });
+    navigate(
+      `/view/query/${encodeURIComponent(
+        row.queryId
+      )}?${queryParams.toString()}`,
+      { state: { row } }
+    );
   };
 
   const columns = [
-    { name: "S.No", selector: (row, index) => index + 1, width: "80px", sortable: true },
-    { name: "Service No (Pers)", selector: (row) => row.serviceNo || "", sortable: true },
+    {
+      name: "S.No",
+      selector: (row, index) => index + 1,
+      width: "80px",
+      sortable: true,
+    },
+    {
+      name: "Service No (Pers)",
+      selector: (row) => row.serviceNo || "",
+      sortable: true,
+    },
     { name: "Query Type", selector: (row) => row.type || "", sortable: true },
     { name: "Query ID", selector: (row) => row.queryId || "", sortable: true },
-    { name: "Query Received (AFCAAD Date)", selector: (row) => row.date || "", sortable: true },
+    {
+      name: "Query Received (AFCAAD Date)",
+      selector: (row) => row.date || "",
+      sortable: true,
+    },
     {
       name: "Action",
       cell: (row) => (
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="action-btn" onClick={() => handleView(row)}>View</button>
+          <button className="action-btn" onClick={() => handleView(row)}>
+            View
+          </button>
         </div>
       ),
       ignoreRowClick: true,
@@ -44,12 +119,17 @@ const QueriesTable = ({ title, data = [] }) => {
     const queryId = item.queryId?.toString().toLowerCase() || "";
     const type = item.type?.toLowerCase() || "";
     const term = search.toLowerCase();
-    return serviceNo.includes(term) || queryId.includes(term) || type.includes(term);
+    return (
+      serviceNo.includes(term) || queryId.includes(term) || type.includes(term)
+    );
   });
 
   const CopyAction = () => {
     const text = filteredData
-      .map((row, i) => `${i + 1}\t${row.serviceNo}\t${row.type}\t${row.queryId}\t${row.date}`)
+      .map(
+        (row, i) =>
+          `${i + 1}\t${row.serviceNo}\t${row.type}\t${row.queryId}\t${row.date}`
+      )
       .join("\n");
     navigator.clipboard.writeText(text);
     alert("Copied to clipboard!");
@@ -57,7 +137,13 @@ const QueriesTable = ({ title, data = [] }) => {
 
   const CSVAction = () => {
     const header = ["S.No", "Service No", "Query Type", "Query ID", "Date"];
-    const rows = filteredData.map((row, i) => [i + 1, row.serviceNo, row.type, row.queryId, row.date]);
+    const rows = filteredData.map((row, i) => [
+      i + 1,
+      row.serviceNo,
+      row.type,
+      row.queryId,
+      row.date,
+    ]);
     const csv = [header, ...rows].map((e) => e.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -76,7 +162,13 @@ const QueriesTable = ({ title, data = [] }) => {
 
     filteredData.forEach((row, i) => {
       const y = 50 + i * 10;
-      doc.text(`${i + 1}. ${row.serviceNo} | ${row.type} | ${row.queryId} | ${row.date}`, 20, y);
+      doc.text(
+        `${i + 1}. ${row.serviceNo} | ${row.type} | ${row.queryId} | ${
+          row.date
+        }`,
+        20,
+        y
+      );
     });
 
     doc.save(`${title}.pdf`);
@@ -84,7 +176,12 @@ const QueriesTable = ({ title, data = [] }) => {
 
   const PrintAction = () => {
     const content = filteredData
-      .map((row, i) => `${i + 1} | ${row.serviceNo} | ${row.type} | ${row.queryId} | ${row.date}`)
+      .map(
+        (row, i) =>
+          `${i + 1} | ${row.serviceNo} | ${row.type} | ${row.queryId} | ${
+            row.date
+          }`
+      )
       .join("\n");
     const printWindow = window.open("", "", "width=800,height=600");
     printWindow.document.write("<pre>" + content + "</pre>");
@@ -100,10 +197,18 @@ const QueriesTable = ({ title, data = [] }) => {
 
       <div className="queries-toolbar">
         <div className="export-buttons">
-          <button onClick={CopyAction} className="btn export-btn">Copy</button>
-          <button onClick={CSVAction} className="btn export-btn">CSV</button>
-          <button onClick={PrintAction} className="btn export-btn">Print</button>
-          <button onClick={PDFAction} className="btn export-btn">PDF</button>
+          <button onClick={CopyAction} className="btn export-btn">
+            Copy
+          </button>
+          <button onClick={CSVAction} className="btn export-btn">
+            CSV
+          </button>
+          <button onClick={PrintAction} className="btn export-btn">
+            Print
+          </button>
+          <button onClick={PDFAction} className="btn export-btn">
+            PDF
+          </button>
         </div>
 
         <div className="search-box">
@@ -122,14 +227,9 @@ const QueriesTable = ({ title, data = [] }) => {
         data={filteredData}
         pagination
         highlightOnHover
-        striped
         responsive
-        customStyles={{
-          headCells: {
-            style: { backgroundColor: "#f4f6f8", fontWeight: "bold", fontSize: "14px", color: "#333" }
-          },
-          rows: { style: { fontSize: "14px" } }
-        }}
+        customStyles={customStyles}
+        className="themed-data-table"
       />
     </div>
   );

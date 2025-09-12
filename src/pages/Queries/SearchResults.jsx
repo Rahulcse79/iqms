@@ -217,7 +217,7 @@ export default function SearchResults() {
 
   return (
     <div className="search-container">
-      <div className="search-header">
+      <div  style={{padding :"10px"}} className="search-header">
         <h2>
           Search Results for {type} Number - {queryValue}
         </h2>

@@ -16,10 +16,8 @@ const SidebarNav = styled.nav`
   transition: width 350ms ease-in-out, background 0.25s ease;
   z-index: 10;
   overflow-x: hidden;
-  margin-top: 5px;
   background: var(--surface);   /* <-- add this */
-  border-top-right-radius: 16px;   /* match CSS */
-  border-bottom-right-radius: 16px;
+
 `;
 
 
@@ -29,6 +27,7 @@ const SidebarHeader = styled.div`
   justify-content: center;
   padding: 0 16px;
   height: 90px;
+  color: var(--text);
   border-bottom: 1px solid #e5e7eb; /* Light theme border */
   white-space: nowrap;
 `;
@@ -43,7 +42,7 @@ const HeaderTitle = styled.span`
   margin-left: 12px;
   font-weight: bold;
   font-size: 22px;
-  color: #1f2937;
+  color: var(--text);
 `;
 
 const SidebarWrap = styled.div`

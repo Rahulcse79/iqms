@@ -63,7 +63,7 @@ const SearchQuery = () => {
 
       {activeTab === "serviceNumber" && (
         <div className="tab-content">
-          <h3>Search by Service Number</h3>
+          <h3 style={{color:"var(--text)"}}>Search by Service Number</h3>
           <form className="search-form" onSubmit={handleSearch}>
             <label>
               Category:
@@ -102,7 +102,7 @@ const SearchQuery = () => {
 
       {activeTab === "queryID" && (
         <div className="tab-content">
-          <h3>Search by Query ID</h3>
+          <h3 style={{color:"var(--text)"}}>Search by Query ID</h3>
           <form className="search-form" onSubmit={handleSearch}>
             <label>
               Query ID:

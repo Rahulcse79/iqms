@@ -119,7 +119,7 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
       <div style={{ margin: "8px 0", display: "flex", gap: 8, alignItems: "center" }}>
         <h3 style={{ margin: 0, color: "var(--text)" }}>{tabTitle}</h3>
 
-        <button onClick={handleRefresh} style={{ marginLeft: 8 }} disabled={loading}>
+        <button onClick={handleRefresh} style={{ marginLeft: 8, background: "var(--button-bg)" }} disabled={loading}>
           Refresh
         </button>
 

@@ -1,19 +1,26 @@
+/* search-tables.css — theme-aware styles for search + tables */
+
+/* Container */
 .search-container {
-  background: #fff;
+  background: var(--surface);
   padding: 20px;
   margin: 20px auto;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow);
   max-width: 1200px;
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
+/* Header */
 .search-header h2 {
   font-size: 22px;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-bottom: 20px;
 }
 
+/* Toolbar */
 .search-toolbar {
   display: flex;
   justify-content: space-between;
@@ -28,84 +35,121 @@
   gap: 10px;
 }
 
+/* Export button (primary-ish) */
 .btn.export-btn {
-  background-color: #1976d2;
-  color: white;
+  background-color: var(--blue);
+  color: #fff;
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background-color 0.25s ease, transform 0.08s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 .btn.export-btn:hover {
-  background-color: #1565c0;
+  background-color: var(--blue-hover);
+  transform: translateY(-1px);
 }
 
+/* Search box */
 .search-box .search-bar {
   padding: 8px 14px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
   min-width: 250px;
+  background: var(--surface-accent);
+  color: var(--text);
+  transition: border-color 0.18s ease, background 0.18s ease;
 }
 
+.search-box .search-bar::placeholder {
+  color: var(--muted);
+}
+
+/* Table */
 .styled-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 15px;
+  background: transparent;
 }
 
-.styled-table th, .styled-table td {
-  border: 1px solid #e0e0e0;
+/* Table cells */
+.styled-table th,
+.styled-table td {
+  border: 1px solid var(--border);
   padding: 12px;
   text-align: left;
   font-size: 14px;
+  color: var(--text);
 }
 
+/* Header styling */
 .styled-table th {
-  background-color: #f4f6f8;
+  background-color: var(--surface-accent);
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   cursor: pointer;
+  user-select: none;
 }
 
+/* Row hover and striped rows */
+.styled-table tbody tr:hover {
+  background: var(--surface-accent);
+}
+
+.styled-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface) 92%, var(--glass) 8%);
+  /* fallback for older browsers:
+     background: var(--surface-accent);
+  */
+}
+
+/* Status badges */
 .status-badge {
   display: inline-block;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
   text-transform: capitalize;
+  border: 1px solid transparent;
 }
 
+/* Open / closed states use theme tokens */
 .status-badge.open {
-  background-color: #d1f7d6;
-  color: #1e7d34;
+  background: var(--green-bg);
+  color: var(--green-text);
+  border-color: color-mix(in srgb, var(--green) 18%, transparent 82%);
 }
 
 .status-badge.closed {
-  background-color: #f8d7da;
-  color: #842029;
+  background: var(--red-bg);
+  color: var(--red-text);
+  border-color: color-mix(in srgb, var(--red) 18%, transparent 82%);
 }
 
+/* Action button */
 .action-btn {
-  background-color: #28a745;
+  background-color: var(--green);
   color: #fff;
   border: none;
   padding: 6px 12px;
   font-size: 13px;
   border-radius: 5px;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background-color 0.2s ease, transform 0.08s ease;
 }
-
 .action-btn:hover {
-  background-color: #218838;
+  background-color: var(--green-hover);
+  transform: translateY(-1px);
 }
 
+/* Pagination area */
 .pagination {
   display: flex;
   justify-content: space-between;
@@ -113,27 +157,39 @@
   margin-top: 15px;
   flex-wrap: wrap;
   gap: 10px;
+  color: var(--muted);
 }
 
 .pagination select {
   margin: 0 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-accent);
+  color: var(--text);
 }
 
+/* Pagination buttons */
 .pagination-buttons button {
-  background-color: #1976d2;
+  background-color: var(--blue);
   color: #fff;
   border: none;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   margin: 0 4px;
   cursor: pointer;
+  transition: background-color 0.18s ease;
 }
-
+.pagination-buttons button:hover:not(:disabled) {
+  background-color: var(--blue-hover);
+}
 .pagination-buttons button:disabled {
-  background-color: #ccc;
+  background-color: var(--border);
   cursor: not-allowed;
+  color: var(--muted);
 }
 
+/* Search header layout */
 .search-header {
   display: flex;
   justify-content: space-between;
@@ -141,8 +197,9 @@
   position: relative;
 }
 
+/* Close button (circular) */
 .close-btn {
-  background: #f44336;
+  background: var(--red);
   color: #fff;
   border: none;
   font-size: 18px;
@@ -154,41 +211,65 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: background 0.2s ease, transform 0.08s ease;
 }
-
 .close-btn:hover {
-  background: #d32f2f;
+  background: var(--red-hover);
+  transform: translateY(-1px);
 }
 
+/* Error box */
 .error-box {
-  background: #fdecea;
-  color: #b71c1c;
+  background: var(--red-bg);
+  color: var(--red-text);
   padding: 12px;
   border-radius: 6px;
   margin-bottom: 16px;
+  border: 1px solid color-mix(in srgb, var(--red) 12%, transparent 88%);
 }
 
+/* Error box action button */
 .error-box button {
   margin-top: 8px;
   padding: 6px 12px;
-  background: #d32f2f;
+  background: var(--red);
   color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 .error-box button:hover {
-  background: #b71c1c;
+  background: var(--red-hover);
 }
 
+/* Loading box */
 .loading-box {
-  background: #e3f2fd;
-  color: #0d47a1;
+  background: var(--blue-bg);
+  color: var(--blue-text);
   padding: 12px;
   border-radius: 6px;
   margin-bottom: 16px;
   font-weight: 500;
+  border: 1px solid color-mix(in srgb, var(--blue) 12%, transparent 88%);
 }
 
+/* Responsiveness */
+@media (max-width: 900px) {
+  .search-container {
+    padding: 16px;
+    margin: 12px;
+  }
+  .styled-table th, .styled-table td {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
 
+@media (max-width: 600px) {
+  .search-container {
+    padding: 12px;
+    margin: 8px;
+  }
+  .export-buttons { width: 100%; justify-content: flex-start; }
+  .search-toolbar { flex-direction: column; align-items: stretch; gap: 12px; }
+}

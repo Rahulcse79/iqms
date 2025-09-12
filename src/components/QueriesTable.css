@@ -1,16 +1,18 @@
 .queries-container {
-  background: #fff;
+  background: var(--surface);
   padding: 20px;
   margin: 20px auto;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow);
   max-width: 1200px;
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .queries-header h2 {
   font-size: 22px;
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-bottom: 20px;
 }
 
@@ -29,40 +31,46 @@
 }
 
 .btn.export-btn {
-  background-color: #1976d2;
-  color: white;
+  background-color: var(--blue);
+  color: var(--surface);
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .btn.export-btn:hover {
-  background-color: #1565c0;
+  background-color: color-mix(in srgb, var(--blue) 90%, black 10%);
 }
 
 .search-box .search-bar {
   padding: 8px 14px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
   min-width: 250px;
+  background-color: var(--surface-accent);
+  color: var(--text);
+}
+
+.search-box .search-bar::placeholder {
+  color: var(--muted);
 }
 
 .action-btn {
-  background-color: #28a745;
-  color: #fff;
+  background-color: var(--green);
+  color: var(--surface);
   border: none;
   padding: 6px 12px;
   font-size: 13px;
   border-radius: 5px;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .action-btn:hover {
-  background-color: #218838;
+  background-color: color-mix(in srgb, var(--green) 90%, black 10%);
 }
