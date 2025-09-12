@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./QueryView.css";
 import Comparison from "../Comparison";
@@ -34,8 +34,8 @@ const QueryView = ({ onBack }) => {
   });
 
   const searchParams = new URLSearchParams(location.search);
-  const category = searchParams.get("category"); 
-  const queryValue = searchParams.get("q"); 
+  const category = searchParams.get("category");
+  const queryValue = searchParams.get("q");
 
   // helper: map "Airmen" -> 1, "Officer" -> 0, "Civilian" -> 2
   const getCategoryCode = (category) => {
@@ -54,6 +54,7 @@ const QueryView = ({ onBack }) => {
       }
     }
   }, [queryValue, category, dispatch]);
+
   // Load draft from localStorage if exists and caching enabled
   useEffect(() => {
     if (enableCache && id) {
@@ -85,8 +86,12 @@ const QueryView = ({ onBack }) => {
       case "POR Issue":
         return <PostingHistoryTab />;
       case "Profile View":
-        return <ProfileViewLive category={getCategoryCode(category)}
-        queryValue={queryValue} />;
+        return (
+          <ProfileViewLive
+            category={getCategoryCode(category)}
+            queryValue={queryValue}
+          />
+        );
       default:
         return null;
     }
@@ -139,7 +144,8 @@ const QueryView = ({ onBack }) => {
             <option value="Profile View">Profile View</option>
           </select>
         </div>
-        {renderRightPanel()}
+
+        <div className="panel-content">{renderRightPanel()}</div>
       </div>
     </div>
   );

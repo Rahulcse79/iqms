@@ -461,41 +461,46 @@ export default function ProfileView({ queryValue = '', category = '' }) {
   };
 
   return (
-    <div className="profile-view-container">
-      {loading && <div className="loading-overlay">Loading profile...</div>}
-
+    <div className="live-profile-view-container">
+      {loading && <div className="live-loading-overlay">Loading profile...</div>}
+  
       {error && (
-        <div className="error-banner" role="alert">
+        <div className="live-error-banner" role="alert">
           <span>{error}</span>
-          <button onClick={handleRetry} className="retry-btn" aria-label="Retry">
+          <button onClick={handleRetry} className="live-retry-btn" aria-label="Retry">
             Retry
           </button>
         </div>
       )}
-
+  
       {!loading && showProfile && !error && (
-        <div className="result-section" style={{ overflow: 'visible' }}>
+        <div className="live-result-section" style={{ overflow: 'visible' }}>
           <div
             ref={placeholderRef}
-            className="dropdown-placeholder"
+            className="live-dropdown-placeholder"
             style={{ height: isPinned ? `${pinStyle.height || 0}px` : '0px' }}
             aria-hidden
           />
-
+  
           <div
-            className={`dropdown-sticky dropdown-sticky--pinable ${isPinned ? 'dropdown-sticky--pinned' : ''}`}
+            className={`live-dropdown-sticky live-dropdown-sticky--pinable ${isPinned ? 'live-dropdown-sticky--pinned' : ''}`}
             ref={dropdownRef}
           >
-            <SectionPicker options={SECTIONS} value={activeSection} onChange={onSectionSelect} dropdownRef={dropdownRef} />
+            <SectionPicker
+              options={SECTIONS}
+              value={activeSection}
+              onChange={onSectionSelect}
+              dropdownRef={dropdownRef}
+            />
           </div>
-
-          <div className="sections-container">
+  
+          <div className="live-sections-container">
             {SECTIONS.map(({ id, Component, label }) => {
               let tabProps = {};
               if (id === 'rank') tabProps = rankHistory;
               if (id === 'trade') tabProps = tradeHistory;
               if (id === 'posting') tabProps = postingHistory;
-
+  
               if (process.env.NODE_ENV !== 'production') {
                 try {
                   console.groupCollapsed(`[ProfileView] render section ${id}`);
@@ -508,16 +513,16 @@ export default function ProfileView({ queryValue = '', category = '' }) {
                   // noop
                 }
               }
-
+  
               return (
                 <div
                   key={id}
                   id={id}
                   ref={(el) => (sectionRefs.current[id] = el)}
-                  className={`profile-section ${activeSection === id ? 'active-section' : ''}`}
+                  className={`live-profile-section ${activeSection === id ? 'active-section' : ''}`}
                 >
-                  <h2 className="section-title">{label}</h2>
-                  <div className="section-content">
+                  <h2 className="live-section-title">{label}</h2>
+                  <div className="live-section-content">
                     <LazyComponent renderFn={() => <Component {...tabProps} />} />
                   </div>
                 </div>
@@ -528,4 +533,5 @@ export default function ProfileView({ queryValue = '', category = '' }) {
       )}
     </div>
   );
+  
 }
