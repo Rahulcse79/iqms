@@ -5,8 +5,9 @@ import Topbar from "../components/Topbar";
 import Footer from "../components/Footer";
 import "./DashboardLayout.css";
 import useTheme from "../hooks/useTheme";
+import Dialpad from "../components/Dialpad/Dialpad";
 import { useDispatch } from "react-redux";
-import { refreshRepliedQueries } from "../actions/allAction";
+import { refreshRepliedQueries } from "../actions/repliedQueryAction";
 
 const DashboardLayout = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -17,6 +18,8 @@ const DashboardLayout = () => {
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
+    dispatch(refreshRepliedQueries()); // immediately on mount
+
     const interval = setInterval(() => {
       dispatch(refreshRepliedQueries());
     }, 15 * 60 * 1000);
