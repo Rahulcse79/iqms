@@ -45,9 +45,9 @@
 
 .fd-btn {
   border: 1px solid #d1d5db;
-  background: #f8fafc;
-  color: #334155;
-  padding: 10px 16px;
+  background: var(--button-bg);
+color: var(--button-text); 
+ padding: 10px 16px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;

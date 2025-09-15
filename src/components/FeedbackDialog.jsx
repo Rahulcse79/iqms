@@ -19,7 +19,7 @@ const FeedbackDialog = ({ open, onClose }) => {
           Thank you for replying to this query. Please visit the link below to submit your feedback.
         </p>
         <div className="fd-actions">
-          <button className="fd-btn primary" onClick={handleFeedbackClick}>
+          <button className="fd-btn primary button-text-color" onClick={handleFeedbackClick}>
             Give Feedback
           </button>
           <button className="fd-btn" onClick={onClose}>

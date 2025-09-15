@@ -14,7 +14,7 @@ const ConfirmDialog = ({ open, onConfirm, onCancel }) => {
         </h3>
         <p className="cd-message">Do you want to submit the query?</p>
         <div className="cd-actions">
-          <button className="cd-btn primary" onClick={onConfirm}>
+          <button className="cd-btn primary button-text-color" onClick={onConfirm}>
             Confirm
           </button>
           <button className="cd-btn" onClick={onCancel}>
