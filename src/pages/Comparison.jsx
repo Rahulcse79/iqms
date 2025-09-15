@@ -20,11 +20,15 @@ const Comparison = () => {
 
   // global slices (reducers should have shape: { data: { [sno]: payload }, loading, error })
   const airmanPersmastSlice = useSelector((state) => state.airmanPersmast);
-  const airmanBasicPaySlice = useSelector((state) => state.airmanBasicPayReason);
+  const airmanBasicPaySlice = useSelector(
+    (state) => state.airmanBasicPayReason
+  );
   const airmanRankSlice = useSelector((state) => state.airmanRankHistory);
 
   const officerPersmastSlice = useSelector((state) => state.officerPersmast);
-  const officerBasicPaySlice = useSelector((state) => state.officerBasicPayReason);
+  const officerBasicPaySlice = useSelector(
+    (state) => state.officerBasicPayReason
+  );
   const officerRankSlice = useSelector((state) => state.officerRankHistory);
 
   // helper to read keyed-by-sno from slice safely
@@ -62,7 +66,11 @@ const Comparison = () => {
       dispatch(fetchAirmanRankHistory(juniorServiceNumber));
     }
 
-    setResult({ category: selectCategory, senior: seniorServiceNumber, junior: juniorServiceNumber });
+    setResult({
+      category: selectCategory,
+      senior: seniorServiceNumber,
+      junior: juniorServiceNumber,
+    });
 
     // scroll to results
     setTimeout(() => {
@@ -98,23 +106,47 @@ const Comparison = () => {
   // pick the right slices & per-sno entry
   const seniorPersRaw =
     selectCategory === "Officer"
-      ? getFromSlice(officerPersmastSlice, result?.senior || seniorServiceNumber)
-      : getFromSlice(airmanPersmastSlice, result?.senior || seniorServiceNumber);
+      ? getFromSlice(
+          officerPersmastSlice,
+          result?.senior || seniorServiceNumber
+        )
+      : getFromSlice(
+          airmanPersmastSlice,
+          result?.senior || seniorServiceNumber
+        );
 
   const juniorPersRaw =
     selectCategory === "Officer"
-      ? getFromSlice(officerPersmastSlice, result?.junior || juniorServiceNumber)
-      : getFromSlice(airmanPersmastSlice, result?.junior || juniorServiceNumber);
+      ? getFromSlice(
+          officerPersmastSlice,
+          result?.junior || juniorServiceNumber
+        )
+      : getFromSlice(
+          airmanPersmastSlice,
+          result?.junior || juniorServiceNumber
+        );
 
   const seniorPayRaw =
     selectCategory === "Officer"
-      ? getFromSlice(officerBasicPaySlice, result?.senior || seniorServiceNumber)
-      : getFromSlice(airmanBasicPaySlice, result?.senior || seniorServiceNumber);
+      ? getFromSlice(
+          officerBasicPaySlice,
+          result?.senior || seniorServiceNumber
+        )
+      : getFromSlice(
+          airmanBasicPaySlice,
+          result?.senior || seniorServiceNumber
+        );
 
   const juniorPayRaw =
     selectCategory === "Officer"
-      ? getFromSlice(officerBasicPaySlice, result?.junior || juniorServiceNumber)
-      : getFromSlice(airmanBasicPaySlice, result?.junior || juniorServiceNumber);
+      ? getFromSlice(
+          officerBasicPaySlice,
+          result?.junior || juniorServiceNumber
+        )
+      : getFromSlice(
+          airmanBasicPaySlice,
+          result?.junior || juniorServiceNumber
+        );
 
   const seniorRankRaw =
     selectCategory === "Officer"
@@ -173,8 +205,20 @@ const Comparison = () => {
   ]);
 
   // Card renderer (uses normalized objects/arrays)
-  const renderCard = (person, payList, rankList, label, sliceLoading, sliceError) => {
-    if (sliceLoading && !person && payList.length === 0 && rankList.length === 0) {
+  const renderCard = (
+    person,
+    payList,
+    rankList,
+    label,
+    sliceLoading,
+    sliceError
+  ) => {
+    if (
+      sliceLoading &&
+      !person &&
+      payList.length === 0 &&
+      rankList.length === 0
+    ) {
       return <div className="card">{label}: Loading...</div>;
     }
 
@@ -209,7 +253,11 @@ const Comparison = () => {
                 <td>Trade / Branch</td>
                 <td>{person?.tradename ?? person?.branch_name ?? "-"}</td>
                 <td>DOE</td>
-                <td>{person?.enrldt ? new Date(person.enrldt).toLocaleDateString() : "-"}</td>
+                <td>
+                  {person?.enrldt
+                    ? new Date(person.enrldt).toLocaleDateString()
+                    : "-"}
+                </td>
               </tr>
               <tr>
                 <td>Name</td>
@@ -232,7 +280,7 @@ const Comparison = () => {
             <table className="info-table">
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th>S No.</th>
                   <th>Description</th>
                   <th>Rate</th>
                   <th>WEF</th>
@@ -244,7 +292,13 @@ const Comparison = () => {
                     <td>{i + 1}</td>
                     <td>{p.description ?? p.desc ?? "-"}</td>
                     <td>{p.rate ?? p.amount ?? "-"}</td>
-                    <td>{p.wef ? new Date(p.wef).toLocaleDateString() : p.hp_date ? new Date(p.hp_date).toLocaleDateString() : "-"}</td>
+                    <td>
+                      {p.wef
+                        ? new Date(p.wef).toLocaleDateString()
+                        : p.hp_date
+                        ? new Date(p.hp_date).toLocaleDateString()
+                        : "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -259,7 +313,7 @@ const Comparison = () => {
             <table className="rank-table">
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th>S No.</th>
                   <th>Rank</th>
                   <th>Date</th>
                   <th>Type</th>
@@ -271,7 +325,13 @@ const Comparison = () => {
                   <tr key={i}>
                     <td>{i + 1}</td>
                     <td>{r.rank ?? "-"}</td>
-                    <td>{r.hp_date ? new Date(r.hp_date).toLocaleDateString() : r.wef ? new Date(r.wef).toLocaleDateString() : "-"}</td>
+                    <td>
+                      {r.hp_date
+                        ? new Date(r.hp_date).toLocaleDateString()
+                        : r.wef
+                        ? new Date(r.wef).toLocaleDateString()
+                        : "-"}
+                    </td>
                     <td>{r.type ?? "-"}</td>
                     <td>{r.opt ?? "-"}</td>
                   </tr>
@@ -287,13 +347,21 @@ const Comparison = () => {
   // determine which slice-level loading/error to use (simple heuristic)
   const sliceLoading =
     selectCategory === "Officer"
-      ? officerPersmastSlice?.loading || officerBasicPaySlice?.loading || officerRankSlice?.loading
-      : airmanPersmastSlice?.loading || airmanBasicPaySlice?.loading || airmanRankSlice?.loading;
+      ? officerPersmastSlice?.loading ||
+        officerBasicPaySlice?.loading ||
+        officerRankSlice?.loading
+      : airmanPersmastSlice?.loading ||
+        airmanBasicPaySlice?.loading ||
+        airmanRankSlice?.loading;
 
   const sliceError =
     selectCategory === "Officer"
-      ? officerPersmastSlice?.error || officerBasicPaySlice?.error || officerRankSlice?.error
-      : airmanPersmastSlice?.error || airmanBasicPaySlice?.error || airmanRankSlice?.error;
+      ? officerPersmastSlice?.error ||
+        officerBasicPaySlice?.error ||
+        officerRankSlice?.error
+      : airmanPersmastSlice?.error ||
+        airmanBasicPaySlice?.error ||
+        airmanRankSlice?.error;
 
   return (
     <div className="comparison-container">
@@ -302,31 +370,36 @@ const Comparison = () => {
       <form className="comparison-form" onSubmit={handleSearch}>
         <label>
           Select Category
-          <select value={selectCategory} onChange={(e) => setSelectCategory(e.target.value)}>
+          <select
+            value={selectCategory}
+            onChange={(e) => setSelectCategory(e.target.value)}
+          >
             <option value="Airmen">Airmen / NCs(E)</option>
             <option value="Officer">Officer</option>
           </select>
         </label>
 
-        <label>
-          Senior Service Number
-          <input
-            type="text"
-            placeholder="Enter Senior Service No"
-            value={seniorServiceNumber}
-            onChange={(e) => setSeniorServiceNumber(e.target.value.trim())}
-          />
-        </label>
+        <div className="label-searchbox">
+          <label>
+            Senior Service Number
+            <input
+              type="text"
+              placeholder="Enter Senior Service No"
+              value={seniorServiceNumber}
+              onChange={(e) => setSeniorServiceNumber(e.target.value.trim())}
+            />
+          </label>
 
-        <label>
-          Junior Service Number
-          <input
-            type="text"
-            placeholder="Enter Junior Service No"
-            value={juniorServiceNumber}
-            onChange={(e) => setJuniorServiceNumber(e.target.value.trim())}
-          />
-        </label>
+          <label>
+            Junior Service Number
+            <input
+              type="text"
+              placeholder="Enter Junior Service No"
+              value={juniorServiceNumber}
+              onChange={(e) => setJuniorServiceNumber(e.target.value.trim())}
+            />
+          </label>
+        </div>
 
         <button type="submit" className="search-btn">
           Create Comparative Statement
@@ -336,17 +409,28 @@ const Comparison = () => {
       {result && (
         <div className="comparison-results">
           <div className="results-header">
-            <h3>Pay Comparative Statement ({result.category})</h3>
             <button className="print-btn" onClick={printReport}>
               Print Report
             </button>
           </div>
 
-          {sliceError && <div className="error">Error: {sliceError}</div>}
-
           <div className="cards">
-            {renderCard(seniorPerson, seniorPayList, seniorRankList, "Senior", sliceLoading, sliceError)}
-            {renderCard(juniorPerson, juniorPayList, juniorRankList, "Junior", sliceLoading, sliceError)}
+            {renderCard(
+              seniorPerson,
+              seniorPayList,
+              seniorRankList,
+              "Senior",
+              sliceLoading,
+              sliceError
+            )}
+            {renderCard(
+              juniorPerson,
+              juniorPayList,
+              juniorRankList,
+              "Junior",
+              sliceLoading,
+              sliceError
+            )}
           </div>
         </div>
       )}

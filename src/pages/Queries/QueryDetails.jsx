@@ -137,7 +137,12 @@ const QueryDetails = ({
     }
   }, [queryId, enableCache, localSetDraft]);
 
-  const { data: item, isLoading, isError, error } = useQuery({
+  const {
+    data: item,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["query", queryId],
     queryFn: () => fetchQueryDetails(queryId),
     enabled: !!queryId,
@@ -191,7 +196,7 @@ const QueryDetails = ({
     setShowConfirmDialog(false);
   };
 
-  if (isLoading) return <div className="qdetails-container">Loading...</div>;
+  if (isLoading) return <div   style={{color: "var(--text)"}} className="qdetails-container">Loading...</div>;
   if (isError)
     return (
       <div className="qdetails-container">
@@ -208,8 +213,9 @@ const QueryDetails = ({
   if (!item) return <div className="qdetails-container">No data found</div>;
 
   const details = item.details || {};
-  const subject =
-    decodeHtml(details.Subject || details.subject || item.subject || "");
+  const subject = decodeHtml(
+    details.Subject || details.subject || item.subject || ""
+  );
   const submitDate = details.submit_date || item.submit_date || "";
   const queryBy =
     details["Query by"] ||
@@ -219,10 +225,7 @@ const QueryDetails = ({
     "N/A";
   const serviceNo = item.sno || details["Pers Details"] || "N/A";
   const pendingWith =
-    item.pen_with_cap ||
-    item.pending_with ||
-    details["pending_with"] ||
-    "N/A";
+    item.pen_with_cap || item.pending_with || details["pending_with"] || "N/A";
 
   const unit = decodeHtml(details.unit || item.unit || "");
   const head = decodeHtml(details.head || item.head || "");
@@ -257,6 +260,7 @@ const QueryDetails = ({
   };
 
   return (
+    /* keep your existing imports at top of file; this is the JSX portion */
     <div className="qdetails-container split-active">
       {onBack && (
         <button className="btn back-btn" onClick={onBack}>
@@ -308,7 +312,7 @@ const QueryDetails = ({
                 <strong>Date:</strong> {formatDateFlexible(submitDate)}
               </div>
 
-              <hr style={{ margin: "12px 0" }} />
+              <hr className="separator" />
 
               <div>
                 <strong>Unit:</strong> {unit || "N/A"}
@@ -335,7 +339,7 @@ const QueryDetails = ({
               <div className="wings-card">
                 <h4>Wings Replies</h4>
                 {Object.keys(details.wings_reply).length === 0 ? (
-                  <div>No wings replies</div>
+                  <div className="panel-empty">No wings replies</div>
                 ) : (
                   Object.keys(details.wings_reply)
                     .filter((k) => !/\bdate$/i.test(k))
@@ -348,17 +352,11 @@ const QueryDetails = ({
                       return (
                         <div key={idx} className="wings-entry">
                           <strong>{k}:</strong>
-                          <div style={{ marginTop: 6 }}>
+                          <div className="wings-reply">
                             {renderMultiline(details.wings_reply[k])}
                           </div>
                           {dateVal && (
-                            <div
-                              style={{
-                                marginTop: 6,
-                                fontSize: 12,
-                                color: "#666",
-                              }}
-                            >
+                            <div className="wings-date">
                               <em>{formatDateFlexible(dateVal)}</em>
                             </div>
                           )}
@@ -385,7 +383,9 @@ const QueryDetails = ({
                 <label>Reply / Forward To</label>
                 <select
                   value={localDraft.forwardOption}
-                  onChange={(e) => handleChange("forwardOption", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("forwardOption", e.target.value)
+                  }
                 >
                   <option value="">--Select--</option>
                   <option value="Transfer to Supervisor">
@@ -431,26 +431,20 @@ const QueryDetails = ({
             {item.history && item.history.length > 0 ? (
               item.history.map((h, i) => (
                 <div key={i} className="history-entry">
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
+                  <div className="history-meta">
                     <strong>{h.by}</strong>
                     {h.date && (
-                      <span style={{ fontSize: 12, color: "#666" }}>
+                      <span className="small-muted">
                         {formatDateFlexible(h.date)}
                       </span>
                     )}
                   </div>
-                  <div style={{ marginTop: 6 }}>{renderMultiline(h.text)}</div>
-                  <hr style={{ margin: "12px 0" }} />
+                  <div className="history-text">{renderMultiline(h.text)}</div>
+                  <hr className="separator" />
                 </div>
               ))
             ) : (
-              <div>No history available</div>
+              <div className="panel-empty">No history available</div>
             )}
           </div>
         )}
@@ -467,3 +461,4 @@ const QueryDetails = ({
 };
 
 export default QueryDetails;
+  

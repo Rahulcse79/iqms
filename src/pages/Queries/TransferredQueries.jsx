@@ -4,6 +4,7 @@ import QueriesTable from "../../components/QueriesTable";
 import { useSelector, useDispatch } from "react-redux";
 import "../../layouts/DashboardLayout.css";
 import { refreshTransferredQueries } from "../../actions/transferredQueryAction";
+import { HiOutlineRefresh } from "react-icons/hi";
 
 /**
  * TransferredQueries (reads cache)
@@ -121,7 +122,7 @@ const TransferredQueries = ({
           style={{ marginLeft: 8, background: "var(--button-bg)" }}
           disabled={loading}
         >
-          {loading ? "Refreshing…" : "Refresh"}
+          {loading ? <HiOutlineRefresh /> : <HiOutlineRefresh />}
         </button>
 
         <div style={{ marginLeft: 8 }}>

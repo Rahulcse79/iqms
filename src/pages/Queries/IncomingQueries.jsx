@@ -4,6 +4,7 @@ import QueriesTable from "../../components/QueriesTable";
 import { useSelector, useDispatch } from "react-redux";
 import "./IncomingQueries.css";
 import { refreshPendingQueries } from "../../actions/pendingQueryAction";
+import { HiOutlineRefresh } from "react-icons/hi";
 
 /**
  * IncomingQueries (reads cache)
@@ -101,7 +102,8 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
           style={{ marginLeft: 8, background: "var(--button-bg)" }}
           disabled={loading}
         >
-          {loading ? "Refreshing…" : "Refresh"}
+                    {loading ? <HiOutlineRefresh /> : <HiOutlineRefresh />}
+          
         </button>
 
         <div style={{ marginLeft: 8 }}>

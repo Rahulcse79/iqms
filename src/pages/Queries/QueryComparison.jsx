@@ -22,6 +22,60 @@ const Comparison = () => {
     }))
   );
 
+  const customStyles = {
+    table: {
+      style: {
+        backgroundColor: "var(--surface)",
+        borderRadius: "12px",
+        overflow: "hidden",
+      },
+    },
+    header: {
+      style: {
+        minHeight: "56px",
+        paddingLeft: "16px",
+        paddingRight: "8px",
+      },
+    },
+    headRow: {
+      style: {
+        backgroundColor: "var(--surface-accent)",
+        borderBottom: "1px solid var(--border)",
+        minHeight: "48px",
+      },
+    },
+    headCells: {
+      style: {
+        color: "var(--text)",
+        fontSize: "14px",
+        fontWeight: "600",
+        paddingLeft: "12px",
+        paddingRight: "12px",
+      },
+    },
+    rows: {
+      style: {
+        backgroundColor: "var(--surface)",
+        minHeight: "52px", // overrides row height
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: "12px",
+        paddingRight: "12px",
+        color: "var(--text)",
+        fontSize: "14px",
+      },
+    },
+    pagination: {
+      style: {
+        padding: "8px",
+        color: "var(--text)",
+        backgroundColor: "transparent",
+      },
+    },
+  };
+
   const [panelData, setPanelData] = useState(
     Array.from({ length: NUM_SLOTS }, () => [])
   );
@@ -175,9 +229,9 @@ const Comparison = () => {
     setFieldErrors(Array.from({ length: NUM_SLOTS }, () => ""));
     setFormError(null);
     setTouched(false);
-    setActiveQueryId1(null)
-    setActiveQueryId2(null)
-    setActiveQueryId3(null)
+    setActiveQueryId1(null);
+    setActiveQueryId2(null);
+    setActiveQueryId3(null);
     setSearch("");
   };
 
@@ -232,7 +286,9 @@ const Comparison = () => {
     data.forEach((row, i) => {
       const y = 50 + i * 10;
       doc.text(
-        `${i + 1}. ${row.serviceNo} | ${row.type} | ${row.queryId} | ${row.date}`,
+        `${i + 1}. ${row.serviceNo} | ${row.type} | ${row.queryId} | ${
+          row.date
+        }`,
         20,
         y
       );
@@ -244,7 +300,9 @@ const Comparison = () => {
     const content = data
       .map(
         (row, i) =>
-          `${i + 1} | ${row.serviceNo} | ${row.type} | ${row.queryId} | ${row.date}`
+          `${i + 1} | ${row.serviceNo} | ${row.type} | ${row.queryId} | ${
+            row.date
+          }`
       )
       .join("\n");
     const printWindow = window.open("", "", "width=800,height=600");
@@ -278,7 +336,10 @@ const Comparison = () => {
       cell: (row) => (
         <div style={{ display: "flex", gap: 8 }}>
           {/* pass the callName for this panel */}
-          <button className="action-btn" onClick={() => handleView(row, callName)}>
+          <button
+            className="action-btn"
+            onClick={() => handleView(row, callName)}
+          >
             View
           </button>
         </div>
@@ -293,7 +354,7 @@ const Comparison = () => {
   return (
     <div className="comparison-wrapper">
       <div className="comparison-container">
-        <h2>Query Comparison</h2>
+        <h2 style={{ color: "var(--text)" }}>Query Comparison</h2>
 
         <form className="comparison-form" onSubmit={handleSearch} noValidate>
           <div className="service-numbers-row">
@@ -314,9 +375,7 @@ const Comparison = () => {
                 <select
                   id={`cat-${i}`}
                   value={inp.category}
-                  onChange={(e) =>
-                    setInputField(i, "category", e.target.value)
-                  }
+                  onChange={(e) => setInputField(i, "category", e.target.value)}
                 >
                   {ALLOWED_CATEGORIES.map((c) => (
                     <option key={c} value={c}>
@@ -332,14 +391,18 @@ const Comparison = () => {
           </div>
 
           <div className="actions-row">
-            <button type="submit" className="btn primary" disabled={loading}>
+            <button
+              type="submit"
+              style={{ backgroundColor: "var(--button-bg)", color: "var(--button-text)" }}
+              disabled={loading}
+            >
               {loading ? "Searching…" : "Search"}
             </button>
             <button
               type="button"
-              className="btn ghost"
               onClick={handleReset}
               disabled={loading}
+              style={{ backgroundColor: "var(--button-bg)",  color: "var(--button-text)" }}
             >
               Reset
             </button>
@@ -360,9 +423,9 @@ const Comparison = () => {
                 <header className="card-header">
                   <div className="card-title">
                     <span className="badge">{p.category}</span>
-                    <h3>{p.serviceNo}</h3>
+                    <h3 style={{ color: "var(--text)" }}>{p.serviceNo}</h3>
                   </div>
-                  <div className="card-subtitle">
+                  <div style={{ color: "var(--text)" }}>
                     {p.data.length > 0
                       ? `${p.data.length} queries`
                       : "No queries found"}
@@ -419,17 +482,8 @@ const Comparison = () => {
                         highlightOnHover
                         striped
                         responsive
-                        customStyles={{
-                          headCells: {
-                            style: {
-                              backgroundColor: "#f4f6f8",
-                              fontWeight: "bold",
-                              fontSize: "14px",
-                              color: "#333",
-                            },
-                          },
-                          rows: { style: { fontSize: "14px" } },
-                        }}
+                        customStyles={customStyles}
+                        className="themed-data-table"
                       />
                     </>
                   ) : (

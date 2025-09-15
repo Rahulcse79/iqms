@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./QueryView.css";
 import Comparison from "../Comparison";
@@ -74,11 +74,13 @@ const QueryView = ({ onBack }) => {
           <PersonalDetails
             data={personalData && !error ? personalData : null}
             loading={loading}
-            error={error || (personalData && personalData.error ? personalData.error : null)}
+            error={
+              error || (personalData && personalData.error ? personalData.error : null)
+            }
           />
         );
       case "Pay Related Issue":
-        return <h2>Pay Related Issue Page</h2>;
+        return <h2 style={{ color: "var(--text)" }}>Pay Related Issue Page</h2>;
       case "Comparison Issue":
         return <Comparison />;
       case "Allowance Related Issue":
@@ -121,7 +123,7 @@ const QueryView = ({ onBack }) => {
         <QueryDetails
           queryId={id}
           enableCache={enableCache}
-          {...(enableCache ? { draft, setDraft } : {})} // pass only if caching
+          {...(enableCache ? { draft, setDraft } : {})}
           onBack={onBack}
         />
       </div>
@@ -129,7 +131,7 @@ const QueryView = ({ onBack }) => {
       {/* Right Panel */}
       <div className="right-panel">
         <div className="form-group">
-          <label>Type of Query</label>
+          <label style={{color:"var(--text)"}}>Type of Query</label>
           <select
             value={queryType}
             onChange={(e) => setQueryType(e.target.value)}
@@ -137,9 +139,7 @@ const QueryView = ({ onBack }) => {
             <option value="Personal Data Issue">Personal Data Issue</option>
             <option value="Pay Related Issue">Pay Related Issue</option>
             <option value="Comparison Issue">Comparison Issue</option>
-            <option value="Allowance Related Issue">
-              Allowance Related Issue
-            </option>
+            <option value="Allowance Related Issue">Allowance Related Issue</option>
             <option value="POR Issue">POR Issue</option>
             <option value="Profile View">Profile View</option>
           </select>

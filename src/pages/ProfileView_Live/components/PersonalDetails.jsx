@@ -22,7 +22,6 @@ const formatDate = (iso) => {
   }
 };
 
-
 const devLog = (...args) => {
   if (process.env.NODE_ENV !== 'production') {
     console.debug('[PersonalDetails]', ...args);
@@ -122,44 +121,52 @@ export default function PersonalDetails(props) {
     <div style={styles.card}>
       <div style={styles.header}>
         <h2 style={styles.name}>{cleaned.name}</h2>
-        <p style={styles.subTitle}>{cleaned.category} | Service No: {cleaned.serviceNo}</p>
+        <p style={styles.subTitle}>
+          {cleaned.category} | Service No: {cleaned.serviceNo}
+        </p>
       </div>
 
       <div style={styles.section}>
         <h4 style={styles.sectionTitle}>Personal Information</h4>
-        <InfoGrid data={{
-          'Date of Birth': cleaned.dateOfBirth,
-          'Sex': cleaned.sex,
-          'Marital Status': cleaned.maritalStatus,
-          'Enlistment Date': cleaned.enlistmentDate,
-        }}/>
+        <InfoGrid
+          data={{
+            'Date of Birth': cleaned.dateOfBirth,
+            Sex: cleaned.sex,
+            'Marital Status': cleaned.maritalStatus,
+            'Enlistment Date': cleaned.enlistmentDate,
+          }}
+        />
       </div>
 
       <div style={styles.section}>
         <h4 style={styles.sectionTitle}>Rank & Posting</h4>
-        <InfoGrid data={{
-          'Rank Code': cleaned.rankCode,
-          'Rank Type': cleaned.rankType,
-          'Rank Date': cleaned.rankDate,
-          'Trade Code': cleaned.tradeCode,
-          'Current Unit Code': cleaned.currentUnit,
-          'Previous Unit Code': cleaned.previousUnit,
-          'SORS Date': cleaned.sorsDate,
-        }}/>
+        <InfoGrid
+          data={{
+            'Rank Code': cleaned.rankCode,
+            'Rank Type': cleaned.rankType,
+            'Rank Date': cleaned.rankDate,
+            'Trade Code': cleaned.tradeCode,
+            'Current Unit Code': cleaned.currentUnit,
+            'Previous Unit Code': cleaned.previousUnit,
+            'SORS Date': cleaned.sorsDate,
+          }}
+        />
       </div>
 
       <div style={styles.section}>
         <h4 style={styles.sectionTitle}>Identifiers</h4>
-        <InfoGrid data={{
-          'PAN': cleaned.pan,
-          'PRAN': cleaned.pran,
-          'IRLA': cleaned.irla,
-          'Cell': cleaned.cell,
-          'CS': cleaned.cs,
-          'Flag': cleaned.flag,
-          'Decoration': cleaned.decoration,
-          'Comm Type': cleaned.commtype,
-        }}/>
+        <InfoGrid
+          data={{
+            PAN: cleaned.pan,
+            PRAN: cleaned.pran,
+            IRLA: cleaned.irla,
+            Cell: cleaned.cell,
+            CS: cleaned.cs,
+            Flag: cleaned.flag,
+            Decoration: cleaned.decoration,
+            'Comm Type': cleaned.commtype,
+          }}
+        />
       </div>
     </div>
   );
@@ -182,36 +189,37 @@ function InfoGrid({ data }) {
 /** ---------- Styles ---------- */
 const styles = {
   card: {
-    background: '#fff',
+    background: 'var(--surface)',
     borderRadius: 12,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    boxShadow: 'var(--shadow)',
     padding: 20,
     maxWidth: 800,
     margin: '20px auto',
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: 'inherit',
+    color: 'var(--text)',
   },
   header: {
     marginBottom: 20,
-    borderBottom: '1px solid #e5e7eb',
+    borderBottom: '1px solid var(--border)',
     paddingBottom: 10,
   },
   name: {
     margin: 0,
     fontSize: 24,
-    color: '#1f2937',
+    color: 'var(--text)',
   },
   subTitle: {
     margin: '4px 0 0',
     fontSize: 14,
-    color: '#6b7280',
+    color: 'var(--muted)',
   },
   section: { marginBottom: 20 },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: 'var(--text)',
     marginBottom: 10,
-    borderBottom: '1px solid #e5e7eb',
+    borderBottom: '1px solid var(--border)',
     paddingBottom: 4,
   },
   infoGrid: {
@@ -224,21 +232,31 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     padding: '8px 12px',
-    background: '#f9fafb',
+    background: 'var(--surface-accent)',
     borderRadius: 6,
-    border: '1px solid #e5e7eb',
+    border: '1px solid var(--border)',
   },
   label: {
     fontSize: 12,
     fontWeight: 600,
-    color: '#6b7280',
+    color: 'var(--muted)',
     marginBottom: 4,
   },
   value: {
     fontSize: 14,
-    color: '#111827',
+    color: 'var(--text)',
   },
-  loader: { padding: 20, textAlign: 'center', fontSize: 16 },
-  error: { padding: 20, color: 'red', fontSize: 16, textAlign: 'center' },
-  empty: { padding: 20, fontSize: 16, textAlign: 'center' },
+  loader: {
+    padding: 20,
+    textAlign: 'center',
+    fontSize: 16,
+    color: 'var(--text)',
+  },
+  error: {
+    padding: 20,
+    color: 'var(--red)',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  empty: { padding: 20, fontSize: 16, textAlign: 'center', color: 'var(--muted)' },
 };

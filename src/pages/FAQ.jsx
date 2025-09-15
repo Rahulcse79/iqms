@@ -2,7 +2,13 @@
 // ------------------
 // Replace your existing component with this file. It uses "./FAQ.css" (leave as-is).
 
-import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFaq } from "../actions/queryActions"; // adjust path if needed
 import DOMPurify from "dompurify";
@@ -74,11 +80,7 @@ function Pagination({
   const pages = buildPageRange(current, totalPages);
 
   return (
-    <nav
-      className="faq-pagination"
-      aria-label={ariaLabel}
-      role="navigation"
-    >
+    <nav className="faq-pagination" aria-label={ariaLabel} role="navigation">
       <button
         className="btn btn-ghost"
         onClick={() => onChange(Math.max(1, current - 1))}
@@ -135,7 +137,9 @@ export default function FAQPage() {
     );
   });
 
-  const [items, setItems] = useState(Array.isArray(reduxItems) ? reduxItems : []);
+  const [items, setItems] = useState(
+    Array.isArray(reduxItems) ? reduxItems : []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -157,11 +161,10 @@ export default function FAQPage() {
     const p = dispatch(fetchFaq());
     fetchPromiseRef.current = p;
 
-    p
-      .then((data) => {
-        const arr = Array.isArray(data?.items) ? data.items : [];
-        setItems(arr);
-      })
+    p.then((data) => {
+      const arr = Array.isArray(data?.items) ? data.items : [];
+      setItems(arr);
+    })
       .catch((err) => {
         const message = err?.message || "Unable to load FAQs";
         setError(message);
@@ -170,7 +173,10 @@ export default function FAQPage() {
 
     return () => {
       try {
-        if (fetchPromiseRef.current && typeof fetchPromiseRef.current.cancel === "function") {
+        if (
+          fetchPromiseRef.current &&
+          typeof fetchPromiseRef.current.cancel === "function"
+        ) {
           fetchPromiseRef.current.cancel();
         }
       } catch (e) {
@@ -181,13 +187,18 @@ export default function FAQPage() {
 
   // keep local items in sync if Redux updates
   useEffect(() => {
-    if (Array.isArray(reduxItems) && reduxItems.length > 0) setItems(reduxItems);
+    if (Array.isArray(reduxItems) && reduxItems.length > 0)
+      setItems(reduxItems);
   }, [reduxItems]);
 
   const grouped = useMemo(() => groupFaqsByCategoryAndHeading(items), [items]);
 
   const tabs = useMemo(
-    () => Object.keys(CATEGORY_MAP).map((k) => ({ key: Number(k), label: CATEGORY_MAP[k] })),
+    () =>
+      Object.keys(CATEGORY_MAP).map((k) => ({
+        key: Number(k),
+        label: CATEGORY_MAP[k],
+      })),
     []
   );
 
@@ -205,7 +216,11 @@ export default function FAQPage() {
       const out = {};
       for (const [heading, arr] of Object.entries(catData.headings)) {
         const filtered = q
-          ? arr.filter((it) => (safeText(it.question) + " " + safeText(it.answer)).toLowerCase().includes(q))
+          ? arr.filter((it) =>
+              (safeText(it.question) + " " + safeText(it.answer))
+                .toLowerCase()
+                .includes(q)
+            )
           : arr.slice();
         if (filtered.length > 0) out[heading] = filtered;
       }
@@ -214,7 +229,10 @@ export default function FAQPage() {
     [grouped, query]
   );
 
-  const visibleHeadings = useMemo(() => filterForTabAndQuery(activeTab), [activeTab, filterForTabAndQuery]);
+  const visibleHeadings = useMemo(
+    () => filterForTabAndQuery(activeTab),
+    [activeTab, filterForTabAndQuery]
+  );
 
   // Ensure perHeadingPage has defaults for visible headings (init to 1 if missing)
   useEffect(() => {
@@ -265,25 +283,36 @@ export default function FAQPage() {
     // scroll heading into view for better UX (optional)
     setTimeout(() => {
       const el = document.getElementById(`heading-${cssSafeId(heading)}`);
-      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (el && el.scrollIntoView)
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
 
   function cssSafeId(str = "") {
-    return String(str).replace(/\s+/g, "-").replace(/[^\w-]/g, "").slice(0, 40);
+    return String(str)
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]/g, "")
+      .slice(0, 40);
   }
 
   const renderAnswer = (html) => {
     const unsafe = safeText(html);
     const sanitized = DOMPurify ? DOMPurify.sanitize(unsafe) : unsafe;
-    return <div className="faq-answer" dangerouslySetInnerHTML={{ __html: sanitized }} />;
+    return (
+      <div
+        className="faq-answer"
+        dangerouslySetInnerHTML={{ __html: sanitized }}
+      />
+    );
   };
 
   return (
     <div className="faq-page">
       <header className="faq-header">
         <h1 className="faq-title">Frequently Asked Questions</h1>
-        <p className="faq-sub">Browse FAQs by category or search questions &amp; answers</p>
+        <p className="faq-sub">
+          Browse FAQs by category or search questions &amp; answers
+        </p>
       </header>
 
       <div className="faq-controls">
@@ -301,7 +330,9 @@ export default function FAQPage() {
               className={`faq-tab ${t.key === activeTab ? "active" : ""}`}
             >
               <span className="faq-tab-label">{t.label}</span>
-              <span className="faq-tab-count">{`(${tabCounts[t.key] || 0})`}</span>
+              <span className="faq-tab-count">{`(${
+                tabCounts[t.key] || 0
+              })`}</span>
             </button>
           ))}
         </div>
@@ -328,7 +359,6 @@ export default function FAQPage() {
           <div className="faq-action-buttons">
             <button
               type="button"
-              className="btn btn-ghost"
               onClick={() => {
                 setQuery("");
                 setPerHeadingPage({});
@@ -341,14 +371,14 @@ export default function FAQPage() {
 
             <button
               type="button"
-              className="btn btn-primary"
               onClick={() => {
                 setLoading(true);
                 setError(null);
                 const p = dispatch(fetchFaq({ force: true }));
                 fetchPromiseRef.current = p;
-                p
-                  .then((data) => setItems(Array.isArray(data?.items) ? data.items : []))
+                p.then((data) =>
+                  setItems(Array.isArray(data?.items) ? data.items : [])
+                )
                   .catch((err) => setError(err?.message || "Failed"))
                   .finally(() => setLoading(false));
               }}
@@ -381,8 +411,9 @@ export default function FAQPage() {
                   setError(null);
                   const p = dispatch(fetchFaq({ force: true }));
                   fetchPromiseRef.current = p;
-                  p
-                    .then((data) => setItems(Array.isArray(data?.items) ? data.items : []))
+                  p.then((data) =>
+                    setItems(Array.isArray(data?.items) ? data.items : [])
+                  )
                     .catch((err) => setError(err?.message || "Failed"))
                     .finally(() => setLoading(false));
                 }}
@@ -394,23 +425,37 @@ export default function FAQPage() {
         ) : (
           <div>
             <div className="faq-actions-compact">
-              <button className="btn btn-ghost" onClick={handleExpandAll} aria-label="Expand all headings">
+              <button
+                onClick={handleExpandAll}
+                aria-label="Expand all headings"
+              >
                 Expand all
               </button>
-              <button className="btn btn-ghost" onClick={handleCollapseAll} aria-label="Collapse all headings">
+              <button
+                onClick={handleCollapseAll}
+                aria-label="Collapse all headings"
+              >
                 Collapse all
               </button>
             </div>
 
             {Object.keys(visibleHeadings).length === 0 ? (
-              <div className="faq-empty">No FAQs found for this category/search.</div>
+              <div className="faq-empty">
+                No FAQs found for this category/search.
+              </div>
             ) : (
               Object.entries(visibleHeadings).map(([heading, arr]) => {
                 const isExpanded = expandedHeadings.has(heading);
                 const currentPage = perHeadingPage[heading] || 1;
                 const totalItems = arr.length;
-                const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PAGE_SIZE));
-                const pageIndex = Math.max(1, Math.min(currentPage, totalPages));
+                const totalPages = Math.max(
+                  1,
+                  Math.ceil(totalItems / ITEMS_PAGE_SIZE)
+                );
+                const pageIndex = Math.max(
+                  1,
+                  Math.min(currentPage, totalPages)
+                );
                 const startIdx = (pageIndex - 1) * ITEMS_PAGE_SIZE;
                 const endIdx = Math.min(totalItems, startIdx + ITEMS_PAGE_SIZE);
                 const pageSlice = arr.slice(startIdx, endIdx);
@@ -428,28 +473,44 @@ export default function FAQPage() {
                     >
                       <div>
                         <div className="faq-heading-title">{heading}</div>
-                        <div className="faq-heading-meta">{arr.length} question(s)</div>
+                        <div className="faq-heading-meta">
+                          {arr.length} question(s)
+                        </div>
                       </div>
-                      <div className="faq-heading-chev">{isExpanded ? "▲" : "▼"}</div>
+                      <div className="faq-heading-chev">
+                        {isExpanded ? "▲" : "▼"}
+                      </div>
                     </button>
 
                     {isExpanded && (
                       <div className="faq-questions">
                         {pageSlice.map((faq) => (
-                          <article key={`${faq.heading}_${faq.q_no}_${faq.question}`} className="faq-item">
+                          <article
+                            key={`${faq.heading}_${faq.q_no}_${faq.question}`}
+                            className="faq-item"
+                          >
                             <details className="faq-item-details">
                               <summary className="faq-item-question">
-                                <div className="faq-q-text">{safeText(faq.question)}</div>
-                                <div className="faq-q-no">Q No: {safeText(faq.q_no)}</div>
+                                <div className="faq-q-text">
+                                  {safeText(faq.question)}
+                                </div>
+                                <div className="faq-q-no">
+                                  Q No: {safeText(faq.q_no)}
+                                </div>
                               </summary>
-                              <div className="faq-item-answer">{renderAnswer(faq.answer)}</div>
+                              <div className="faq-item-answer">
+                                {renderAnswer(faq.answer)}
+                              </div>
                             </details>
                           </article>
                         ))}
 
                         {/* Pagination controls for this heading */}
                         {totalPages > 1 && (
-                          <div className="faq-pagination-wrap" aria-hidden={totalPages <= 1 ? "true" : "false"}>
+                          <div
+                            className="faq-pagination-wrap"
+                            aria-hidden={totalPages <= 1 ? "true" : "false"}
+                          >
                             <div className="faq-pagination-meta">
                               Showing {startIdx + 1}–{endIdx} of {totalItems}
                             </div>
@@ -476,7 +537,8 @@ export default function FAQPage() {
       </div>
 
       <footer className="faq-footer">
-        Tip: answers may contain formatted HTML (lists, line breaks). Install DOMPurify to sanitize HTML: <code>npm i dompurify</code>
+        Tip: answers may contain formatted HTML (lists, line breaks). Install
+        DOMPurify to sanitize HTML: <code>npm i dompurify</code>
       </footer>
     </div>
   );

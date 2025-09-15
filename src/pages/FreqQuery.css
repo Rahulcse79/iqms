@@ -1,35 +1,41 @@
-/* FreqQuery.css - Enterprise/MNC-level styles for FreqQuery component */
+/* FreqQuery.css — Theme-aware styles for FreqQuery component
+   Uses theme variables: --bg, --surface, --panel, --surface-accent,
+   --text, --muted, --primary, --primary-dark, --accent, --accent-600, --accent-dark,
+   --border, --shadow, --shadow-sm, --focus-ring, --danger, --danger-light,
+   --radius, --max-width, --gap
+   Fallbacks are provided so this file is resilient if some tokens are missing.
+*/
 
-
-
+/* Page wrapper */
 .freq-page {
-  max-width: var(--max-width);
+  max-width: var(--max-width, 1200px);
   margin: 24px auto;
   padding: 20px;
-  background: var(--bg);
+  background: var(--bg, #f5f7fa);
   font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
-  color: var(--text);
+  color: var(--text, #0f1724);
   line-height: 1.5;
 }
 
+/* Header */
 .freq-header {
   margin-bottom: 18px;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 2px solid var(--border, rgba(15,23,42,0.06));
   padding-bottom: 6px;
 }
 .freq-title {
   font-size: 22px;
   font-weight: 700;
   margin: 0;
-  color: var(--accent-dark);
+  color: var(--accent-dark, var(--accent, #6366f1));
 }
 .freq-sub {
   margin: 2px 0 0;
-  color: var(--muted);
+  color: var(--muted, #64748b);
   font-size: 14px;
 }
 
-/* controls */
+/* Controls */
 .freq-controls {
   display: flex;
   flex-wrap: wrap;
@@ -40,23 +46,27 @@
 .freq-label {
   font-weight: 600;
   margin-right: 6px;
+  color: var(--text, #0f1724);
 }
+
+/* Select */
 .freq-select {
   padding: 10px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: #fff;
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border, rgba(15,23,42,0.06));
+  background: var(--surface, #ffffff);
   font-weight: 600;
   transition: all 0.2s ease;
+  color: var(--text, #0f1724);
 }
 .freq-select:hover,
 .freq-select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(22, 102, 192, 0.1);
+  border-color: var(--accent, var(--primary, #0ea5a4));
+  box-shadow: var(--focus-ring, 0 6px 18px rgba(13,110,253,0.12));
   outline: none;
 }
 
-/* buttons */
+/* Actions & buttons */
 .freq-actions {
   display: flex;
   gap: 10px;
@@ -64,19 +74,19 @@
   margin-left: 10px;
 }
 .freq-btn {
-  background: #fff;
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, rgba(15,23,42,0.06));
+  color: var(--text, #0f1724);
   padding: 9px 14px;
-  border-radius: var(--radius);
+  border-radius: var(--radius, 8px);
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
-  transition: all 0.2s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 .freq-btn:hover {
-  background: #f9fafc;
-  box-shadow: var(--shadow);
+  background: var(--surface-accent, rgba(250,250,255,0.6));
+  box-shadow: var(--shadow, 0 6px 20px rgba(0,0,0,0.06));
   transform: translateY(-2px);
 }
 .freq-btn:disabled {
@@ -85,31 +95,34 @@
   box-shadow: none;
   transform: none;
 }
+
+/* Primary / danger */
 .freq-btn-primary {
-  background: var(--accent);
+  background: linear-gradient(180deg, var(--accent, var(--primary, #0ea5a4)), var(--accent-600, #08918f));
   color: #fff;
   border: none;
 }
 .freq-btn-primary:hover {
-  background: var(--accent-dark);
+  background: var(--accent-dark, var(--primary-dark, #08918f));
 }
+
 .freq-btn-danger {
-  background: var(--danger-light);
-  color: var(--danger);
-  border: 1px solid var(--danger);
+  background: var(--danger-light, rgba(220,38,38,0.08));
+  color: var(--danger, #dc2626);
+  border: 1px solid var(--danger, #dc2626);
 }
 .freq-btn-danger:hover {
-  background: var(--danger);
+  background: var(--danger, #dc2626);
   color: #fff;
 }
 
-/* meta and search */
+/* Meta and search */
 .freq-meta {
   display: flex;
   gap: 14px;
   align-items: center;
   margin-left: auto;
-  color: var(--muted);
+  color: var(--muted, #64748b);
   font-size: 13px;
 }
 .freq-meta-item {
@@ -124,38 +137,40 @@
 .freq-search {
   width: 100%;
   padding: 9px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border, rgba(15,23,42,0.06));
+  background: var(--surface, #fff);
+  color: var(--text, #0f1724);
   transition: all 0.2s ease;
 }
 .freq-search:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(22, 102, 192, 0.1);
+  border-color: var(--accent, var(--primary, #0ea5a4));
+  box-shadow: var(--focus-ring, 0 6px 18px rgba(13,110,253,0.12));
   outline: none;
 }
 
-/* panel */
+/* Panel */
 .freq-panel {
-  border-radius: var(--radius);
-  background: var(--panel);
-  border: 1px solid var(--border);
+  border-radius: var(--radius, 10px);
+  background: var(--panel, var(--surface, #fff));
+  border: 1px solid var(--border, rgba(15,23,42,0.06));
   padding: 18px;
-  box-shadow: var(--shadow);
-  transition: box-shadow 0.2s ease;
+  box-shadow: var(--shadow, 0 6px 20px rgba(0,0,0,0.06));
+  transition: box-shadow 0.2s ease, transform 0.12s ease;
 }
 .freq-panel:hover {
-  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.1);
+  box-shadow: var(--shadow-sm, 0 10px 24px rgba(16, 24, 40, 0.06));
 }
 
-/* error/loading/empty */
+/* error/loading/empty states */
 .freq-error {
   text-align: center;
   padding: 24px;
-  border-radius: var(--radius);
-  background: var(--danger-light);
+  border-radius: var(--radius, 8px);
+  background: var(--danger-light, rgba(220,38,38,0.06));
 }
 .freq-error-text {
-  color: var(--danger);
+  color: var(--danger, #dc2626);
   font-weight: 700;
   margin-bottom: 8px;
 }
@@ -163,45 +178,47 @@
 .freq-empty {
   padding: 22px;
   text-align: center;
-  color: var(--muted);
+  color: var(--muted, #64748b);
   font-size: 15px;
 }
 
-/* table */
+/* Table */
 .freq-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  border-radius: var(--radius);
+  border-radius: var(--radius, 8px);
   overflow: hidden;
 }
 .freq-table thead th {
   text-align: left;
   padding: 12px;
-  border-bottom: 2px solid var(--border);
-  color: var(--muted);
+  border-bottom: 2px solid var(--border, rgba(15,23,42,0.06));
+  color: var(--muted, #64748b);
   font-size: 13px;
   font-weight: 700;
-  background: #fafbfc;
+  background: var(--surface-accent, rgba(250,250,255,0.6));
 }
 .freq-table tbody td {
   padding: 12px;
-  border-bottom: 1px solid #f0f2f6;
+  border-bottom: 1px solid var(--border, rgba(15,23,42,0.04));
   vertical-align: middle;
+  background: var(--panel, var(--surface, #fff));
+  color: var(--text, #0f1724);
 }
 .freq-table tbody tr:hover {
-  background: #f9fafc;
+  background: var(--surface-accent, rgba(250,250,255,0.6));
 }
 .freq-pers {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text, #0f1724);
 }
 .freq-count {
   font-weight: 700;
-  color: var(--accent-dark);
+  color: var(--accent-dark, var(--accent, #6366f1));
 }
 
-/* pagination */
+/* Pagination */
 .freq-pagination-wrap {
   display: flex;
   align-items: center;
@@ -211,7 +228,7 @@
   flex-wrap: wrap;
 }
 .freq-pagination-meta {
-  color: var(--muted);
+  color: var(--muted, #64748b);
   font-size: 13px;
 }
 .freq-pagination {
@@ -222,34 +239,34 @@
 }
 .freq-page-btn {
   padding: 7px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: #fff;
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border, rgba(15,23,42,0.06));
+  background: var(--surface, #fff);
   cursor: pointer;
   font-weight: 600;
   font-size: 13px;
-  transition: all 0.2s ease;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.12s;
 }
 .freq-page-btn:hover {
-  background: #f1f5f9;
+  background: var(--surface-accent, rgba(250,250,255,0.6));
 }
 .freq-page-btn.active,
 .freq-page-btn[aria-current="page"] {
-  background: var(--accent);
+  background: linear-gradient(180deg, var(--accent, var(--primary, #0ea5a4)), var(--accent-600, #08918f));
   color: #fff;
-  border-color: var(--accent);
-  box-shadow: 0 4px 14px rgba(22, 102, 192, 0.25);
+  border-color: transparent;
+  box-shadow: var(--shadow-sm, 0 4px 14px rgba(22, 102, 192, 0.18));
 }
 .freq-page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .pagination-ellipsis {
-  color: var(--muted);
+  color: var(--muted, #64748b);
   padding: 0 6px;
 }
 
-/* page size */
+/* Page size control */
 .freq-pagesize {
   display: flex;
   align-items: center;
@@ -257,17 +274,19 @@
 }
 .freq-pagesize-select {
   padding: 6px 10px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  border-radius: var(--radius, 8px);
+  border: 1px solid var(--border, rgba(15,23,42,0.06));
   transition: all 0.2s ease;
+  background: var(--surface, #fff);
+  color: var(--text, #0f1724);
 }
 .freq-pagesize-select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(22, 102, 192, 0.1);
+  border-color: var(--accent, var(--primary, #0ea5a4));
+  box-shadow: var(--focus-ring, 0 6px 18px rgba(13,110,253,0.12));
   outline: none;
 }
 
-/* small helpers */
+/* Small helpers */
 .sr-only {
   position: absolute !important;
   height: 1px;
@@ -277,7 +296,7 @@
   white-space: nowrap;
 }
 
-/* responsive */
+/* Responsive */
 @media (max-width: 900px) {
   .freq-meta {
     display: none;
@@ -307,5 +326,9 @@
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
+  }
+  .freq-table thead th, .freq-table tbody td {
+    padding: 10px;
+    font-size: 13px;
   }
 }

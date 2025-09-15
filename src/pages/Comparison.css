@@ -1,200 +1,293 @@
 /* Page container */
 .comparison-container {
-    padding: 40px 20px;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  padding: 40px 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg);
+  color: var(--text);
 }
 
 /* Heading */
 .comparison-container h2 {
-    margin-bottom: 18px;
-    font-size: 22px;
-    color: #2c3e50;
-    font-weight: 700;
-    text-align: center;
+  margin-bottom: 18px;
+  font-size: 22px;
+  color: var(--text);
+  font-weight: 700;
+  text-align: center;
 }
 
 /* Form */
 .comparison-form {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    background: #fff;
-    padding: 20px 22px;
-    border: 1px solid #e1e1e1;
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
-    width: 100%;
-    max-width: 920px;
-    /* make room for result columns under it */
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--surface);
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 920px;
 }
 
 .comparison-form label {
-    display: flex;
-    flex-direction: column;
-    font-weight: 600;
-    color: #444;
-    font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
 }
 
 .comparison-form input,
 .comparison-form select {
-    margin-top: 8px;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 1px solid #cfcfcf;
-    border-radius: 6px;
-    outline: none;
-    transition: all 0.18s ease;
+  margin-top: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  background: var(--surface-accent);
+  color: var(--text);
+  transition: all 0.18s ease;
 }
 
 .comparison-form input:focus,
 .comparison-form select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 6px rgba(0, 123, 255, 0.18);
+  border-color: var(--primary);
+  box-shadow: 0 0 6px var(--shadow-primary);
 }
 
 .search-btn {
-    padding: 12px;
-    background-color: #007bff;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 700;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.18s ease;
+  padding: 12px;
+  background-color: var(--primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
 }
 
 .search-btn:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
 /* Results container */
 .comparison-results {
-    width: 100%;
-    max-width: 1200px;
-    margin-top: 26px;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 26px;
 }
 
 /* Results header */
 .results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .results-header h3 {
-    margin: 0;
-    font-size: 15px;
-    color: #333;
-    background: #f3f3f3;
-    padding: 8px 12px;
-    border-radius: 6px;
+  margin: 0;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--surface-accent);
+  padding: 8px 12px;
+  border-radius: 6px;
 }
 
 /* Print button */
 .print-btn {
-    padding: 8px 12px;
-    background: #333;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
+  padding: 8px 12px;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.print-btn:hover {
+  background: var(--primary);
+  color: #fff;
 }
 
 /* Cards wrapper */
 .cards {
-    display: flex;
-    gap: 18px;
-    align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  padding: 20px;
+  align-items: flex-start;
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+
+.label-searchbox {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.label-searchbox input {
+  width: 300px;
 }
 
 /* Each card */
 .card {
-    flex: 1;
-    background: #fff;
-    border: 1px solid #e6e6e6;
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  flex: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--surface);
+  box-shadow: var(--shadow);
+  min-width: 280px; /* prevents cards from shrinking too much */
 }
 
 /* colored top bar */
 .card-top {
-    background: #f6f6f6;
-    padding: 10px 14px;
-    font-weight: 700;
-    color: #222;
-    border-bottom: 1px solid #ececec;
+  background: var(--bg);
+  padding: 10px 14px;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
 }
 
 /* card body */
 .card-body {
-    padding: 12px 14px 18px;
+  padding: 12px 14px 18px;
+  color: var(--text);
 }
 
 /* Title inside card */
 .card-title {
-    font-weight: 800;
-    font-size: 16px;
-    margin-bottom: 10px;
-    color: #111;
+  font-weight: 800;
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: var(--text);
 }
 
 /* Info table styling */
 .info-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 12px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
 }
 
 .info-table td {
-    padding: 8px 10px;
-    border: 1px solid #f0f0f0;
-    font-size: 13px;
-    color: #333;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
 }
 
 .section-title {
-    margin-top: 8px;
-    font-weight: 700;
-    color: #333;
-    font-size: 13px;
+  margin-top: 8px;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 13px;
 }
 
 /* Rank history table */
 .rank-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 8px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
 }
 
 .rank-table th,
 .rank-table td {
-    padding: 8px 10px;
-    border: 1px solid #f0f0f0;
-    font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .rank-table thead {
-    background: #fafafa;
-    font-weight: 700;
+  background: var(--surface-accent);
+  font-weight: 700;
 }
 
-/* Responsive: stack cards on small screens */
-@media (max-width: 900px) {
-    .cards {
-        flex-direction: column;
-    }
+/* ========================= */
+/* 📱 Responsive adjustments */
+/* ========================= */
 
-    .comparison-form {
-        max-width: 720px;
-    }
+/* Tablets */
+@media (max-width: 1024px) {
+  .comparison-form {
+    max-width: 90%;
+  }
+
+  .cards {
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .card-title {
+    font-size: 15px;
+  }
+}
+
+/* Large phones / small tablets */
+@media (max-width: 768px) {
+  .comparison-container {
+    padding: 20px 10px;
+  }
+
+  .comparison-form {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .cards {
+    flex-direction: column;
+    padding: 12px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .comparison-container h2 {
+    font-size: 18px;
+  }
+
+  .comparison-form input,
+  .comparison-form select {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  .search-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .card-title {
+    font-size: 14px;
+  }
+
+  .info-table td,
+  .rank-table td,
+  .rank-table th {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
 }
