@@ -10,6 +10,7 @@ import { fetchPendingQueries } from "../actions/pendingQueryAction";
 import { fetchTransferredQueries } from "../actions/transferredQueryAction";
 import Loader from "../components/Loader";
 import { UserRole } from "../constants/Enum";
+import users from "../utils/users.json"
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -142,50 +143,19 @@ const Login = () => {
 };
 
 async function fakeLoginAPI(username, password) {
-  return new Promise((resolve) =>
+  return new Promise((resolve) => {
     setTimeout(() => {
-      if (username === "916369" && password === "Sri@v.369") {
-        resolve({
-          status: "OK",
-          message: "Authenticated",
-          data: {
-            token: "abc123",
-            refreshToken: "refresh123",
-            userId: 139,
-            userName: "916369",
-            fullName: "Srikanth Vrutti",
-            roles: ["ROLE_AGENT"],
-            roleId: [34],
-            extension: "4000",
-            airForceUserDetails: {
-              airForceServiceNumber: "916369",
-              airForceCategory: "AIRMEN",
-              airForceDepartment: ["CQC"],
-              airForceLevel: ["CLERK"],
-              airForceRole_Access: [
-                "ASP-I",
-                "ASP-II",
-                "ASP-III",
-                "ASP-IV",
-                "ASP-V",
-                "ASP-VI",
-                "ASP-VII",
-                "ASP-VIII",
-              ],
-              categoryQuery: ["AIRMEN", "CIVILIAN", "OFFICER"],
-            },
-            sipPhoneButton: {
-              mute: true,
-              hold: true,
-              crm: true,
-            },
-          },
-        });
+      const user = users.find(
+        (u) => u.username === username && u.password === password
+      );
+
+      if (user) {
+        resolve(user);
       } else {
         resolve({ status: "ERROR", message: "Invalid credentials" });
       }
-    }, 1000)
-  );
+    }, 1000);
+  });
 }
 
 export default Login;
