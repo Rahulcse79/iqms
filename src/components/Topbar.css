@@ -9,7 +9,6 @@
   color: var(--text);
   height: 90px;
   padding: 12px 20px;
-  border: 1px solid var(--border);
   transition: background 0.25s ease, color 0.25s ease;
 }
 

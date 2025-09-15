@@ -28,7 +28,7 @@ const SidebarHeader = styled.div`
   padding: 0 16px;
   height: 90px;
   color: var(--text);
-  border-bottom: 1px solid #e5e7eb; /* Light theme border */
+  border-bottom: 1px solid var(--border); /* Light theme border */
   white-space: nowrap;
 `;
 

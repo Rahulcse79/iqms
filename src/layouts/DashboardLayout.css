@@ -228,7 +228,7 @@ html, body {
 .main-content {
   flex-grow: 1;
   /* This is the key change */
-  margin-left: 230px; /* Match this value to your sidebar's width */
+  margin-left: 210px; /* Match this value to your sidebar's width */
   transition: margin-left 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
@@ -246,8 +246,7 @@ html, body {
 
 .content {
   padding: 24px;
-  margin-right: 20px;
-  margin-left: 20px ;
+  margin-right: 20px ;
   flex-grow: 1; /* Ensures the content area fills the space and pushes the footer down */
 }
 
