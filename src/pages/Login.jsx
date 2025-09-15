@@ -10,7 +10,7 @@ import { fetchPendingQueries } from "../actions/pendingQueryAction";
 import { fetchTransferredQueries } from "../actions/transferredQueryAction";
 import Loader from "../components/Loader";
 import { UserRole } from "../constants/Enum";
-import users from "../utils/users.json"
+import users from "../utils/users.json";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -97,17 +97,34 @@ const Login = () => {
   }
 
   return (
+    // at top of file (if not already)
+
+    // inside your component render (exactly replace the portion you showed)
     <>
-      <div className="login-container-outer"></div>
-      <div className="ivrs-head">INTERACTIVE VOICE RESPONSE SYSTEM (IVRS)</div>
-      <div className="login-container">
-        <div className="login-header">
-          <img src={logo} alt="CRM Logo" className="login-logo" />
-        </div>
-        <div className="login-box">
+      <div className="login-container-outer" aria-hidden="true"></div>
+
+      {/* Heading with one-time sweep animation — uses CSS only */}
+      <h1 className="ivrs-head" aria-hidden="true">
+        INTERACTIVE VOICE RESPONSE SYSTEM (IVRS)
+      </h1>
+
+      <div className="login-container" role="main">
+        {/* Optional left column: subtle illustration / message — keep empty if you want */}
+
+        {/* Login card (kept functionality intact) */}
+        <div className="login-box" role="region" aria-label="Login form">
+          <div className="login-header">
+            <img src={logo} alt="CRM Logo" className="login-logo" />
+          </div>
           <h2 className="login-title">User Login</h2>
-          {error && <p className="error-text">{error}</p>}
-          <form className="login-form" onSubmit={handleSubmit}>
+
+          {error && (
+            <p className="error-text" role="alert" aria-live="assertive">
+              {error}
+            </p>
+          )}
+
+          <form className="login-form" onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label htmlFor="username">Username</label>
               <input
@@ -120,6 +137,7 @@ const Login = () => {
                 required
               />
             </div>
+
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <input
@@ -132,9 +150,18 @@ const Login = () => {
                 required
               />
             </div>
-            <button type="submit" className="login-btn">
-              Login
-            </button>
+
+            <div className="login-actions">
+              <button type="submit" className="login-btn" aria-label="Login">
+                Login
+              </button>
+              {/* kept intentionally simple — add "forgot" or "help" buttons here if needed */}
+            </div>
+
+            <div className="login-footer" aria-hidden="true">
+              © {new Date().getFullYear()} IVRS — Secure access - Coral Telecom
+              Ltd.
+            </div>
           </form>
         </div>
       </div>
