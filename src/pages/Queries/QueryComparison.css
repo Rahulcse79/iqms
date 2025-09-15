@@ -50,7 +50,7 @@ body {
 
 /* C. Form Card */
 .comparison-form {
-  background: var(--card-bg);
+  background: var(--surface-accent);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow);
@@ -178,7 +178,7 @@ body {
   flex-direction: column;
   padding: 20px;
   min-width: 0; /* critical to prevent overflow in grid children */
-  background: var(--card-bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow);

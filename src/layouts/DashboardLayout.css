@@ -14,45 +14,47 @@
 /* ---------------- LIGHT THEME ---------------- */
 .theme-light {
   /* Backgrounds */
-  --bg: #f5f7fa;
-  --surface: #ffffff;
-  --surface-accent: #f0f4f8;
+  --bg: #f9fafb;              /* very soft off-white background */
+  --surface: #ffffff;          /* pure white for cards/panels */
+  --surface-accent: #f1f5f9;   /* lighter gray accent, gentle separation */
 
   /* Text */
-  --text: #1e293b;
-  --muted: #64748b;
+  --text: #1f2937;             /* balanced neutral dark gray */
+  --muted: #6b7280;            /* softened gray for less emphasis */
 
   /* Buttons */
-  --button-bg: #0ea5a4;
-  --button-hover: #08918f;
+  --button-bg: #14b8a6;        /* teal with mild vibrance */
+  --button-hover: #0d9488;     /* slightly darker teal for hover */
 
   /* Brand/accents */
-  --primary: #0ea5a4;
-  --accent: #6366f1;
+  --primary: #14b8a6;          /* calm teal as brand */
+  --accent: #6366f1;           /* soft indigo accent, lighter than before */
 
-  /* Status colors */
-  --red: #ef4444;             /* error / pending */
+  /* Status colors (pastel oriented) */
+  --red: #f87171;
   --red-bg: #fee2e2;
   --red-hover: #fecaca;
   --red-text: #991b1b;
 
-  --blue: #6366f1;            /* info / transferred */
-  --blue-bg: #e0e7ff;
-  --blue-hover: #c7d2fe;
-  --blue-text: #3730a3;
+  --blue: #60a5fa;
+  --blue-bg: #eff6ff;
+  --blue-hover: #dbeafe;
+  --blue-text: #1e40af;
 
-  --green: #22c55e;           /* success / replied */
-  --green-bg: #dcfce7;
-  --green-hover: #bbf7d0;
-  --green-text: #166534;
+  --green: #34d399;
+  --green-bg: #ecfdf5;
+  --green-hover: #d1fae5;
+  --green-text: #065f46;
 
   /* Borders & shadows */
-  --border: rgba(15,23,42,0.08);
-  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+  --border: rgba(0, 0, 0, 0.08);   /* lighter, fitting subtle theme */
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* softer shadow */
 
   /* Glass/blurred states */
-  --glass: rgba(255,255,255,0.6);
+  --glass: rgba(255, 255, 255, 0.75); /* softer frosted background */
 }
+
+
 
 .theme-dark {
   /* Backgrounds */
@@ -220,7 +222,7 @@ html, body {
 .main-content {
   flex-grow: 1;
   /* This is the key change */
-  margin-left: 220px; /* Match this value to your sidebar's width */
+  margin-left: 230px; /* Match this value to your sidebar's width */
   transition: margin-left 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
@@ -238,7 +240,8 @@ html, body {
 
 .content {
   padding: 24px;
-  margin-right: 30px;
+  margin-right: 20px;
+  margin-left: 20px ;
   flex-grow: 1; /* Ensures the content area fills the space and pushes the footer down */
 }
 
