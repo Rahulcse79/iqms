@@ -74,6 +74,7 @@
   /* Buttons */
   --button-bg: #06b6d4;
   --button-hover: #0ea5a4;
+    --button-text: #f7f7f7; 
 
   /* Brand/accents */
   --primary: #06b6d4;
