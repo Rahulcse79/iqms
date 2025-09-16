@@ -11,9 +11,9 @@ const REPLIED_STORAGE_KEY = "repliedQueries_v1";
 function safeGetFromStorage() {
   try {
     const raw = localStorage.getItem(REPLIED_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? JSON.parse(raw) : [];
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -25,64 +25,71 @@ function safeSaveToStorage(items) {
   }
 }
 
-function safeClearRepliedStorage() {
-  try {
-    localStorage.removeItem(REPLIED_STORAGE_KEY);
-  } catch (e) {
-    console.warn("Failed to clear repliedQueries storage:", e);
-  }
-}
-
-function safeSave(items) {
-  try {
-    localStorage.setItem(REPLIED_STORAGE_KEY, JSON.stringify(items));
-  } catch (e) {
-    console.warn("Failed to save replied queries:", e);
-  }
-}
-
+/**
+ * fetchRepliedQueries:
+ *  - resolves after first page arrives
+ *  - continues fetching remaining in background
+ */
 export const fetchRepliedQueries = () => async (dispatch) => {
   dispatch({ type: REPLIED_QUERY_REQUEST });
 
-  try {
-    let firstPageDone = false;
+  return new Promise((resolve, reject) => {
+    let firstPageResolved = false;
 
-    await fetchPagedIncremental(
+    fetchPagedIncremental(
       "http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
       {
         onPage: (items, all) => {
           safeSaveToStorage(all);
           dispatch({ type: REPLIED_QUERY_SUCCESS, payload: [...all] });
 
-          // unblock login after first page
-          if (!firstPageDone) {
-            firstPageDone = true;
+          if (!firstPageResolved) {
+            firstPageResolved = true;
+            resolve({ firstPageCount: items.length });
           }
+        },
+      }
+    ).catch((err) => {
+      if (!firstPageResolved) {
+        dispatch({
+          type: REPLIED_QUERY_FAIL,
+          payload: err?.message || "Failed to fetch replied queries",
+        });
+        reject(err);
+      } else {
+        console.error(
+          "Replied incremental fetch failed after first page:",
+          err
+        );
+        dispatch({
+          type: REPLIED_QUERY_FAIL,
+          payload: err?.message || "Background fetch failed",
+        });
+      }
+    });
+  });
+};
+
+// Background refresh (always waits for full completion)
+export const refreshRepliedQueries = () => async (dispatch) => {
+  dispatch({ type: REPLIED_QUERY_REQUEST });
+
+  try {
+    await fetchPagedIncremental(
+      "http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
+      {
+        onPage: (items, all) => {
+          safeSaveToStorage(all);
+          dispatch({ type: REPLIED_QUERY_SUCCESS, payload: [...all] });
         },
       }
     );
   } catch (err) {
     dispatch({
       type: REPLIED_QUERY_FAIL,
-      payload: err.message || "Failed to fetch replied queries",
+      payload: err?.message || "Refresh failed",
     });
-  }
-};
-
-// Background refresh (no blocking loader)
-export const refreshRepliedQueries = () => async (dispatch) => {
-  try {
-    await fetchPagedIncremental(
-      "http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
-      {
-        onPage: (items, all) => {
-          safeSaveToStorage(all);
-          dispatch({ type: REPLIED_QUERY_SUCCESS, payload: [...all] });
-        },
-      }
-    );
-  } catch (err) {
-    console.error("Silent refresh failed:", err.message);
+    throw err;
   }
 };
 

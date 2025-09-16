@@ -33,15 +33,16 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setInitializing(true);
+
     try {
       const response = await fakeLoginAPI(username, password);
       if (response.status === "OK") {
-        console.log("Login successfull : ", response);
         const baseUser = response.data.airForceUserDetails;
         const serviceNo = baseUser.airForceServiceNumber;
-        const categoryStr = baseUser.airForceCategory; // AIRMEN/OFFICER/CIVILIAN
+        const categoryStr = baseUser.airForceCategory;
         const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
 
+        // fetch personalData (non-blocking if fails)
         let personalData = null;
         try {
           if (serviceNo && categoryCode !== null) {
@@ -60,13 +61,14 @@ const Login = () => {
 
         login(response);
 
-        await dispatch(fetchRepliedQueries());
         const deptPrefix = "U";
         const personnelType = "A";
         const roleDigitForTab = { creator: "1", approver: "2", verifier: "3" };
         const pendingTabs = Object.values(roleDigitForTab).map(
           (digit) => `${deptPrefix}${digit}${personnelType}`
         );
+
+        // 🚀 Start all in parallel, resolve only when first pages arrive
         const tasks = [
           dispatch(fetchRepliedQueries()),
           ...pendingTabs.map((pw) =>
@@ -76,13 +78,14 @@ const Login = () => {
             dispatch(fetchTransferredQueries({ cat: 1, pendingWith: pw }))
           ),
         ];
+
+        // wait for first-page of each
         await Promise.all(tasks);
 
         setInitializing(false);
         navigate("/");
       } else {
         setInitializing(false);
-        console.error("Login error:", response.message);
         setError("Invalid username or password");
       }
     } catch (err) {
