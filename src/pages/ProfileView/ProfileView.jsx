@@ -106,9 +106,6 @@ const SECTIONS = [
   },
 ];
 
-/* ---------------------------
-   SectionPicker (unchanged) - searchable, accessible combobox
------------------------------*/
 function SectionPicker({
   options,
   value,
@@ -343,10 +340,6 @@ function SectionPicker({
   );
 }
 
-/* ---------------------------
-   Main ProfileView component
-   - adds "pin to top when scrolled" behavior
------------------------------*/
 export default function ProfileView() {
   const [serviceNo, setServiceNo] = useState("");
   const [category, setCategory] = useState("1");
@@ -359,27 +352,21 @@ export default function ProfileView() {
   const placeholderRef = useRef(null);
   const observerRef = useRef(null);
 
-  // pinned state + measured geometry to apply fixed positioning
   const [isPinned, setIsPinned] = useState(false);
   const [pinStyle, setPinStyle] = useState({ left: 0, width: "auto" });
   const [pinThreshold, setPinThreshold] = useState(null);
 
   const dispatch = useDispatch();
 
-  // NOTE: changed selector source to profileView (was reading from user/login_user)
   const personalSlice = useSelector((s) => s.personalData || {});
   const profileViewSlice = useSelector((s) => s.profileView || {});
-  // keep an explicit reference to user slice too (unchanged) in case other parts need it
   const userSlice = useSelector((s) => s.user ?? s.login_user ?? {});
 
-  // Take the history slices from profileViewSlice (this is where reducers store them)
   const rankHistory = profileViewSlice.rankHistory || {};
   const tradeHistory = profileViewSlice.tradeHistory || {};
   const postingHistory = profileViewSlice.postingHistory || {};
 
-  // --- Debug/logging to help trace data flow (non-invasive) ---
   useEffect(() => {
-    // Only in dev mode — harmless otherwise
     if (process.env.NODE_ENV !== "production") {
       try {
         console.groupCollapsed("[ProfileView] Redux slices snapshot");
@@ -445,13 +432,10 @@ export default function ProfileView() {
 
   const handleRetry = () => fetchAllData();
 
-  // compute and set pin threshold & styles
   const measureDropdown = useCallback(() => {
     const el = dropdownRef.current;
     if (!el) return;
-    // If the dropdown is currently pinned, measure from placeholder instead
     const rect = el.getBoundingClientRect();
-    // absolute document top for dropdown's current position (use page offset)
     const absoluteTop = rect.top + window.scrollY;
     setPinThreshold(Math.round(absoluteTop));
     setPinStyle({
@@ -461,7 +445,6 @@ export default function ProfileView() {
     });
   }, []);
 
-  // We'll use rAF loop to respond to scroll smoothly (throttle)
   useEffect(() => {
     if (!showProfile) return;
 
@@ -473,8 +456,7 @@ export default function ProfileView() {
         ticking = false;
         if (pinThreshold === null) return;
         const scrollY = window.scrollY || window.pageYOffset;
-        // Optionally adjust for your app's fixed header (set headerOffset)
-        const headerOffset = 0; // <-- if you have a fixed header, set it (e.g. 64)
+        const headerOffset = 0;
         if (scrollY + headerOffset >= pinThreshold - 1) {
           if (!isPinned) setIsPinned(true);
         } else {
@@ -483,10 +465,8 @@ export default function ProfileView() {
       });
     };
 
-    // Measure initially
     measureDropdown();
 
-    // Add listeners
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", measureDropdown);
     return () => {
@@ -495,7 +475,6 @@ export default function ProfileView() {
     };
   }, [showProfile, pinThreshold, isPinned, measureDropdown]);
 
-  // use ResizeObserver to handle internal layout changes of the dropdown
   useLayoutEffect(() => {
     if (!showProfile) return;
     const el = dropdownRef.current;
@@ -511,7 +490,6 @@ export default function ProfileView() {
     return () => ro.disconnect();
   }, [showProfile, measureDropdown]);
 
-  // scroll to section with offset for pinned header
   const scrollToSectionWithOffset = useCallback(
     (id) => {
       const el = sectionRefs.current[id];
@@ -531,14 +509,12 @@ export default function ProfileView() {
     [isPinned, pinStyle.height]
   );
 
-  // set default active on profile show
   useEffect(() => {
     if (!showProfile) return;
     if (SECTIONS && SECTIONS.length)
       setActiveSection((prev) => (prev ? prev : SECTIONS[0].id));
   }, [showProfile]);
 
-  // IntersectionObserver for active section (adjusted by header size)
   useEffect(() => {
     if (!showProfile) return;
 
@@ -589,11 +565,6 @@ export default function ProfileView() {
     scrollToSectionWithOffset(id);
   };
 
-  // // Provide inline style for pinned element (left/width)
-  // const pinnedInlineStyle = isPinned
-  //   ? { position: 'fixed', top: 0, left: `${pinStyle.left}px`, width: `${pinStyle.width}px`, zIndex: 1100 }
-  //   : {};
-
   return (
     <div className="profile-view-container">
       <SearchSection
@@ -621,7 +592,6 @@ export default function ProfileView() {
 
       {!loading && showProfile && !error && (
         <div className="result-section" style={{ overflow: "visible" }}>
-          {/* placeholder to preserve flow when we pin the dropdown */}
           <div
             ref={placeholderRef}
             className="dropdown-placeholder"
@@ -634,7 +604,6 @@ export default function ProfileView() {
               isPinned ? "dropdown-sticky--pinned" : ""
             }`}
             ref={dropdownRef}
-            // style={pinnedInlineStyle}
           >
             <SectionPicker
               options={SECTIONS}
@@ -670,6 +639,7 @@ export default function ProfileView() {
                   } else {
                     console.log("tabProps (non-array items):", tabProps);
                   }
+                  
                   console.groupEnd();
                 } catch (e) {
                   // noop
@@ -688,7 +658,13 @@ export default function ProfileView() {
                   <h2 className="section-title">{label}</h2>
                   <div className="section-content">
                     <LazyComponent
-                      renderFn={() => <Component {...tabProps} />}
+                      renderFn={() =>
+                        id === "iqms" ? (
+                          <Component {...tabProps} serviceNumber={serviceNo} serviceNo={serviceNo} category={category} />
+                        ) : (
+                          <Component {...tabProps} />
+                        )
+                      }
                     />
                   </div>
                 </div>

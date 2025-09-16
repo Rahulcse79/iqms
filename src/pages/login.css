@@ -290,7 +290,7 @@ body {
   border-radius: 12px;
   font-weight: 800;
   font-size: 1rem;
-  color: var(--surface, #fff);
+  color: var(--text, #fff);
   background: linear-gradient(180deg, var(--button-bg, #0ea5a4), var(--button-hover, #08918f));
   border: 1px solid color-mix(in srgb, var(--button-bg, #0ea5a4) 18%, transparent);
   cursor: pointer;
