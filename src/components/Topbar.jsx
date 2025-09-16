@@ -1,56 +1,66 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useMemo, useEffect } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate, useLocation } from "react-router-dom";
 import { GrRefresh } from "react-icons/gr";
-import { AuthContext } from "../context/AuthContext";
 import useTheme from "../hooks/useTheme";
 import "./Topbar.css";
-import { useDataRefresher } from '../hooks/useDataRefresher';
+import { useDataRefresher } from "../hooks/useDataRefresher";
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { auth } = useContext(AuthContext);
   const { refreshing, refreshData } = useDataRefresher();
   const [errorPlaceholder, setErrorPlaceholder] = useState("");
   const [isError, setIsError] = useState(false);
+  const [fullProfile, setFullProfile] = useState(null);
+  const [airForceProfile, setAirForceProfile] = useState(null);
 
-  const roles = auth?.user?.airForceUserDetails?.airForceRole_Access || [];
-  const categories = auth?.user?.airForceUserDetails?.categoryQuery || [];
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("userDetails");
+      const storedAFUser = localStorage.getItem("airForceUserDetails");
 
-  const [selectedRole, setSelectedRole] = useState(roles[0] || "");
-  const [searchValue, setSearchValue] = useState("");
+      if (storedUser) setFullProfile(JSON.parse(storedUser));
+      if (storedAFUser) setAirForceProfile(JSON.parse(storedAFUser));
+    } catch (err) {
+      console.warn("Failed to load extended user profile:", err);
+    }
+  }, []);
+
+  const categories = airForceProfile?.categoryQuery || [
+    "AIRMEN, OFFICER, CIVILIAN",
+  ];
   const [searchCategory, setSearchCategory] = useState(categories[0] || "");
-  const [searchType, setSearchType] = useState("Service");
 
-  const personalData = auth?.user?.personalData || null;
-  const svcPart = personalData
-    ? `${personalData.sno}-${personalData.cs}`
-    : null;
-  const rankNamePart = personalData
-    ? `${personalData.rankcd} ${personalData.p_name} ${personalData.trdcd}`
-    : null;
+  /** ✅ Extract portfolios directly from normalized userDetails */
+  const portfolios = useMemo(() => {
+    if (!fullProfile) return [];
+    return fullProfile.LOGIN_PORTFOLIO || [];
+  }, [fullProfile]);
 
-  const formattedName = personalData
-    ? `${svcPart} ${rankNamePart}`
-    : auth?.user?.fullName || "Unknown";
+  const [selectedPortfolio, setSelectedPortfolio] = useState(
+    portfolios.length > 0 ? portfolios[0] : null
+  );
 
-  const department =
-    auth?.user?.airForceUserDetails?.airForceDepartment?.join(", ") ||
-    personalData?.unitcd ||
-    "N/A";
-
-  const level = auth?.user?.airForceUserDetails?.airForceLevel?.[0] || "N/A";
-
+  /** 🔄 Manual Refresh */
   const handleRefreshScreen = async () => {
     navigate("/");
     await refreshData();
   };
 
-  const handleRoleChange = (e) => {
-    setSelectedRole(e.target.value);
-    console.log("Switched to role:", e.target.value);
+  /** 🔄 Portfolio Change */
+  const handlePortfolioChange = (e) => {
+    const selected = portfolios.find(
+      (p) => p.PORTFOLIO_NAME === e.target.value
+    );
+    setSelectedPortfolio(selected || null);
+    console.log("Switched to portfolio:", selected);
+    // 🔜 Later: trigger redux update or API calls based on this portfolio
   };
+
+  /** 🔍 Search Logic */
+  const [searchValue, setSearchValue] = useState("");
+  const [searchType, setSearchType] = useState("Service");
 
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
@@ -98,27 +108,33 @@ const Topbar = ({ toggleSidebar }) => {
     navigate(targetPath, { state });
   };
 
+  /** 🌓 Theme */
   const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="topbar">
       <div className="topbar-content">
-        {/* Left side: Sidebar + Role */}
+        {/* Left: Sidebar + Portfolio */}
         <div className="topbar-left">
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             <RiMenuFill />
           </button>
-          <label htmlFor="roleDropdown">Switch Role: </label>
+          <label htmlFor="portfolioDropdown">Portfolio: </label>
           <select
-            id="roleDropdown"
-            value={selectedRole}
-            onChange={handleRoleChange}
+            id="portfolioDropdown"
+            value={selectedPortfolio?.PORTFOLIO_NAME || ""}
+            onChange={handlePortfolioChange}
+            disabled={portfolios.length === 0}
           >
-            {roles.map((role, index) => (
-              <option key={index} value={role}>
-                {role}
-              </option>
-            ))}
+            {portfolios.length > 0 ? (
+              portfolios.map((p, idx) => (
+                <option key={idx} value={p.PORTFOLIO_NAME}>
+                  {p.PORTFOLIO_NAME} ({p.USER_ROLE})
+                </option>
+              ))
+            ) : (
+              <option disabled>No portfolios available</option>
+            )}
           </select>
         </div>
 
@@ -167,7 +183,7 @@ const Topbar = ({ toggleSidebar }) => {
           <button onClick={handleSearch}>Search</button>
         </div>
 
-        {/* Right side: User + Theme toggle */}
+        {/* Right: User + Theme */}
         <div className="topbar-right">
           <div
             className="theme-toggle"
@@ -181,22 +197,22 @@ const Topbar = ({ toggleSidebar }) => {
 
           <div
             className="user-card"
-            title={`${formattedName}\n${level}\nDept: ${department}`}
+            title={fullProfile?.LOGIN_NAME || "Unknown"}
           >
-            {personalData ? (
-              <div className="user-primary">
-                <span className="svcno">{svcPart}</span>
-                <span className="rankname">{rankNamePart}</span>
+            <span className="user-primary">
+              {fullProfile?.LOGIN_NAME || "No Name"}
+            </span>
+            {selectedPortfolio && (
+              <div className="user-meta">
+                <span className="badge badge-role">
+                  {selectedPortfolio.USER_ROLE}
+                </span>
+                <span className="dot">•</span>
+                <span className="badge badge-module">
+                  {selectedPortfolio.SUB_SECTION}
+                </span>
               </div>
-            ) : (
-              <span className="user-primary">{formattedName}</span>
             )}
-
-            <div className="user-meta">
-              <span className="badge badge-level">{level}</span>
-              <span className="dot">•</span>
-              <span className="badge badge-dept">{department}</span>
-            </div>
           </div>
         </div>
       </div>
