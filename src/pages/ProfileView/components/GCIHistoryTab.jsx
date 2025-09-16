@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchABCCodes, getGCIHistory } from "../../../actions/ProfileAction";
+import "./GCIHistoryTab.css"; // optional CSS for styling
 
 /**
  * GCIHistoryTab

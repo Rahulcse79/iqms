@@ -22,7 +22,6 @@ const formatDate = (iso) => {
   }
 };
 
-
 const devLog = (...args) => {
   if (process.env.NODE_ENV !== 'production') {
     console.debug('[PersonalDetails]', ...args);
@@ -179,66 +178,100 @@ function InfoGrid({ data }) {
   );
 }
 
-/** ---------- Styles ---------- */
+/** ---------- Styles (theme-based) ---------- */
 const styles = {
   card: {
-    background: '#fff',
-    borderRadius: 12,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    background: 'var(--surface, #fff)',
+    borderRadius: 'var(--radius-sm, 12px)',
+    boxShadow: 'var(--shadow, 0 4px 12px rgba(0,0,0,0.08))',
     padding: 20,
-    maxWidth: 800,
+    maxWidth: 960,
     margin: '20px auto',
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: 'var(--font-family, "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial)',
+    color: 'var(--text, #111827)',
   },
   header: {
     marginBottom: 20,
-    borderBottom: '1px solid #e5e7eb',
+    borderBottom: '1px solid var(--border, rgba(15,23,42,0.06))',
     paddingBottom: 10,
   },
   name: {
     margin: 0,
-    fontSize: 24,
-    color: '#1f2937',
+    fontSize: 22,
+    color: 'var(--text, #111827)',
+    fontWeight: 700,
+    lineHeight: 1.1,
   },
   subTitle: {
-    margin: '4px 0 0',
-    fontSize: 14,
-    color: '#6b7280',
+    margin: '6px 0 0',
+    fontSize: 13,
+    color: 'var(--muted, #6b7280)',
   },
   section: { marginBottom: 20 },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
+    fontSize: 15,
+    fontWeight: 600,
+    color: 'var(--text, #111827)',
     marginBottom: 10,
-    borderBottom: '1px solid #e5e7eb',
-    paddingBottom: 4,
+    borderBottom: '1px solid var(--border, rgba(15,23,42,0.06))',
+    paddingBottom: 6,
   },
   infoGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: 'repeat(2, 1fr)',
     gap: 12,
     marginTop: 8,
   },
   infoItem: {
     display: 'flex',
     flexDirection: 'column',
-    padding: '8px 12px',
-    background: '#f9fafb',
-    borderRadius: 6,
-    border: '1px solid #e5e7eb',
+    padding: '10px 12px',
+    background: 'var(--surface-accent, #f9fafb)',
+    borderRadius: 'var(--radius-sm, 6px)',
+    border: '1px solid var(--border, rgba(15,23,42,0.06))',
+    minHeight: 56,
+    justifyContent: 'center',
   },
   label: {
     fontSize: 12,
-    fontWeight: 600,
-    color: '#6b7280',
-    marginBottom: 4,
+    fontWeight: 700,
+    color: 'var(--muted, #6b7280)',
+    marginBottom: 6,
   },
   value: {
     fontSize: 14,
-    color: '#111827',
+    color: 'var(--text, #111827)',
+    lineHeight: 1.4,
+    wordBreak: 'break-word',
   },
-  loader: { padding: 20, textAlign: 'center', fontSize: 16 },
-  error: { padding: 20, color: 'red', fontSize: 16, textAlign: 'center' },
-  empty: { padding: 20, fontSize: 16, textAlign: 'center' },
+  loader: {
+    padding: 20,
+    textAlign: 'center',
+    fontSize: 16,
+    color: 'var(--muted, #6b7280)',
+    background: 'transparent',
+  },
+  error: {
+    padding: 20,
+    color: 'var(--red, #dc2626)',
+    fontSize: 16,
+    textAlign: 'center',
+    background: 'transparent',
+  },
+  empty: {
+    padding: 20,
+    fontSize: 16,
+    textAlign: 'center',
+    color: 'var(--muted, #6b7280)',
+  },
+
+  
+
+  /* small responsive helper — used in style prop where appropriate (not applied automatically) */
+  // Note: When inline styles are used we can't use media queries here.
+  // For improved responsive control, include this CSS snippet in a global stylesheet:
+  //
+  // @media (max-width: 720px) {
+  //   .personal-info-grid { grid-template-columns: 1fr !important; }
+  // }
 };

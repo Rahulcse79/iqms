@@ -1,9 +1,21 @@
+/* ProfileView.css — theme-aware version
+   Uses CSS variables from your .theme-light / .theme-dark:
+   --bg, --surface, --surface-accent, --text, --muted,
+   --primary, --accent, --border, --shadow, --glass, --red, --green
+   Fallback values included for safety.
+*/
+
 /* ---------- Container & base ---------- */
 .profile-view-container {
   padding: 2rem;
-  background-color: #f4f6f9;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: #1f2937;
+  background-color: var(--bg, #f4f6f9);
+  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+  color: var(--text, #1f2937);
+
+  /* 🔥 fixes */
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
 }
 
 /* --- Search Section (preserved) --- */
@@ -12,27 +24,75 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 1.5rem;
-  background-color: #ffffff;
+  background-color: var(--surface, #ffffff);
   padding: 1.5rem;
   border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow, 0 4px 12px rgba(0,0,0,0.05));
+  border: 1px solid var(--border, rgba(15,23,42,0.06));
   margin-bottom: 2rem;
+
+  /* 🔥 fixes */
+  position: relative;
+  overflow: visible;
 }
 
 /* form-group, labels, inputs */
-.form-group { display:flex; flex-direction:column; gap:0.5rem; }
-.form-group label { font-size:0.875rem; font-weight:500; color:#374151; }
-.form-group select, .form-group input { padding:0.6rem 0.8rem; border:1px solid #d1d5db; border-radius:0.375rem; font-size:0.9rem; min-width:200px; }
-.form-group select:focus, .form-group input:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,0.18); }
-.submit-btn { padding:0.6rem 1.5rem; border:none; border-radius:0.375rem; background:#3b82f6; color:white; font-weight:600; cursor:pointer; transition:background-color 0.2s; }
-.submit-btn:hover { background:#2563eb; }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text, #374151);
+}
+.form-group select,
+.form-group input {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  min-width: 200px;
+  background: var(--surface-accent, #ffffff);
+  color: var(--text, #111827);
+  transition: border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+}
+.form-group select:focus,
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent, #3b82f6);
+  /* subtle glow using the accent; fallback if var(--glass) present */
+  box-shadow: 0 6px 20px rgba(59,130,246,0.06);
+}
+
+/* primary submit */
+.submit-btn {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: linear-gradient(180deg, var(--primary, #0ea5a4), color-mix(in srgb, var(--primary, #0ea5a4) 85%, #000 15%));
+  color: var(--surface, #fff);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(13,38,76,0.08);
+  opacity: 0.98;
+}
 
 /* --- Result Section --- */
 .result-section {
-  background-color: #ffffff;
+  background-color: var(--surface, #ffffff);
   padding: 1.5rem;
   border-radius: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow, 0 4px 12px rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--border, #e6e6e6);
+
+  /* 🔥 fixes */
+  position: relative;
   overflow: visible;
 }
 
@@ -43,25 +103,27 @@
 }
 
 /* --- dropdown (pinable) --- */
-/* Base (non-pinned): we keep it in the flow and centered */
+/* Base (non-pinned): we keep it in the flow and right-aligned by default */
 .dropdown-sticky {
   display: block;
   width: 40%;
   margin-left: auto; /* pushes element to the right */
-  background: #fff;
+  background: var(--surface, #fff);
   padding: 6px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border, #eee);
   margin-bottom: 20px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
   transition: box-shadow 120ms ease, transform 120ms ease;
   position: sticky;
   top: 90px;
-}
 
+  /* 🔥 fixes */
+  z-index: 1050;
+}
 
 /* When pinned (we apply fixed styles inline from jsx), add subtle elevation */
 .dropdown-sticky--pinned {
-  box-shadow: 0 10px 30px rgba(13, 38, 76, 0.08);
+  box-shadow: var(--shadow-lg, 0 10px 30px rgba(13, 38, 76, 0.08));
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
 }
@@ -71,11 +133,25 @@
   z-index: 1100;
 }
 
-/* ---------- Combobox / SectionPicker styles ---------- */
+/* small screen: dropdown becomes full width */
+@media (max-width: 980px) {
+  .dropdown-sticky {
+    width: 100%;
+    margin-left: 0;
+    left: 0;
+    right: 0;
+    box-shadow: var(--shadow, 0 6px 24px rgba(13,38,76,0.06));
+  }
+}
 .section-picker-wrapper {
   width: 100%;
-  padding: 0 12px;
+  padding: 20px;
   box-sizing: border-box;
+  background: var(--surface-accent);
+  color: var(--muted);
+  position: relative; /* 🔥 ensures dropdown anchors correctly */
+  z-index: 20;
+  overflow: visible; /* 🔥 allow dropdown expansion */
 }
 
 .combobox {
@@ -95,17 +171,18 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
-  background: white;
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--surface-accent, #fff);
   font-size: 14px;
   box-shadow: none;
   outline: none;
-  transition: box-shadow .12s ease, border-color .12s ease;
+  transition: box-shadow 0.12s ease, border-color 0.12s ease;
+  color: var(--text, #111827);
 }
 
 .combobox-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 6px 20px rgba(59,130,246,0.06);
+  border-color: var(--accent, #3b82f6);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.06);
 }
 
 .combobox-toggle {
@@ -117,31 +194,48 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #374151;
+  color: var(--muted, #374151);
 }
 
-.combobox-toggle:hover { background: rgba(0,0,0,0.04); }
+.combobox-toggle:hover {
+  background: color-mix(
+    in srgb,
+    var(--surface, #fff) 90%,
+    rgba(0, 0, 0, 0.04) 10%
+  );
+}
 
-.combobox-hint { margin-top: 6px; font-size: 12px; color: #6b7280; }
+.combobox-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+}
 
 .combobox-listbox {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  margin-top: 8px;
+  top: 100%; /* 🔥 ensure it opens below the input */
+  left: 0;
+  right: 0;
+  margin-top: 6px;
   max-height: 320px;
   overflow-y: auto;
-  background: #fff;
+  background: var(--surface, #fff);
   border-radius: 8px;
-  border: 1px solid #e6e6e6;
-  box-shadow: 0 8px 30px rgba(13, 38, 76, 0.08);
-  z-index: 1200;
+  border: 1px solid var(--border, #e6e6e6);
+  box-shadow: var(--shadow, 0 8px 30px rgba(13, 38, 76, 0.08));
+  z-index: 99999; /* 🔥 ensure it stays on top */
   padding: 6px;
   list-style: none;
 }
 
-.combobox-empty { padding: 10px 12px; color: #6b7280; font-size: 13px; }
+/* Empty */
+.combobox-empty {
+  padding: 10px 12px;
+  color: var(--muted, #6b7280);
+  font-size: 13px;
+}
 
+/* Options */
 .combobox-option {
   display: flex;
   align-items: center;
@@ -151,19 +245,41 @@
   cursor: pointer;
   user-select: none;
   font-size: 14px;
-  color: #111827;
+  color: var(--text, #111827);
 }
-.combobox-option:hover { background: rgba(59,130,246,0.04); }
-.combobox-option--highlighted { background: rgba(59,130,246,0.10); outline: none; }
-.combobox-option--selected { font-weight: 600; }
+.combobox-option:hover {
+  background: var(--surface-accent, rgba(249, 250, 251, 0.6));
+}
+.combobox-option--highlighted {
+  background: color-mix(
+    in srgb,
+    var(--accent, #6366f1) 8%,
+    var(--surface, #ffffff) 92%
+  );
+}
+.combobox-option--selected {
+  font-weight: 600;
+}
 
-.option-icon svg { width: 18px; height: 18px; color: #374151; opacity: 0.9; }
-.option-label { flex: 1 1 auto; }
-.option-selected-check { margin-left: 8px; color: #10b981; font-weight: 700; }
+.option-icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--muted, #374151);
+  opacity: 0.9;
+}
+.option-label {
+  flex: 1 1 auto;
+}
+.option-selected-check {
+  margin-left: 8px;
+  color: var(--green, #10b981);
+  font-weight: 700;
+}
 
+/* keyboard key chip */
 kbd {
-  background: #111827;
-  color: #fff;
+  background: var(--text, #111827);
+  color: var(--surface, #fff);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 11px;
@@ -179,16 +295,16 @@ kbd {
 }
 
 .profile-section {
-  background: #ffffff;
-  border: 1px solid #e6e6e6;
   border-radius: 10px;
   padding: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  transition: box-shadow 160ms ease, outline 160ms ease;
+}
+.profile-section:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow, 0 8px 20px rgba(13,38,76,0.06));
 }
 
 .profile-section.active-section {
-  outline: 3px solid rgba(59,130,246,0.08);
+  outline: 3px solid color-mix(in srgb, var(--accent, #3b82f6) 12%, transparent 88%);
   box-shadow: 0 8px 30px rgba(59,130,246,0.05);
 }
 
@@ -196,8 +312,8 @@ kbd {
   margin-bottom: 15px;
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
-  border-bottom: 1px solid #f3f4f6;
+  color: var(--text, #0f172a);
+  border-bottom: 1px solid color-mix(in srgb, var(--border, #f3f4f6) 80%, transparent 20%);
   padding-bottom: 8px;
 }
 
@@ -210,21 +326,21 @@ kbd {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--glass, rgba(255,255,255,0.85));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  color: #2563eb;
+  color: var(--accent, #2563eb);
   z-index: 2000;
 }
 
 /* --- Error Banner --- */
 .error-banner {
-  background: #fff5f5;
-  color: #b91c1c;
-  border: 1px solid #fca5a5;
+  background: var(--red-bg, #fff5f5);
+  color: var(--red, #b91c1c);
+  border: 1px solid color-mix(in srgb, var(--red, #fca5a5) 90%, transparent 10%);
   padding: 12px 16px;
   margin: 16px 0;
   border-radius: 6px;
@@ -236,21 +352,40 @@ kbd {
 
 .retry-btn {
   padding: 6px 14px;
-  background: #ef4444;
+  background: var(--red, #ef4444);
   border: none;
   border-radius: 4px;
-  color: white;
+  color: var(--surface, #fff);
   font-weight: 500;
   cursor: pointer;
   margin-left: 12px;
 }
-.retry-btn:hover { background: #dc2626; }
+.retry-btn:hover { background: color-mix(in srgb, var(--red, #dc2626) 90%, transparent 10%); }
 
 /* small utilities */
 .sr-only {
   position: absolute !important;
-  height: 1px; width: 1px;
+  height: 1px;
+  width: 1px;
   overflow: hidden;
   clip: rect(1px, 1px, 1px, 1px);
   white-space: nowrap;
+}
+
+/* Accessibility / small-screen tweaks */
+@media (max-width: 980px) {
+  .search-section { gap: 12px; padding: 12px; }
+  .form-group select, .form-group input { min-width: 140px; }
+  .profile-section { padding: 14px; }
+  .dropdown-sticky { top: 70px; }
+  .combobox-listbox { left: 8px; right: 8px; }
+}
+
+@media (max-width: 640px) {
+  .search-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dropdown-sticky { position: relative; top: auto; width: 100%; margin-left: 0; }
+  .combobox-listbox { left: 6px; right: 6px; max-height: 260px; }
 }

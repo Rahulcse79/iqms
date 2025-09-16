@@ -70,75 +70,127 @@ const pickOcc = (row) => {
 const styles = {
   container: {
     padding: 20,
-    fontFamily: "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
-    color: '#111827',
+    fontFamily:
+      "var(--font-family, 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial)",
+    color: "var(--text, #111827)",
+    background: "var(--bg, transparent)",
   },
+
+  /* Controls row */
   controlsRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
+    display: "flex",
+    justifyContent: "space-between",
     gap: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 12,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
+
   leftControls: {
-    display: 'flex',
+    display: "flex",
     gap: 12,
-    alignItems: 'center',
+    alignItems: "center",
+    minWidth: 0,
   },
+
+  /* Inputs / selects */
   select: {
-    padding: '6px 8px',
+    padding: "6px 8px",
     borderRadius: 6,
-    border: '1px solid #d1d5db',
-    background: '#fff',
-  },
-  tableWrap: {
-    overflowX: 'auto',
-    borderRadius: 8,
-    boxShadow: '0 1px 2px rgba(15,23,42,0.05)',
-    border: '1px solid #e6eaea',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    minWidth: 900,
-  },
-  thead: {
-    background: '#f8fafc',
-    color: '#0f172a',
+    border: "1px solid var(--border, #d1d5db)",
+    background: "var(--surface, #fff)",
+    color: "var(--text, #111827)",
     fontSize: 14,
-    textAlign: 'left',
+    outline: "none",
   },
+
+  /* Table wrapper */
+  tableWrap: {
+    overflowX: "auto",
+    borderRadius: 8,
+    boxShadow: "var(--shadow, 0 1px 2px rgba(15,23,42,0.05))",
+    border: "1px solid var(--border, rgba(0,0,0,0.06))",
+    background: "var(--surface, #fff)",
+  },
+
+  /* Table base */
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    minWidth: 900, // keep layout on larger screens; responsive adjustments handled in CSS if needed
+    fontSize: 14,
+    color: "var(--text, #111827)",
+  },
+
+  thead: {
+    background: "var(--surface-accent, #f8fafc)",
+    color: "var(--text, #0f172a)",
+    fontSize: 14,
+    textAlign: "left",
+    position: "sticky", // if using inline styles; note: 'top' needs to be set in wrapper when used
+    top: 0,
+    zIndex: 2,
+  },
+
   th: {
-    padding: '12px 14px',
-    borderBottom: '1px solid #e6eaea',
+    padding: "12px 14px",
+    borderBottom: "1px solid var(--border, #e6eaea)",
+    fontWeight: 600,
+    color: "var(--text, #0f172a)",
+    verticalAlign: "middle",
+  },
+
+  thSortable: {
+    cursor: "pointer",
+    userSelect: "none",
+    // visual hint props (focus/hover should be done in CSS where pseudo selectors are available)
+  },
+
+  td: {
+    padding: "12px 14px",
+    borderBottom: "1px solid color-mix(in srgb, var(--border, #f1f5f9) 88%, transparent 12%)",
+    fontSize: 14,
+    verticalAlign: "middle",
+    color: "var(--text, #111827)",
+    background: "var(--surface, #fff)",
+  },
+
+  tbodyRowAlt: {
+    background: "color-mix(in srgb, var(--surface, #fff) 88%, var(--surface-accent, #f8fafc) 12%)",
+  },
+
+  /* Pagination / nav */
+  navBtn: {
+    padding: "6px 10px",
+    borderRadius: 6,
+    border: "1px solid var(--border, #e2e8f0)",
+    background: "var(--surface, #fff)",
+    color: "var(--text, #111827)",
+    cursor: "pointer",
     fontWeight: 600,
   },
-  thSortable: {
-    cursor: 'pointer',
-    userSelect: 'none',
-  },
-  td: {
-    padding: '12px 14px',
-    borderBottom: '1px solid #f1f5f9',
-    fontSize: 14,
-    verticalAlign: 'middle',
-  },
-  tbodyRowAlt: { background: '#fbfbfb' },
-  navBtn: {
-    padding: '6px 10px',
-    borderRadius: 6,
-    border: '1px solid #e2e8f0',
-    background: '#fff',
-    cursor: 'pointer',
-  },
+
   pageInput: {
     width: 72,
-    padding: '6px 8px',
+    padding: "6px 8px",
     borderRadius: 6,
-    border: '1px solid #d1d5db',
+    border: "1px solid var(--border, #d1d5db)",
+    background: "var(--surface, #fff)",
+    color: "var(--text, #111827)",
+  },
+
+  /* Small responsive helpers (JS object can't define media queries — keep fallback sizes here) */
+  tableMinWidthLarge: 900,
+  tableMinWidthMedium: 720,
+  tableMinWidthSmall: 460,
+
+  /* subtle accessibility helpers */
+  focusRing: {
+    outline: "none",
+    boxShadow: "0 6px 20px color-mix(in srgb, var(--primary, #3b82f6) 12%, transparent 88%)",
   },
 };
+
 
 /* ---------------- Component ---------------- */
 export default function PostingHistoryTab({ items = [], loading, error }) {
