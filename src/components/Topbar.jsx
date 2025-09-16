@@ -1,21 +1,17 @@
 import React, { useState, useContext } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { useNavigate, useLocation } from "react-router-dom";
-import { fetchRepliedQueries } from "../actions/repliedQueryAction";
 import { GrRefresh } from "react-icons/gr";
-import { useDispatch } from "react-redux";
 import { AuthContext } from "../context/AuthContext";
 import useTheme from "../hooks/useTheme";
 import "./Topbar.css";
-import { refreshPendingQueries } from "../actions/pendingQueryAction";
-import { refreshTransferredQueries } from "../actions/transferredQueryAction";
+import { useDataRefresher } from '../hooks/useDataRefresher';
 
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { auth } = useContext(AuthContext);
-  const dispatch = useDispatch();
-  const [refreshing, setRefreshing] = useState(false);
+  const { refreshing, refreshData } = useDataRefresher();
   const [errorPlaceholder, setErrorPlaceholder] = useState("");
   const [isError, setIsError] = useState(false);
 
@@ -48,35 +44,7 @@ const Topbar = ({ toggleSidebar }) => {
 
   const handleRefreshScreen = async () => {
     navigate("/");
-    setRefreshing(true);
-    try {
-      // Use the "full refresh" action for replied queries (not the first-page-only fetch)
-      const repliedTask = dispatch(fetchRepliedQueries());
-
-      const deptPrefix = "U";
-      const personnelType = "A";
-      const roleDigitForTab = { creator: "1", approver: "2", verifier: "3" };
-
-      // prepare all pending refresh promises in parallel
-      const pendingPromises = Object.values(roleDigitForTab).map((digit) => {
-        const pendingWith = `${deptPrefix}${digit}${personnelType}`;
-        return dispatch(refreshPendingQueries({ cat: 1, pendingWith }));
-      });
-
-      const transferredPromises = Object.values(roleDigitForTab).map(
-        (digit) => {
-          const pendingWith = `${deptPrefix}${digit}${personnelType}`;
-          return dispatch(refreshTransferredQueries({ cat: 1, pendingWith }));
-        }
-      );
-
-      // wait for all to finish (replied + pending)
-      await Promise.all([repliedTask, ...pendingPromises, ...transferredPromises]);
-    } catch (err) {
-      console.error("Manual refresh failed", err);
-    } finally {
-      setRefreshing(false);
-    }
+    await refreshData();
   };
 
   const handleRoleChange = (e) => {
