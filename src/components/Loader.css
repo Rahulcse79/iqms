@@ -9,9 +9,11 @@
 
 :root {
   --loader-height: 60vh;
-  --duration: 7.2s; /* full loop time */
+  --duration: 6.2s; /* full loop time */
+  --duration-fly: 6.2s; /* full loop time */
   --easing: cubic-bezier(0.22, 0.93, 0.16, 0.98);
 }
+
 .rafale-loader {
   position: fixed; /* instead of relative */
   top: 0;
@@ -84,7 +86,7 @@ body:has(.rafale-loader) {
     background-position: 0 0;
   }
   to {
-    background-position: 1200px 0;
+    background-position: 12000px 0;
   }
 }
 @keyframes clouds-mid {
@@ -92,7 +94,7 @@ body:has(.rafale-loader) {
     background-position: 0 0;
   }
   to {
-    background-position: 900px 0;
+    background-position: 12000px 0;
   }
 }
 @keyframes clouds-front {
@@ -100,7 +102,7 @@ body:has(.rafale-loader) {
     background-position: 0 0;
   }
   to {
-    background-position: 600px 0;
+    background-position: 12000px 0;
   }
 }
 
@@ -208,7 +210,7 @@ body:has(.rafale-loader) {
   -webkit-offset-path: path("M -150 460 C 420 360, 940 240, 1850 80");
   offset-rotate: auto 0deg;
   -webkit-offset-rotate: auto 0deg;
-  animation: fly-center var(--duration) var(--easing) infinite;
+  animation: fly-center var(--duration-fly) var(--easing) infinite;
 }
 
 .plane-left {
@@ -217,7 +219,7 @@ body:has(.rafale-loader) {
   -webkit-offset-path: path("M -150 520 C 380 480, 780 410, 1700 210");
   offset-rotate: auto 0deg;
   -webkit-offset-rotate: auto 0deg;
-  animation: fly-left var(--duration) var(--easing) infinite;
+  animation: fly-left var(--duration-fly) var(--easing) infinite;
 }
 
 .plane-right {
@@ -226,7 +228,7 @@ body:has(.rafale-loader) {
   -webkit-offset-path: path("M -150 490 C 500 430, 1000 310, 1850 100");
   offset-rotate: auto 0deg;
   -webkit-offset-rotate: auto 0deg;
-  animation: fly-right var(--duration) var(--easing) infinite;
+  animation: fly-right var(--duration-fly) var(--easing) infinite;
 }
 
 /* Fine tuned keyframes to create the "together -> center leads -> trident" motion
@@ -237,24 +239,13 @@ body:has(.rafale-loader) {
     offset-distance: 0%;
     transform: translate(-50%, -50%) scale(0.92);
   }
-  5% {
-    offset-distance: 14%;
-    transform: translate(-49%, -51%) scale(0.96);
-  }
-  20% {
-    offset-distance: 35%;
-    transform: translate(-48%, -53%) scale(1);
-  }
-  55% {
-    offset-distance: 65%;
+/* 
+  50% {
+    offset-distance: 60%;
     transform: translate(-46%, -57%) scale(0.99);
-  }
-  85% {
-    offset-distance: 80%;
-    transform: translate(-44%, -63%) scale(0.96);
-  }
+  } */
   100% {
-    offset-distance: 100%;
+    offset-distance: 90%;
     transform: translate(-40%, -70%) scale(0.94);
   }
 }
@@ -264,22 +255,12 @@ body:has(.rafale-loader) {
     offset-distance: 0%;
     transform: translate(-50%, -50%) scale(0.92);
   }
-  5% {
-    offset-distance: 14%;
-    transform: translate(-49%, -51%) scale(0.96);
-  }
-  20% {
-    offset-distance: 35%;
-    transform: translate(-48%, -53%) scale(1);
-  }
-  55% {
+
+  /* 50% {
     offset-distance: 65%;
     transform: translate(-46%, -57%) scale(0.99);
-  }
-  85% {
-    offset-distance: 80%;
-    transform: translate(-44%, -63%) scale(0.96);
-  }
+  } */
+
   100% {
     offset-distance: 100%;
     transform: translate(-40%, -70%) scale(0.94);
@@ -291,22 +272,12 @@ body:has(.rafale-loader) {
     offset-distance: 10%;
     transform: translate(-50%, -50%) scale(0.92);
   }
-  5% {
-    offset-distance: 20%;
-    transform: translate(-51%, -51%) scale(0.96);
-  }
-  20% {
-    offset-distance: 40%;
-    transform: translate(-53%, -53%) scale(1.01);
-  }
-  55% {
+
+  /* 50% {
     offset-distance: 70%;
     transform: translate(-56%, -58%) scale(1);
-  }
-  85% {
-    offset-distance: 90%;
-    transform: translate(-60%, -64%) scale(0.96);
-  }
+  } */
+
   100% {
     offset-distance: 100%;
     transform: translate(-65%, -70%) scale(0.94);
@@ -369,7 +340,7 @@ body:has(.rafale-loader) {
   animation-play-state: paused;
 }
 
-.text-airfoce {
+.text-airforce {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -378,7 +349,7 @@ body:has(.rafale-loader) {
   font-weight: 800;
   font-weight: bold;
   text-transform: uppercase;
-  background: linear-gradient(to bottom, #ff9933 0%, #ffffff 50%, #138808 100%);
+  background: linear-gradient(to bottom, #f78717 0%, #ffffff 50%, #138808 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-align: center;
@@ -386,14 +357,14 @@ body:has(.rafale-loader) {
   background-clip: text;
   color: transparent;
   z-index: 100;
-  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5); /* soft shadow for contrast */
-  cursor: default;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5); 
 }
 
 /* Dynamic Loader Text Styling */
-.loader-text {
+
+.loader-text{
   position: absolute;
-  bottom: 12%; /* lift above bottom */
+  bottom: 5%; /* lift above bottom */
   left: 50%;
   transform: translateX(-50%);
   max-width: 80%;
@@ -401,11 +372,13 @@ body:has(.rafale-loader) {
   font-size: 1.4rem;
   font-weight: 600;
   color: #ffffff;
+  background: linear-gradient(to bottom, #f78717 0%, #ffffff 50%, #138808 100%);
   letter-spacing: 0.5px;
   line-height: 1.6;
   z-index: 200;
   padding: 12px 20px;
   border-radius: 12px;
+  opacity: 0;
 
   /* semi-transparent dark background for contrast */
   background: rgba(0, 0, 0, 0.35);
@@ -441,4 +414,17 @@ body:has(.rafale-loader) {
   50% {
     opacity: 1;
   }
+}
+
+.img{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loader-img{
+  object-fit: contain;
+  border-radius: 14px;
+  padding: 8px;
+  opacity: 40%;
 }

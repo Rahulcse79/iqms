@@ -5,6 +5,7 @@
 import React from "react";
 import "./Loader.css";
 import planeImg from "../assets/Images/loader-img.png";
+import LOGO from "../assets/Images/login-logo.png";
 
 export default function Loader({ className = "", text = "Loading..." }) {
   return (
@@ -19,7 +20,6 @@ export default function Loader({ className = "", text = "Loading..." }) {
         <div className="cloud-layer layer-mid" aria-hidden></div>
         <div className="cloud-layer layer-front" aria-hidden></div>
       </div>
-
       {/* SVG paths + smoke strokes. These are visual helpers; the actual planes are animated via CSS motion-path */}
       <svg
         className="paths-svg"
@@ -56,44 +56,42 @@ export default function Loader({ className = "", text = "Loading..." }) {
         {/* Smoke strokes (saffron, white, green). The stroke animation is synchronized with the planes. */}
         <path
           className="smoke saffron"
-          d="M -120 320 C 220 300, 540 240, 1050 90"
+          d="M -120 320 C 220 300, 700 220, 1050 90"
           fill="none"
           filter="url(#smokeBlur)"
         />
         <path
           className="smoke white"
-          d="M -120 320 C 180 340, 420 300, 710 180"
+          d="M -120 320 C 280 340, 700 220, 1180 60"
           fill="none"
           filter="url(#smokeBlur)"
         />
         <path
           className="smoke green"
-          d="M -120 320 C 260 320, 700 220, 1180 60"
+          d="M -120 320 C 340 380, 700 220, 1180 60"
           fill="none"
           filter="url(#smokeBlur)"
         />
       </svg>
-
       {/* The three planes (images) that follow their respective motion paths */}
       <div className="plane plane-center" aria-hidden>
         <img src={planeImg} alt="" />
       </div>
-
       <div className="plane plane-left" aria-hidden>
         <img src={planeImg} alt="" />
       </div>
-
       <div className="plane plane-right" aria-hidden>
         <img src={planeImg} alt="" />
       </div>
-
       {/* subtle ground blur to give depth */}
-      <div className="horizon" aria-hidden />
-      <div className="text-airfoce">
-        <div>AFCAO</div>
-        <div>INDIAN AIR FORCE</div>
+      <div className="horizon" aria-hidden />{" "}
+      <div className="img">
+        <img className="loader-img" src={LOGO} alt="AFCAO LOGO" />
       </div>
-
+      <div className="text-airforce">
+        <div>AIR FORCE CENTRAL ACCOUNTS OFFICE</div>
+        <pre>(AFCAO)</pre>
+      </div>
       {/* Dynamic Loader Text */}
       <div className="loader-text">{text}</div>
     </div>
