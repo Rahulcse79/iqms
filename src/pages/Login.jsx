@@ -36,58 +36,78 @@ const Login = () => {
 
     try {
       const response = await fakeLoginAPI(username, password);
-      if (response.status === "OK") {
-        const baseUser = response.data.airForceUserDetails;
-        const serviceNo = baseUser.airForceServiceNumber;
-        const categoryStr = baseUser.airForceCategory;
-        const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
 
-        // fetch personalData (non-blocking if fails)
-        let personalData = null;
-        try {
-          if (serviceNo && categoryCode !== null) {
-            const res = await fetch(
-              `http://sampoorna.cao.local/afcao/ipas/ivrs/fetch_pers_data/${serviceNo}/${categoryCode}`
-            );
-            const data = await res.json();
-            if (data?.items?.length > 0) {
-              personalData = data.items[0];
-            }
-          }
-        } catch (err) {
-          console.error("Error fetching personalData at login:", err);
-        }
-        response.data.personalData = personalData;
-
-        login(response);
-
-        const deptPrefix = "U";
-        const personnelType = "A";
-        const roleDigitForTab = { creator: "1", approver: "2", verifier: "3" };
-        const pendingTabs = Object.values(roleDigitForTab).map(
-          (digit) => `${deptPrefix}${digit}${personnelType}`
-        );
-
-        // 🚀 Start all in parallel, resolve only when first pages arrive
-        const tasks = [
-          dispatch(fetchRepliedQueries()),
-          ...pendingTabs.map((pw) =>
-            dispatch(fetchPendingQueries({ cat: 1, pendingWith: pw }))
-          ),
-          ...pendingTabs.map((pw) =>
-            dispatch(fetchTransferredQueries({ cat: 1, pendingWith: pw }))
-          ),
-        ];
-
-        // wait for first-page of each
-        await Promise.all(tasks);
-
-        setInitializing(false);
-        navigate("/");
-      } else {
+      if (response.status !== "OK") {
         setInitializing(false);
         setError("Invalid username or password");
+        return;
       }
+
+      const baseUser = response.data.airForceUserDetails;
+      const serviceNo = baseUser.airForceServiceNumber;
+      const categoryStr = baseUser.airForceCategory; // e.g. AIRMEN/OFFICER/CIVILIAN
+      const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
+
+      if (!serviceNo || categoryCode === null) {
+        setInitializing(false);
+        setError("Invalid user details. Please contact admin.");
+        return;
+      }
+
+      // 🔹 Fetch user details from new API
+      let userDetails = null;
+      try {
+        const res = await fetch(
+          `http://sampoorna.cao.local/afcao/ipas/ivrs/getUserDetails/${serviceNo}/${categoryCode}`
+        );
+
+        if (!res.ok) throw new Error(`API failed with ${res.status}`);
+        const data = await res.json();
+
+        if (!data?.USER_DETAILS?.length) {
+          throw new Error("No user details found");
+        }
+
+        const userObj = data.USER_DETAILS[0];
+        if (!userObj.LOGIN_PORTFOLIO || userObj.LOGIN_PORTFOLIO.length === 0) {
+          throw new Error("No roles assigned. Access denied.");
+        }
+
+        userDetails = userObj;
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+        setInitializing(false);
+        setError("Unable to fetch user access roles. Please try again.");
+        return;
+      }
+
+      // 🔹 Enrich login response
+      response.data.userDetails = userDetails;
+
+      // 🔹 Save in context & cookies
+      login(response);
+
+      // 🔹 Fetch queries only if login is valid
+      const deptPrefix = "U";
+      const personnelType = "A";
+      const roleDigitForTab = { creator: "1", approver: "2", verifier: "3" };
+      const pendingTabs = Object.values(roleDigitForTab).map(
+        (digit) => `${deptPrefix}${digit}${personnelType}`
+      );
+
+      const tasks = [
+        dispatch(fetchRepliedQueries()),
+        ...pendingTabs.map((pw) =>
+          dispatch(fetchPendingQueries({ cat: 1, pendingWith: pw }))
+        ),
+        ...pendingTabs.map((pw) =>
+          dispatch(fetchTransferredQueries({ cat: 1, pendingWith: pw }))
+        ),
+      ];
+      await Promise.all(tasks);
+
+      setInitializing(false);
+      navigate("/");
     } catch (err) {
       console.error("Login error:", err);
       setInitializing(false);

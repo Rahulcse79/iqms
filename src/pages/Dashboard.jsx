@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchRepliedQueries } from "../actions/repliedQueryAction";
@@ -144,18 +144,81 @@ const styles = `
     }
   `;
 
+// --- Helpers to calculate counts ---
+const parseJSON = (key) => {
+  try {
+    const val = localStorage.getItem(key);
+    return val ? JSON.parse(val) : null;
+  } catch {
+    return null;
+  }
+};
+
+const getPendingCounts = () => {
+  const data = parseJSON("pendingQueries_v1");
+  if (!data) return { creator: 0, verifier: 0, approver: 0, total: 0 };
+
+  let creator = 0,
+    verifier = 0,
+    approver = 0;
+
+  Object.keys(data).forEach((unit) => {
+    const num = parseInt(unit.replace(/\D/g, ""), 10);
+    const count = data[unit].length;
+    if (num === 1) creator += count;
+    else if (num === 2) verifier += count;
+    else if (num === 3) approver += count;
+  });
+
+  return {
+    creator,
+    verifier,
+    approver,
+    total: creator + verifier + approver,
+  };
+};
+
+const getTransferredCounts = () => {
+  const data = parseJSON("transferredQueries_v1");
+  if (!data) return { creator: 0, verifier: 0, approver: 0, total: 0 };
+
+  let creator = 0,
+    verifier = 0,
+    approver = 0;
+
+  Object.keys(data).forEach((unit) => {
+    const num = parseInt(unit.replace(/\D/g, ""), 10);
+    const count = data[unit].length;
+    if (num === 1) creator += count;
+    else if (num === 2) verifier += count;
+    else if (num === 3) approver += count;
+  });
+
+  return {
+    creator,
+    verifier,
+    approver,
+    total: creator + verifier + approver,
+  };
+};
+
+const getRepliedCount = () => {
+  const data = parseJSON("repliedQueries_v1");
+  return data ? data.length : 0;
+};
 
 // --- Card Component ---
 const QueryCard = ({ title, data, className, link }) => {
   const navigate = useNavigate();
 
   return (
-    <div className={`query-card ${className}`}>
+    <div className={`query-card ${className}`} onClick={() => navigate(link)}>
       <h3 className="card-header">{title}</h3>
       <div className="card-body">
         {data.map((item, index) => (
           <div className="card-row" key={index}>
             <span className="card-label">{item.label}</span>
+            <span className="card-value-link">{item.value}</span>
           </div>
         ))}
       </div>
@@ -170,36 +233,50 @@ const Dashboard = () => {
     (state) => state.replied_queries
   );
 
+  const [counts, setCounts] = useState({
+    pending: getPendingCounts(),
+    transferred: getTransferredCounts(),
+    replied: getRepliedCount(),
+  });
+
+  // Refresh counts when localStorage changes (polling for simplicity)
   useEffect(() => {
-    // Only fetch if not already loaded
+    const interval = setInterval(() => {
+      setCounts({
+        pending: getPendingCounts(),
+        transferred: getTransferredCounts(),
+        replied: getRepliedCount(),
+      });
+    }, 2000); // check every 2s
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     if (!items || items.length === 0) {
       dispatch(fetchRepliedQueries());
     }
   }, [dispatch, items]);
 
-  // --- Data ---
   const pendingQueriesData = [
-    { label: "Pending at Creator", value: 69 },
-    { label: "Pending at Verifier", value: 7 },
-    { label: "Pending at Approver", value: 22 },
-    { label: "Total Pending", value: 98 },
+    { label: "Pending at Creator", value: counts.pending.creator },
+    { label: "Pending at Verifier", value: counts.pending.verifier },
+    { label: "Pending at Approver", value: counts.pending.approver },
+    { label: "Total Pending", value: counts.pending.total },
   ];
 
   const transferredQueriesData = [
-    { label: "Creator", value: 5 },
-    { label: "Verifier", value: 1 },
-    { label: "Approver", value: 0 },
-    { label: "Total Transferred", value: 6 },
+    { label: "Creator", value: counts.transferred.creator },
+    { label: "Verifier", value: counts.transferred.verifier },
+    { label: "Approver", value: counts.transferred.approver },
+    { label: "Total Transferred", value: counts.transferred.total },
   ];
 
   const repliedQueriesData = [
     {
       label: "Replied Queries",
-      value: loading ? "..." : error ? "ERR" : items.length,
+      value: loading ? "..." : error ? "ERR" : counts.replied,
     },
-    { label: "-", value: "-" },
-    { label: "-", value: "-" },
-    { label: "-", value: "-" },
   ];
 
   return (
