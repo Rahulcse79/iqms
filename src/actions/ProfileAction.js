@@ -14,13 +14,17 @@ import {
   POSTING_HISTORY_REQUEST,
   POSTING_HISTORY_SUCCESS,
   POSTING_HISTORY_FAIL,
-  // Keeping these imports so nothing breaks if you add ABC calls later
   FETCH_ABC_REQUEST,
   FETCH_ABC_SUCCESS,
   FETCH_ABC_FAILURE,
   GCI_HISTORY_REQUEST,
   GCI_HISTORY_SUCCESS,
   GCI_HISTORY_FAIL,
+  IRLA_REQUEST,
+  IRLA_SUCCESS,
+  IRLA_FAIL,
+  IRLA_API_TOKEN,
+  POR_REQUEST, POR_SUCCESS, POR_FAIL,
 } from "../constants/ProfileConstants";
 
 // Base paths
@@ -35,14 +39,14 @@ const log = {
     try {
       // eslint-disable-next-line no-console
       console.group(label);
-    } catch {}
+    } catch { }
   },
   groupEnd() {
     if (!DEBUG_REDUX_LOGS) return;
     try {
       // eslint-disable-next-line no-console
       console.groupEnd();
-    } catch {}
+    } catch { }
   },
   info(...args) {
     if (!DEBUG_REDUX_LOGS) return;
@@ -67,7 +71,7 @@ const safeErrorMessage = (err) => {
       if (err.response.data.message) return err.response.data.message;
       return JSON.stringify(err.response.data);
     }
-  } catch {}
+  } catch { }
   return err?.message || "Something went wrong";
 };
 
@@ -113,96 +117,96 @@ export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
    --------------------------- */
 export const getRankHistory =
   (serviceNo, category, page = 1) =>
-  async (dispatch) => {
-    dispatch({ type: RANK_HISTORY_REQUEST });
-    const url = `${BASE_PROFILEVIEW}/rankHist/${encodeURIComponent(
-      serviceNo
-    )}/${encodeURIComponent(category)}`;
+    async (dispatch) => {
+      dispatch({ type: RANK_HISTORY_REQUEST });
+      const url = `${BASE_PROFILEVIEW}/rankHist/${encodeURIComponent(
+        serviceNo
+      )}/${encodeURIComponent(category)}`;
 
-    log.group("getRankHistory");
-    log.debug("GET", url, { serviceNo, category, page });
+      log.group("getRankHistory");
+      log.debug("GET", url, { serviceNo, category, page });
 
-    try {
-      const { data } = await axios.get(url, { timeout: 15000 });
-      log.info("getRankHistory -> response received, count:", data?.count);
-      if (Array.isArray(data?.items)) {
-        // eslint-disable-next-line no-console
-        console.table(data.items);
+      try {
+        const { data } = await axios.get(url, { timeout: 15000 });
+        log.info("getRankHistory -> response received, count:", data?.count);
+        if (Array.isArray(data?.items)) {
+          // eslint-disable-next-line no-console
+          console.table(data.items);
+        }
+        dispatch({ type: RANK_HISTORY_SUCCESS, payload: data });
+        log.info("getRankHistory -> DISPATCH SUCCESS");
+        return data;
+      } catch (error) {
+        const msg = safeErrorMessage(error);
+        log.error("getRankHistory -> ERROR", msg, { error });
+        dispatch({ type: RANK_HISTORY_FAIL, payload: msg });
+        throw new Error(msg);
+      } finally {
+        log.groupEnd();
       }
-      dispatch({ type: RANK_HISTORY_SUCCESS, payload: data });
-      log.info("getRankHistory -> DISPATCH SUCCESS");
-      return data;
-    } catch (error) {
-      const msg = safeErrorMessage(error);
-      log.error("getRankHistory -> ERROR", msg, { error });
-      dispatch({ type: RANK_HISTORY_FAIL, payload: msg });
-      throw new Error(msg);
-    } finally {
-      log.groupEnd();
-    }
-  };
+    };
 
 export const getTradeHistory =
   (serviceNo, category, page = 1) =>
-  async (dispatch) => {
-    dispatch({ type: TRADE_HISTORY_REQUEST });
-    const url = `${BASE_PROFILEVIEW}/tradeHist/${encodeURIComponent(
-      serviceNo
-    )}/${encodeURIComponent(category)}`;
+    async (dispatch) => {
+      dispatch({ type: TRADE_HISTORY_REQUEST });
+      const url = `${BASE_PROFILEVIEW}/tradeHist/${encodeURIComponent(
+        serviceNo
+      )}/${encodeURIComponent(category)}`;
 
-    log.group("getTradeHistory");
-    log.debug("GET", url, { serviceNo, category, page });
+      log.group("getTradeHistory");
+      log.debug("GET", url, { serviceNo, category, page });
 
-    try {
-      const { data } = await axios.get(url, { timeout: 15000 });
-      log.info("getTradeHistory -> response received, count:", data?.count);
-      if (Array.isArray(data?.items)) {
-        // eslint-disable-next-line no-console
-        console.table(data.items);
+      try {
+        const { data } = await axios.get(url, { timeout: 15000 });
+        log.info("getTradeHistory -> response received, count:", data?.count);
+        if (Array.isArray(data?.items)) {
+          // eslint-disable-next-line no-console
+          console.table(data.items);
+        }
+        dispatch({ type: TRADE_HISTORY_SUCCESS, payload: data });
+        log.info("getTradeHistory -> DISPATCH SUCCESS");
+        return data;
+      } catch (error) {
+        const msg = safeErrorMessage(error);
+        log.error("getTradeHistory -> ERROR", msg, { error });
+        dispatch({ type: TRADE_HISTORY_FAIL, payload: msg });
+        throw new Error(msg);
+      } finally {
+        log.groupEnd();
       }
-      dispatch({ type: TRADE_HISTORY_SUCCESS, payload: data });
-      log.info("getTradeHistory -> DISPATCH SUCCESS");
-      return data;
-    } catch (error) {
-      const msg = safeErrorMessage(error);
-      log.error("getTradeHistory -> ERROR", msg, { error });
-      dispatch({ type: TRADE_HISTORY_FAIL, payload: msg });
-      throw new Error(msg);
-    } finally {
-      log.groupEnd();
-    }
-  };
+    };
 
 export const getPostingHistory =
   (serviceNo, category, page = 1) =>
-  async (dispatch) => {
-    dispatch({ type: POSTING_HISTORY_REQUEST });
-    const url = `${BASE_PROFILEVIEW}/postingHist/${encodeURIComponent(
-      serviceNo
-    )}/${encodeURIComponent(category)}`;
+    async (dispatch) => {
+      dispatch({ type: POSTING_HISTORY_REQUEST });
+      const url = `${BASE_PROFILEVIEW}/postingHist/${encodeURIComponent(
+        serviceNo
+      )}/${encodeURIComponent(category)}`;
 
-    log.group("getPostingHistory");
-    log.debug("GET", url, { serviceNo, category, page });
+      log.group("getPostingHistory");
+      log.debug("GET", url, { serviceNo, category, page });
 
-    try {
-      const { data } = await axios.get(url, { timeout: 15000 });
-      log.info("getPostingHistory -> response received, count:", data?.count);
-      if (Array.isArray(data?.items)) {
-        // eslint-disable-next-line no-console
-        console.table(data.items);
+      try {
+        const { data } = await axios.get(url, { timeout: 15000 });
+        log.info("getPostingHistory -> response received, count:", data?.count);
+        if (Array.isArray(data?.items)) {
+          // eslint-disable-next-line no-console
+          console.table(data.items);
+        }
+        dispatch({ type: POSTING_HISTORY_SUCCESS, payload: data });
+        log.info("getPostingHistory -> DISPATCH SUCCESS");
+        return data;
+      } catch (error) {
+        const msg = safeErrorMessage(error);
+        log.error("getPostingHistory -> ERROR", msg, { error });
+        dispatch({ type: POSTING_HISTORY_FAIL, payload: msg });
+        throw new Error(msg);
+      } finally {
+        log.groupEnd();
       }
-      dispatch({ type: POSTING_HISTORY_SUCCESS, payload: data });
-      log.info("getPostingHistory -> DISPATCH SUCCESS");
-      return data;
-    } catch (error) {
-      const msg = safeErrorMessage(error);
-      log.error("getPostingHistory -> ERROR", msg, { error });
-      dispatch({ type: POSTING_HISTORY_FAIL, payload: msg });
-      throw new Error(msg);
-    } finally {
-      log.groupEnd();
-    }
-  };
+    };
 
 export const fetchABCCodes = () => async (dispatch) => {
   console.log("[Action] fetchABCCodes triggered");
@@ -298,4 +302,75 @@ try {
     // eslint-disable-next-line no-console
     console.log("[actions] ProfileAction loaded");
   }
-} catch {}
+} catch { }
+
+const toFormData = (obj) =>
+  Object.keys(obj)
+    .map(
+      (key) => encodeURIComponent(key) + "=" + encodeURIComponent(obj[key])
+    )
+    .join("&");
+
+const toFormDataPOR = (obj) =>
+  Object.keys(obj)
+    .map(
+      (key) => encodeURIComponent(key) + "=" + encodeURIComponent(obj[key])
+    )
+    .join("&");
+
+
+export const fetchIrlaView = ({ selSno, selCat, selYr, selMon, month }) => async (dispatch) => {
+  dispatch({ type: IRLA_REQUEST });
+
+  try {
+    const body = toFormData({ api_token: IRLA_API_TOKEN });
+
+    const response = await axios.post(
+      `http://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=PANKH`,
+      body,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        responseType: "blob",
+        timeout: 20000,
+      }
+    );
+
+    const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+    dispatch({ type: IRLA_SUCCESS, payload: { blob: pdfBlob, url: pdfUrl } });
+  } catch (err) {
+    dispatch({
+      type: IRLA_FAIL,
+      payload:
+        err?.response?.data?.message || 
+        err.message ||
+        "Failed to fetch IRLA View",
+    });
+  }
+};
+
+export const fetchPorData = ({ sno, cat, porYear }) => async (dispatch) => {
+  dispatch({ type: POR_REQUEST });
+
+  try {
+    const body = toFormDataPOR({ api_token: IRLA_API_TOKEN });
+
+    const url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=PANKH`;
+
+    const response = await axios.post(url, body, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      timeout: 20000,
+    });
+
+    dispatch({ type: POR_SUCCESS, payload: response.data });
+  } catch (err) {
+    dispatch({
+      type: POR_FAIL,
+      payload:
+        err?.response?.data?.message ||
+        err.message ||
+        "Failed to fetch POR data",
+    });
+  }
+};

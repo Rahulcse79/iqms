@@ -23,6 +23,16 @@ export const FETCH_ABC_REQUEST = "FETCH_ABC_REQUEST";
 export const FETCH_ABC_SUCCESS = "FETCH_ABC_SUCCESS";
 export const FETCH_ABC_FAILURE = "FETCH_ABC_FAILURE";
 
+export const IRLA_REQUEST = "IRLA_REQUEST";
+export const IRLA_SUCCESS = "IRLA_SUCCESS";
+export const IRLA_FAIL = "IRLA_FAIL";
+
+export const POR_REQUEST = "POR_REQUEST";
+export const POR_SUCCESS = "POR_SUCCESS";
+export const POR_FAIL = "POR_FAIL";
+
+export const IRLA_API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
+
 export const GCI_HISTORY_REQUEST = "GCI_HISTORY_REQUEST";
 export const GCI_HISTORY_SUCCESS = "GCI_HISTORY_SUCCESS";
 export const GCI_HISTORY_FAIL = "GCI_HISTORY_FAIL";

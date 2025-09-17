@@ -90,7 +90,7 @@ const SECTIONS = [
     Component: PostingHistoryTab,
     icon: "posting",
   },
-    {
+  {
     id: "iqms",
     label: "IQMS details",
     Component: IQMSDetailsTab,
@@ -104,7 +104,12 @@ const SECTIONS = [
   },
   { id: "mvr", label: "MVR History", Component: MVRHistoryTab, icon: "drive" },
   { id: "irla", label: "IRLA History", Component: IRLAHistoryTab, icon: "doc" },
-
+  {
+    id: "iqms",
+    label: "IQMS details",
+    Component: IQMSDetailsTab,
+    icon: "chart",
+  }
 ];
 
 function SectionPicker({
@@ -268,9 +273,8 @@ function SectionPicker({
                 id={`${listId}-option-${idx}`}
                 role="option"
                 aria-selected={value === opt.id}
-                className={`combobox-option ${
-                  highlight === idx ? "combobox-option--highlighted" : ""
-                } ${value === opt.id ? "combobox-option--selected" : ""}`}
+                className={`combobox-option ${highlight === idx ? "combobox-option--highlighted" : ""
+                  } ${value === opt.id ? "combobox-option--selected" : ""}`}
                 onMouseEnter={() => setHighlight(idx)}
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -315,13 +319,13 @@ function SectionPicker({
                     opt.icon === "drive" ||
                     opt.icon === "doc" ||
                     opt.icon === "chart") && (
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M3 4h18v2H3V4zm0 4h18v12H3V8zm4 3v6l5-3-5-3z"
-                      />
-                    </svg>
-                  )}
+                      <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M3 4h18v2H3V4zm0 4h18v12H3V8zm4 3v6l5-3-5-3z"
+                        />
+                      </svg>
+                    )}
                 </span>
                 <span className="option-label">{opt.label}</span>
                 {value === opt.id && (
@@ -601,9 +605,8 @@ export default function ProfileView() {
           />
 
           <div
-            className={`dropdown-sticky dropdown-sticky--pinable ${
-              isPinned ? "dropdown-sticky--pinned" : ""
-            }`}
+            className={`dropdown-sticky dropdown-sticky--pinable ${isPinned ? "dropdown-sticky--pinned" : ""
+              }`}
             ref={dropdownRef}
           >
             <SectionPicker
@@ -640,7 +643,7 @@ export default function ProfileView() {
                   } else {
                     console.log("tabProps (non-array items):", tabProps);
                   }
-                  
+
                   console.groupEnd();
                 } catch (e) {
                   // noop
@@ -652,16 +655,19 @@ export default function ProfileView() {
                   key={id}
                   id={id}
                   ref={(el) => (sectionRefs.current[id] = el)}
-                  className={`profile-section ${
-                    activeSection === id ? "active-section" : ""
-                  }`}
+                  className={`profile-section ${activeSection === id ? "active-section" : ""
+                    }`}
                 >
                   <h2 className="section-title">{label}</h2>
                   <div className="section-content">
                     <LazyComponent
                       renderFn={() =>
-                        id === "iqms" ? (
+                        id === "por" ? (
+                          <Component sno={serviceNo} cat={category} /> // pass sno & cat as props
+                        ) : id === "iqms" ? (
                           <Component {...tabProps} serviceNumber={serviceNo} serviceNo={serviceNo} category={category} />
+                        ) : id === "irla" ? (
+                          <Component selSno={serviceNo} selCat={category} />
                         ) : (
                           <Component {...tabProps} />
                         )
