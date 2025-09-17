@@ -19,10 +19,12 @@ import {
   GCI_HISTORY_REQUEST,
   GCI_HISTORY_SUCCESS,
   GCI_HISTORY_FAIL,
-  IRLA_REQUEST, 
-  IRLA_SUCCESS, 
-  IRLA_FAIL, 
-  POR_REQUEST, POR_SUCCESS, POR_FAIL,
+  IRLA_REQUEST,
+  IRLA_SUCCESS,
+  IRLA_FAIL,
+  POR_REQUEST,
+  POR_SUCCESS,
+  POR_FAIL,
 } from "../constants/ProfileConstants";
 
 /** Local reducer logger */
@@ -342,7 +344,7 @@ export const porReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        porList: action.payload?.data || [], 
+        porList: action.payload || [], // <-- FIXED
       };
     case POR_FAIL:
       return { ...state, loading: false, error: action.payload };

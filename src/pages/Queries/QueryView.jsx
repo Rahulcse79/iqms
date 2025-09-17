@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./QueryView.css";
 import Comparison from "../Comparison";
 import ProfileViewLive from "../ProfileView_Live/ProfileView";
-import PostingHistoryTab from "../ProfileView/components/PostingHistoryTab";
 import PORDATA from "../ProfileView/components/PORDataBankTab";
 import QueryDetails from "./QueryDetails";
 import PersonalDetails from "../ProfileView/components/PersonalDetails";

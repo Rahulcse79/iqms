@@ -1,0 +1,164 @@
+/* Scoped with irla- prefix to avoid collisions */
+.irla-root {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: #fbfcff;
+  color: #0f1724;
+  padding: 18px;
+  box-sizing: border-box;
+  border-radius: 10px;
+}
+
+/* header */
+.irla-title {
+  margin: 0 0 12px;
+  font-size: 20px;
+  color: #0b1220;
+}
+
+/* controls container */
+.irla-controls {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+/* picker */
+.irla-picker {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.irla-picker__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  margin-right: 6px;
+}
+
+.irla-picker__select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+  background: #fff;
+  min-width: 160px;
+  font-size: 14px;
+}
+
+/* actions */
+.irla-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.irla-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.irla-btn--primary {
+  background: #0b5cff;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(11,92,255,0.09);
+}
+
+.irla-btn--primary[disabled],
+.irla-btn--primary[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.irla-btn--secondary {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #e6e9ef;
+}
+
+/* status */
+.irla-meta {
+  font-size: 13px;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.irla-error {
+  color: #b91c1c;
+  background: #fff5f5;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+.irla-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #374151;
+  padding: 10px 0;
+}
+
+/* tiny spinner */
+.irla-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(11,92,255,0.18);
+  border-top-color: #0b5cff;
+  animation: irla-spin 1s linear infinite;
+}
+
+@keyframes irla-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* iframe preview */
+.irla-iframe-wrap {
+  margin-top: 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(2,6,23,0.04);
+  padding: 12px;
+}
+
+.irla-iframe {
+  border: none;
+  border-radius: 6px;
+}
+
+/* download action above iframe */
+.irla-iframe-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* empty placeholder */
+.irla-empty {
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px dashed #e6eefc;
+  color: #374151;
+}
+
+/* responsive: stack controls on small screens */
+@media (max-width: 720px) {
+  .irla-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .irla-picker {
+    justify-content: flex-start;
+  }
+  .irla-iframe {
+    height: 520px;
+  }
+}
