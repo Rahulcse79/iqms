@@ -76,7 +76,9 @@ const Topbar = ({ toggleSidebar }) => {
   }, [isProfileOpen]);
 
   const categories = airForceProfile?.categoryQuery || [
-    "AIRMEN, OFFICER, CIVILIAN",
+    "AIRMEN",
+    "OFFICER",
+    "CIVILIAN",
   ];
   const [searchCategory, setSearchCategory] = useState(categories[0] || "");
 
@@ -171,7 +173,9 @@ const Topbar = ({ toggleSidebar }) => {
         }}
       >
         <div style={{ color: "var(--muted)", marginRight: 8 }}>{label}</div>
-        <div style={{ color: "var(--text)", fontWeight: 600, textAlign: "right" }}>
+        <div
+          style={{ color: "var(--text)", fontWeight: 600, textAlign: "right" }}
+        >
           {value}
         </div>
       </div>
@@ -182,11 +186,19 @@ const Topbar = ({ toggleSidebar }) => {
       <div className="topbar-content">
         {/* Left: Sidebar + Portfolio */}
         <div className="topbar-left controls-group">
-          <button className="sidebar-toggle control" onClick={toggleSidebar} title="Toggle sidebar">
+          <button
+            className="sidebar-toggle control"
+            onClick={toggleSidebar}
+            title="Toggle sidebar"
+          >
             <RiMenuFill />
           </button>
 
-          <label htmlFor="portfolioDropdown" className="control" style={{ whiteSpace: "nowrap" }}>
+          <label
+            htmlFor="portfolioDropdown"
+            className="control"
+            style={{ whiteSpace: "nowrap" }}
+          >
             Portfolio:
           </label>
 
@@ -212,7 +224,9 @@ const Topbar = ({ toggleSidebar }) => {
         {/* Refresh Button */}
         <div className="refresh-container">
           <GrRefresh
-            className={`refresh-button-api control ${refreshing ? "spinning" : ""}`}
+            className={`refresh-button-api control ${
+              refreshing ? "spinning" : ""
+            }`}
             onClick={handleRefreshScreen}
             title="Refresh data"
             aria-label="Refresh"
@@ -264,7 +278,10 @@ const Topbar = ({ toggleSidebar }) => {
         </div>
 
         {/* Right: Theme + Profile Icon */}
-        <div className="topbar-right controls-group" style={{ alignItems: "center" }}>
+        <div
+          className="topbar-right controls-group"
+          style={{ alignItems: "center" }}
+        >
           <div
             className="theme-toggle control"
             onClick={toggleTheme}
@@ -323,14 +340,25 @@ const Topbar = ({ toggleSidebar }) => {
                 }}
               >
                 {/* Popup header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 8,
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
+                  >
                     <div
                       style={{
                         width: 40,
                         height: 40,
                         borderRadius: "100%",
-                        background: "color-mix(in srgb, var(--primary) 10%, transparent)",
+                        background:
+                          "color-mix(in srgb, var(--primary) 10%, transparent)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -338,10 +366,17 @@ const Topbar = ({ toggleSidebar }) => {
                         fontWeight: 700,
                       }}
                     >
-                      { (fullProfile?.LOGIN_NAME && fullProfile.LOGIN_NAME[0]) || "U" }
+                      {(fullProfile?.LOGIN_NAME && fullProfile.LOGIN_NAME[0]) ||
+                        "U"}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column" }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: "var(--text)",
+                        }}
+                      >
                         {fullProfile?.LOGIN_NAME || "No Name"}
                       </div>
                     </div>
@@ -365,18 +400,43 @@ const Topbar = ({ toggleSidebar }) => {
                 </div>
 
                 <div style={{ display: "grid", gap: 8, marginBottom: 6 }}>
-                  <ProfileRow label="Service No." value={fullProfile?.LOGIN_SNO} />
-                  <ProfileRow label="Rank" value={ fullProfile?.RANK || fullProfile?.RANK_NAME || fullProfile?.RANK_AND_NAME || "" } />
+                  <ProfileRow
+                    label="Service No."
+                    value={fullProfile?.LOGIN_SNO}
+                  />
+                  <ProfileRow
+                    label="Rank"
+                    value={
+                      fullProfile?.RANK ||
+                      fullProfile?.RANK_NAME ||
+                      fullProfile?.RANK_AND_NAME ||
+                      ""
+                    }
+                  />
                   <ProfileRow label="Dept." value={fullProfile?.MODULE || ""} />
-                  <ProfileRow label="Module" value={selectedPortfolio?.SUB_SECTION || ""} />
-                  <ProfileRow label="Portfolio" value={selectedPortfolio?.PORTFOLIO_NAME || ""} />
-                  <ProfileRow label="Category" value={getUserRoleLabel(fullProfile.LOGIN_CAT)} /> {/* ✅ Enum mapping */}
-        
+                  <ProfileRow
+                    label="Module"
+                    value={selectedPortfolio?.SUB_SECTION || ""}
+                  />
+                  <ProfileRow
+                    label="Portfolio"
+                    value={selectedPortfolio?.PORTFOLIO_NAME || ""}
+                  />
+                  <ProfileRow
+                    label="Category"
+                    value={getUserRoleLabel(fullProfile.LOGIN_CAT)}
+                  />{" "}
+                  {/* ✅ Enum mapping */}
                 </div>
 
-                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 6 }}>
-
-                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    justifyContent: "flex-end",
+                    marginTop: 6,
+                  }}
+                ></div>
               </div>
             )}
           </div>
