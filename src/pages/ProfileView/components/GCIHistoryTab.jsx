@@ -93,14 +93,14 @@ export default function GCIHistoryTab() {
           No service number available — open Personal Details and fetch profile first.
         </div>
       ) : (
-        <div style={{ marginBottom: 12, color: "#374151" }}>
+        <div style={{ marginBottom: 12, color: "var(--text)" }}>
           Service No: <strong>{serviceNo}</strong> • Category: <strong>{category}</strong>
         </div>
       )}
 
       {/* ABC Codes Dropdown */}
       <div style={{ marginBottom: 12 }}>
-        <label htmlFor="gci-abc-select" style={{ display: "block", marginBottom: 6 }}>
+        <label htmlFor="gci-abc-select" style={{  color: "var(--text)", display: "block", marginBottom: 6 }}>
           Select ABC code
         </label>
 
@@ -138,7 +138,7 @@ export default function GCIHistoryTab() {
               Clear
             </button>
 
-            {selectedAbc && <div style={{ color: "#6b7280" }}>Selected: <strong>{selectedAbc}</strong></div>}
+            {selectedAbc && <div style={{ color: "var(--text)" }}>Selected: <strong>{selectedAbc}</strong></div>}
           </div>
         )}
       </div>
@@ -150,7 +150,7 @@ export default function GCIHistoryTab() {
         ) : gciError ? (
           <div style={{ color: "red" }}>Error fetching GCI history: {String(gciError)}</div>
         ) : !selectedAbc ? (
-          <div style={{ color: "#374151" }}>Please select an ABC code to view GCI history.</div>
+          <div style={{ color: "var(--text)" }}>Please select an ABC code to view GCI history.</div>
         ) : Array.isArray(gciItems) && gciItems.length === 0 ? (
           <div>No GCI history records found for selected code.</div>
         ) : (

@@ -367,7 +367,7 @@ const Topbar = ({ toggleSidebar }) => {
                 <div style={{ display: "grid", gap: 8, marginBottom: 6 }}>
                   <ProfileRow label="Service No." value={fullProfile?.LOGIN_SNO} />
                   <ProfileRow label="Rank" value={ fullProfile?.RANK || fullProfile?.RANK_NAME || fullProfile?.RANK_AND_NAME || "" } />
-                  <ProfileRow label="Role" value={fullProfile?.MODULE || ""} />
+                  <ProfileRow label="Dept." value={fullProfile?.MODULE || ""} />
                   <ProfileRow label="Module" value={selectedPortfolio?.SUB_SECTION || ""} />
                   <ProfileRow label="Portfolio" value={selectedPortfolio?.PORTFOLIO_NAME || ""} />
                   <ProfileRow label="Category" value={getUserRoleLabel(fullProfile.LOGIN_CAT)} /> {/* ✅ Enum mapping */}
