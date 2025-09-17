@@ -164,9 +164,9 @@ const Comparison = () => {
     });
 
     const nos = entries.map((e) => e.serviceNo).filter(Boolean);
-    if (new Set(nos).size !== nos.length) {
-      error = "Please enter different Service Numbers to compare.";
-    }
+    // if (new Set(nos).size !== nos.length) {
+    //   error = "Please enter different Service Numbers to compare.";
+    // }
 
     const firstFieldErr = perField.find((msg) => msg);
     if (!error && firstFieldErr) error = "Please fix the highlighted fields.";
