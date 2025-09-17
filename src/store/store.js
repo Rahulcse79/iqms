@@ -1,12 +1,12 @@
 import { createStore, combineReducers, applyMiddleware, compose } from "redux";
 import { thunk } from "redux-thunk"; 
 import { userReducer, repliedQueryReducer, officerBasicPayReasonReducer, officerRankHistoryReducer, searchQueryReducer, officerPersmastReducer, searchQueryByIdReducer, airmanBasicPayReasonReducer, searchQueryIdReducer, airmanRankHistoryReducer, airmanPersmastReducer } from "../reducers/reducers";
-import {personalDataReducer, ProfileViewReducer, abcCodesReducer} from "../reducers/ProfileReducers";
+import {personalDataReducer, ProfileViewReducer, abcCodesReducer, irlaReducer, porReducer} from "../reducers/ProfileReducers";
 import {apwReducer, cpwReducer, opwReducer} from "../reducers/MISReducers";
 import frqQryReducer, { faqReducer, queryReducer } from "../reducers/queryReducer";
 import pendingQueryReducer from "../reducers/pendingQueryReducer";
 import transferredQueryReducer from "../reducers/transferredQueryReducer";
-
+ 
 const initialState = {
   login_user: {
     user: {
@@ -27,7 +27,8 @@ const reducer = combineReducers({
   query: queryReducer,
   profileView: ProfileViewReducer,
   abcCodes: abcCodesReducer,
-
+  irlaView: irlaReducer,
+  porData: porReducer,
   airmanPersmast: airmanPersmastReducer,
   airmanRankHistory: airmanRankHistoryReducer,
   airmanBasicPayReason: airmanBasicPayReasonReducer,
@@ -37,14 +38,12 @@ const reducer = combineReducers({
   apwReducer: apwReducer,
   cpwReducer: cpwReducer,
   opwReducer: opwReducer,
-
   faqReducer: faqReducer,
   frqQryReducer: frqQryReducer,
-  
   pending_queries: pendingQueryReducer,
   transferred_queries: transferredQueryReducer,
-
-});
+  
+}); 
 
 const middleware = [thunk];
 

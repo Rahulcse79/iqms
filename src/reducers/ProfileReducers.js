@@ -13,13 +13,16 @@ import {
   POSTING_HISTORY_REQUEST,
   POSTING_HISTORY_SUCCESS,
   POSTING_HISTORY_FAIL,
-  // Keeping for parity with your constants file
   FETCH_ABC_REQUEST,
   FETCH_ABC_SUCCESS,
   FETCH_ABC_FAILURE,
   GCI_HISTORY_REQUEST,
   GCI_HISTORY_SUCCESS,
   GCI_HISTORY_FAIL,
+  IRLA_REQUEST, 
+  IRLA_SUCCESS, 
+  IRLA_FAIL, 
+  POR_REQUEST, POR_SUCCESS, POR_FAIL,
 } from "../constants/ProfileConstants";
 
 /** Local reducer logger */
@@ -304,3 +307,46 @@ try {
     console.log("[reducer] ProfileReducers loaded");
   }
 } catch {}
+
+const initialState = {
+  loading: false,
+  error: null,
+  pdfBlob: null,
+  pdfUrl: null,
+  porList: [],
+};
+
+export const irlaReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case IRLA_REQUEST:
+      return { ...state, loading: true, error: null };
+    case IRLA_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        pdfBlob: action.payload.blob,
+        pdfUrl: action.payload.url,
+      };
+    case IRLA_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const porReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case POR_REQUEST:
+      return { ...state, loading: true, error: null };
+    case POR_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        porList: action.payload?.data || [], 
+      };
+    case POR_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
