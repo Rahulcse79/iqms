@@ -169,6 +169,10 @@ button:hover {
   opacity: 0.9;
 }
 
+.portfolio-dropdown {
+  width: 120px;
+}
+
 /* ---------- Responsive polish ---------- */
 @media (max-width: 1024px) {
   .user-card {
@@ -181,6 +185,10 @@ button:hover {
 }
 
 @media (max-width: 640px) {
+    .user-card {
+    padding: 8px 12px;
+    max-width: 220px;
+  }
   .badge-dept {
     display: none;
   }

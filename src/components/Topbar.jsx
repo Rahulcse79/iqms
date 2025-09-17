@@ -1,11 +1,20 @@
-import React, { useState, useContext, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { RiMenuFill } from "react-icons/ri";
+import { FaUserCircle } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import { GrRefresh } from "react-icons/gr";
 import useTheme from "../hooks/useTheme";
 import "./Topbar.css";
 import { useDataRefresher } from "../hooks/useDataRefresher";
+import { getUserRoleLabel } from "../constants/Enum";
 
+/**
+ * Topbar
+ *
+ * - preserves all existing functionality (search, portfolio, refresh, theme).
+ * - replaces the visible username with a profile icon which opens a small popup
+ *   containing the user details and portfolio info.
+ */
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,6 +23,11 @@ const Topbar = ({ toggleSidebar }) => {
   const [isError, setIsError] = useState(false);
   const [fullProfile, setFullProfile] = useState(null);
   const [airForceProfile, setAirForceProfile] = useState(null);
+
+  // Profile popup state & refs
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileButtonRef = useRef(null);
+  const profilePopupRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -26,6 +40,40 @@ const Topbar = ({ toggleSidebar }) => {
       console.warn("Failed to load extended user profile:", err);
     }
   }, []);
+
+  // Close profile popup when route changes
+  useEffect(() => {
+    setIsProfileOpen(false);
+  }, [location.pathname, location.search]);
+
+  // Outside click closes the popup
+  useEffect(() => {
+    function handleClickOutside(e) {
+      const target = e.target;
+      if (
+        isProfileOpen &&
+        profilePopupRef.current &&
+        profileButtonRef.current &&
+        !profilePopupRef.current.contains(target) &&
+        !profileButtonRef.current.contains(target)
+      ) {
+        setIsProfileOpen(false);
+      }
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape" && isProfileOpen) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isProfileOpen]);
 
   const categories = airForceProfile?.categoryQuery || [
     "AIRMEN, OFFICER, CIVILIAN",
@@ -55,7 +103,6 @@ const Topbar = ({ toggleSidebar }) => {
     );
     setSelectedPortfolio(selected || null);
     console.log("Switched to portfolio:", selected);
-    // 🔜 Later: trigger redux update or API calls based on this portfolio
   };
 
   /** 🔍 Search Logic */
@@ -111,17 +158,41 @@ const Topbar = ({ toggleSidebar }) => {
   /** 🌓 Theme */
   const { theme, toggleTheme } = useTheme();
 
+  // Small helper to render a profile row if value exists
+  const ProfileRow = ({ label, value }) =>
+    !value ? null : (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          alignItems: "center",
+          fontSize: 13,
+        }}
+      >
+        <div style={{ color: "var(--muted)", marginRight: 8 }}>{label}</div>
+        <div style={{ color: "var(--text)", fontWeight: 600, textAlign: "right" }}>
+          {value}
+        </div>
+      </div>
+    );
+
   return (
     <header className="topbar">
       <div className="topbar-content">
         {/* Left: Sidebar + Portfolio */}
-        <div className="topbar-left">
-          <button className="sidebar-toggle" onClick={toggleSidebar}>
+        <div className="topbar-left controls-group">
+          <button className="sidebar-toggle control" onClick={toggleSidebar} title="Toggle sidebar">
             <RiMenuFill />
           </button>
-          <label htmlFor="portfolioDropdown">Portfolio: </label>
+
+          <label htmlFor="portfolioDropdown" className="control" style={{ whiteSpace: "nowrap" }}>
+            Portfolio:
+          </label>
+
           <select
             id="portfolioDropdown"
+            className="control portfolio-dropdown"
             value={selectedPortfolio?.PORTFOLIO_NAME || ""}
             onChange={handlePortfolioChange}
             disabled={portfolios.length === 0}
@@ -138,17 +209,21 @@ const Topbar = ({ toggleSidebar }) => {
           </select>
         </div>
 
-        {/* Middle: Refresh + Search */}
+        {/* Refresh Button */}
         <div className="refresh-container">
           <GrRefresh
-            className={`refresh-button-api ${refreshing ? "spinning" : ""}`}
+            className={`refresh-button-api control ${refreshing ? "spinning" : ""}`}
             onClick={handleRefreshScreen}
+            title="Refresh data"
+            aria-label="Refresh"
           />
         </div>
 
-        <div className="topbar-center">
+        {/* Center: Category + Search */}
+        <div className="topbar-center controls-group">
           <select
             value={searchCategory}
+            className="control"
             onChange={(e) => setSearchCategory(e.target.value)}
             disabled={categories.length === 0}
           >
@@ -166,51 +241,142 @@ const Topbar = ({ toggleSidebar }) => {
           <select
             value={searchType}
             onChange={(e) => setSearchType(e.target.value)}
+            className="control"
           >
             <option value="Service">Service No.</option>
             <option value="Query">Query</option>
           </select>
+
           <input
             type="text"
+            className={`control control--grow ${isError ? "input-error" : ""}`}
             placeholder={
               errorPlaceholder ||
               (searchType === "Query" ? "Enter Query ID" : "Enter Service No.")
             }
             value={searchValue}
             onChange={handleSearchInputChange}
-            className={isError ? "input-error" : ""}
           />
-          <button onClick={handleSearch}>Search</button>
+
+          <button className="control" onClick={handleSearch}>
+            Search
+          </button>
         </div>
 
-        {/* Right: User + Theme */}
-        <div className="topbar-right">
+        {/* Right: Theme + Profile Icon */}
+        <div className="topbar-right controls-group" style={{ alignItems: "center" }}>
           <div
-            className="theme-toggle"
+            className="theme-toggle control"
             onClick={toggleTheme}
             role="button"
             aria-label="Toggle theme"
             title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+            style={{ cursor: "pointer", userSelect: "none" }}
           >
             {theme === "dark" ? "🌙 Dark" : "🌤 Light"}
           </div>
 
+          {/* Profile icon + popup */}
           <div
-            className="user-card"
-            title={fullProfile?.LOGIN_NAME || "Unknown"}
+            className="profile-wrapper control"
+            style={{ position: "relative", display: "inline-block" }}
+            ref={profileButtonRef}
           >
-            <span className="user-primary">
-              {fullProfile?.LOGIN_NAME || "No Name"}
-            </span>
-            {selectedPortfolio && (
-              <div className="user-meta">
-                <span className="badge badge-role">
-                  {selectedPortfolio.USER_ROLE}
-                </span>
-                <span className="dot">•</span>
-                <span className="badge badge-module">
-                  {selectedPortfolio.SUB_SECTION}
-                </span>
+            <button
+              className="profile-button"
+              onClick={() => setIsProfileOpen((s) => !s)}
+              aria-haspopup="dialog"
+              aria-expanded={isProfileOpen}
+              title="Open profile"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 6,
+                borderRadius: "50%",
+                border: "1px solid var(--border)",
+                background: "transparent",
+                cursor: "pointer",
+              }}
+            >
+              <FaUserCircle style={{ fontSize: 28, color: "var(--text)" }} />
+            </button>
+
+            {isProfileOpen && (
+              <div
+                ref={profilePopupRef}
+                role="dialog"
+                aria-label="User profile"
+                className="user-popup user-card"
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "calc(100% + 8px)",
+                  background: "var(--surface)",
+                  color: "var(--text)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow)",
+                  padding: 12,
+                  borderRadius: 10,
+                  minWidth: 280,
+                  zIndex: 2000,
+                }}
+              >
+                {/* Popup header */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "100%",
+                        background: "color-mix(in srgb, var(--primary) 10%, transparent)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--primary)",
+                        fontWeight: 700,
+                      }}
+                    >
+                      { (fullProfile?.LOGIN_NAME && fullProfile.LOGIN_NAME[0]) || "U" }
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
+                        {fullProfile?.LOGIN_NAME || "No Name"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Small close button */}
+                  <button
+                    onClick={() => setIsProfileOpen(false)}
+                    aria-label="Close profile"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "var(--muted)",
+                      padding: 6,
+                    }}
+                    title="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div style={{ display: "grid", gap: 8, marginBottom: 6 }}>
+                  <ProfileRow label="Service No." value={fullProfile?.LOGIN_SNO} />
+                  <ProfileRow label="Rank" value={ fullProfile?.RANK || fullProfile?.RANK_NAME || fullProfile?.RANK_AND_NAME || "" } />
+                  <ProfileRow label="Role" value={fullProfile?.MODULE || ""} />
+                  <ProfileRow label="Module" value={selectedPortfolio?.SUB_SECTION || ""} />
+                  <ProfileRow label="Portfolio" value={selectedPortfolio?.PORTFOLIO_NAME || ""} />
+                  <ProfileRow label="Category" value={getUserRoleLabel(fullProfile.LOGIN_CAT)} /> {/* ✅ Enum mapping */}
+        
+                </div>
+
+                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 6 }}>
+
+                </div>
               </div>
             )}
           </div>

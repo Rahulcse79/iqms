@@ -10,27 +10,32 @@
   --transition-fast: 0.18s;
 }
 
-/* Light theme tokens */
-/* ---------------- LIGHT THEME ---------------- */
+/* ---------- Global box sizing (prevents many overflow issues) ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ---------------- LIGHT / DARK theme tokens ---------------- */
 .theme-light {
   /* Backgrounds */
-  --bg: #f9fafb;              /* very soft off-white background */
-  --surface: #ffffff;          /* pure white for cards/panels */
-  --surface-accent: #f1f5f9;   /* lighter gray accent, gentle separation */
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --surface-accent: #f1f5f9;
 
   /* Text */
-  --text: #1f2937;             /* balanced neutral dark gray */
-  --muted: #6b7280;            /* softened gray for less emphasis */
+  --text: #1f2937;
+  --muted: #6b7280;
 
   /* Buttons */
-  --button-bg: #14b8a6;        /* teal with mild vibrance */
-  --button-hover: #0d9488; 
-  --button-text: #f7f7f7;     /* slightly darker teal for hover */
-      /* slightly darker teal for hover */
+  --button-bg: #14b8a6;
+  --button-hover: #0d9488;
+  --button-text: #f7f7f7;
 
   /* Brand/accents */
-  --primary: #14b8a6;          /* calm teal as brand */
-  --accent: #6366f1;           /* soft indigo accent, lighter than before */
+  --primary: #14b8a6;
+  --accent: #6366f1;
 
   /* Status colors (pastel oriented) */
   --red: #f87171;
@@ -49,11 +54,11 @@
   --green-text: #065f46;
 
   /* Borders & shadows */
-  --border: rgba(0, 0, 0, 0.08);   /* lighter, fitting subtle theme */
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* softer shadow */
+  --border: rgba(0, 0, 0, 0.08);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
   /* Glass/blurred states */
-  --glass: rgba(255, 255, 255, 0.75); /* softer frosted background */
+  --glass: rgba(255, 255, 255, 0.75);
 }
 
 .button-text-color{
@@ -74,7 +79,7 @@
   /* Buttons */
   --button-bg: #06b6d4;
   --button-hover: #0ea5a4;
-    --button-text: #f7f7f7; 
+  --button-text: #f7f7f7;
 
   /* Brand/accents */
   --primary: #06b6d4;
@@ -104,7 +109,7 @@
   --glass: rgba(255,255,255,0.05);
 }
 
-/* Themed DataTable wrapper (uses your theme CSS variables) */
+/* ---------------- Data table theming (kept) ---------------- */
 .themed-data-table .rdt_Table {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -112,98 +117,27 @@
   box-shadow: var(--shadow);
   overflow: hidden;
 }
-
-/* Header row */
 .themed-data-table .rdt_TableHead,
-.themed-data-table .rdt_TableHeadRow {
-  background: var(--surface-accent);
-  color: var(--text);
-}
-
-/* Header cells */
-.themed-data-table .rdt_TableHeadCell {
-  color: var(--text);
-  font-weight: 600;
-}
-
-/* Body rows */
-.themed-data-table .rdt_TableRow {
-  background: var(--surface);
-  color: var(--text);
-  transition: background 0.18s ease;
-}
-
-/* Hover state */
-.themed-data-table .rdt_TableRow:hover {
-  /* subtle lift using glass or surface-accent */
-  background: var(--surface-accent);
-  cursor: pointer;
-}
-
-/* Striped rows: even rows slightly tinted */
+.themed-data-table .rdt_TableHeadRow { background: var(--surface-accent); color: var(--text); }
+.themed-data-table .rdt_TableHeadCell { color: var(--text); font-weight: 600; }
+.themed-data-table .rdt_TableRow { background: var(--surface); color: var(--text); transition: background 0.18s ease; }
+.themed-data-table .rdt_TableRow:hover { background: var(--surface-accent); cursor: pointer; }
 .themed-data-table .rdt_TableRow:nth-child(even) {
   background: color-mix(in srgb, var(--surface) 85%, var(--glass) 15%);
-  /* If color-mix not supported, fallback to surface-accent:
-     background: var(--surface-accent); */
 }
-
-/* Cells */
-.themed-data-table .rdt_TableCell {
-  padding: 12px 10px;
-  color: var(--text);
-}
-
-/* No-data / progress */
+.themed-data-table .rdt_TableCell { padding: 12px 10px; color: var(--text); }
 .themed-data-table .rdt_NoData,
-.themed-data-table .rdt_Progress {
-  color: var(--muted);
-  background: transparent;
-}
-
-/* Pagination bar */
-.themed-data-table .rdt_Pagination {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-
-/* Pagination buttons */
-.themed-data-table .pagination-button,
-.themed-data-table .rdt_Pagination .rdt_PaginationButton {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-  padding: 6px 10px;
-  border-radius: 8px;
-}
-.themed-data-table .rdt_Pagination .rdt_PaginationButton:hover {
-  background: var(--surface-accent);
-  color: var(--text);
-}
-
-/* Search / subheader (if used) */
-.themed-data-table .rdt_TableToolbar {
-  background: transparent;
-  border-bottom: 1px solid var(--border);
-}
-
-/* Make sure the table respects container padding on narrow screens */
-.themed-data-table {
-  width: 100%;
-}
-
-/* Small screens tweak */
+.themed-data-table .rdt_Progress { color: var(--muted); background: transparent; }
+.themed-data-table .rdt_Pagination { display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--border); background:var(--surface); }
+.themed-data-table .rdt_Pagination .rdt_PaginationButton { background:transparent; color:var(--text); border:1px solid var(--border); padding:6px 10px; border-radius:8px; }
+.themed-data-table .rdt_Pagination .rdt_PaginationButton:hover { background:var(--surface-accent); color:var(--text); }
+.themed-data-table .rdt_TableToolbar { background: transparent; border-bottom: 1px solid var(--border); }
+.themed-data-table { width: 100%; }
 @media (max-width: 720px) {
-  .themed-data-table .rdt_TableCell {
-    padding: 10px 8px;
-    font-size: 13px;
-  }
+  .themed-data-table .rdt_TableCell { padding: 10px 8px; font-size: 13px; }
 }
 
-
+/* ---------------- Page skeleton ---------------- */
 html, body {
   height: 100%;
   margin: 0;
@@ -211,59 +145,105 @@ html, body {
   background: var(--bg);
   color: var(--text);
   transition: background 0.25s ease, color 0.25s ease;
+  overscroll-behavior-y: none;
 }
 
+/* Dashboard layout container */
 .dashboard-layout {
-  display: flex;
+  display: block; /* changed to block because sidebar is expected to be positioned independently (fixed/absolute) */
   min-height: 100vh;
   background: var(--bg);
+  position: relative;
 }
 
+/* Make sure topbar inside main-content remains sticky */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
+/* ---------- Main content that sits to the right of the sidebar ---------- */
+/* We assume sidebar is positioned (fixed/absolute) and we must offset main-content by the sidebar width */
 .main-content {
-  flex-grow: 1;
-  /* This is the key change */
-  margin-left: 210px; /* Match this value to your sidebar's width */
-  transition: margin-left 0.3s ease-in-out;
+  /* Align to the right of the sidebar */
+  margin-left: var(--sidebar-width);
+  /* Ensure the main area uses the remaining width and doesn't overflow */
+  width: calc(100% - var(--sidebar-width));
+  transition: margin-left 0.28s ease-in-out, width 0.28s ease-in-out;
   display: flex;
   flex-direction: column;
-  margin-bottom: 50px;
-  
+  min-height: 100vh;
+  padding-bottom: calc(var(--footer-height) + 12px); /* make room for fixed footer */
+  box-sizing: border-box;
+  /* horizontal overflow should be handled per component; this prevents accidental body overflow */
+  overflow-x: hidden;
 }
 
-/* Adjust margin when the sidebar is collapsed */
+/* When the sidebar is collapsed, shift the content accordingly */
 .dashboard-layout.sidebar-collapsed .main-content {
-  margin-left: 80px; 
-}
-.dashboard-layout.sidebar-collapsed .footer{
-  left: 80px; 
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
 }
 
+/* Content area inside main-content where pages render */
 .content {
   padding: 24px;
-  margin-right: 20px ;
-  flex-grow: 1; /* Ensures the content area fills the space and pushes the footer down */
+  /* use padding-right instead of margin-right to avoid extra box width causing overflow */
+  padding-right: 20px;
+  flex-grow: 1;
+  box-sizing: border-box;
+  overflow: auto; /* allow content to scroll if tall/wide without breaking layout */
+  -webkit-overflow-scrolling: touch;
 }
 
+/* ---------- Footer (fixed) aligned to the right of sidebar ---------- */
 .footer {
   position: fixed;
   bottom: 0;
-  left: 220px; /* Default sidebar width */
+  left: var(--sidebar-width); /* align to sidebar edge */
   right: 0;
-  height: 60px;
+  height: var(--footer-height);
   padding: 12px 24px;
   text-align: center;
-  border-top: 1px solid #eee;
-  background: #fff;
+  border-top: 1px solid rgba(0,0,0,0.04);
+  background: var(--surface);
   z-index: 999;
-  transition: left 0.3s ease-in-out;
+  transition: left 0.28s ease-in-out, width 0.28s ease-in-out;
+  box-sizing: border-box;
 }
 
+/* Footer when sidebar collapsed */
 .dashboard-layout.sidebar-collapsed .footer {
-  left: 0px;
+  left: var(--sidebar-collapsed-width);
+}
+
+/* ---------- Responsiveness & small-screen behavior ---------- */
+/* On narrow screens, we usually overlay the sidebar rather than push content.
+   This prevents content shrinking to unusable widths and avoids horizontal overflow. */
+@media (max-width: 920px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    transition: margin-left 0.18s ease-in-out, width 0.18s ease-in-out;
+  }
+  .footer {
+    left: 0;
+  }
+  /* If your Sidebar toggles to overlay mode on small screens, ensure it z-index is higher than .main-content */
+}
+
+/* Very small screens: give content comfortable padding */
+@media (max-width: 420px) {
+  .content {
+    padding: 12px;
+    padding-bottom: calc(var(--footer-height) + 12px);
+  }
+}
+
+/* ---------- Small helpers (prevent long text from pushing layout) ---------- */
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
