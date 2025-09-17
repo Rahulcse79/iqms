@@ -252,11 +252,11 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (!items || items.length === 0) {
-      dispatch(fetchRepliedQueries());
-    }
-  }, [dispatch, items]);
+  // useEffect(() => {
+  //   if (!items || items.length === 0) {
+  //     dispatch(fetchRepliedQueries());
+  //   }
+  // }, [dispatch, items]);
 
   const pendingQueriesData = [
     { label: "Pending at Creator", value: counts.pending.creator },

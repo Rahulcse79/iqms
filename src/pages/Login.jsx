@@ -104,7 +104,15 @@ const Login = () => {
           dispatch(fetchTransferredQueries({ cat: 1, pendingWith: pw }))
         ),
       ];
-      await Promise.all(tasks);
+
+      const results = await Promise.allSettled(tasks);
+
+      results.forEach((r, i) => {
+        if (r.status === "rejected") {
+          console.error("Background API failed:", tasks[i], r.reason);
+          // optional: trigger toast or retry logic here
+        }
+      });
 
       setInitializing(false);
       navigate("/");
