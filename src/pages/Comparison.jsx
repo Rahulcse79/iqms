@@ -219,15 +219,15 @@ const Comparison = () => {
       payList.length === 0 &&
       rankList.length === 0
     ) {
-      return <div className="card">{label}: Loading...</div>;
+      return <div className="card-comparision">{label}: Loading...</div>;
     }
 
     if (!person && payList.length === 0 && rankList.length === 0) {
-      return <div className="card">{label}: No Data Found</div>;
+      return <div className="card-comparision">{label}: No Data Found</div>;
     }
 
     return (
-      <div className="card">
+      <div className="">
         <div className="card-top">
           {label} • {person?.sno || "-"}
         </div>

@@ -416,7 +416,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
                 </div>
               </th>
 
-              <th style={styles.th}>Remarks</th>
+              <th style={styles.th}>IRLA Action</th>
             </tr>
           </thead>
 

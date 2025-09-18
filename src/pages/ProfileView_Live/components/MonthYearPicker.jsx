@@ -25,9 +25,31 @@ const MonthYearPicker = ({ onChange }) => {
     }
   }, [selectedMonth, selectedYear, onChange]);
 
+  // common styles
+  const selectStyle = {
+    padding: "8px 12px",
+    marginRight: "10px",
+    borderRadius: "6px",
+    border: "1px solid var(--border, #d1d5db)",
+    background: "var(--surface, #fff)",
+    color: "var(--text, #111827)",
+    fontSize: "14px",
+    cursor: "pointer",
+    outline: "none",
+    transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+  };
+
+  const containerStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "10px 0",
+  };
+
   return (
-    <div>
+    <div style={containerStyle}>
       <select
+        style={selectStyle}
         value={selectedMonth}
         onChange={(e) => setSelectedMonth(e.target.value)}
       >
@@ -36,7 +58,7 @@ const MonthYearPicker = ({ onChange }) => {
           <option
             key={idx}
             value={idx + 1 < 10 ? `0${idx + 1}` : idx + 1} // format as 01,02...
-            disabled={idx === currentMonth} // disable current month
+            disabled={idx === currentMonth}
           >
             {m}
           </option>
@@ -44,6 +66,7 @@ const MonthYearPicker = ({ onChange }) => {
       </select>
 
       <select
+        style={selectStyle}
         value={selectedYear}
         onChange={(e) => setSelectedYear(e.target.value)}
       >

@@ -30,11 +30,11 @@ const IRLAHistoryTab = () => {
 
   return (
     <div>
-      <h2>IRLA History</h2>
+      <h2 style={{ color: "var(--text)" }}>IRLA History</h2>
 
       <MonthYearPicker onChange={setMonthYear} />
 
-      {loading && <p>Loading PDF...</p>}
+      {loading && <p style={{color:"var(--text)", padding:"10px" }}>Loading PDF...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {pdfUrl && (

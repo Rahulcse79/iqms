@@ -104,12 +104,6 @@ const SECTIONS = [
   },
   { id: "mvr", label: "MVR History", Component: MVRHistoryTab, icon: "drive" },
   { id: "irla", label: "IRLA History", Component: IRLAHistoryTab, icon: "doc" },
-  {
-    id: "iqms",
-    label: "IQMS details",
-    Component: IQMSDetailsTab,
-    icon: "chart",
-  }
 ];
 
 function SectionPicker({

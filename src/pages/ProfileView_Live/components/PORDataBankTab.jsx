@@ -43,7 +43,7 @@ export default function PORDataTable() {
         />
       </div>
 
-      {loading && <p className="info-text">Loading POR data...</p>}
+      {loading && <p className="info-text" style={{color:"var(--text)"}}>Loading POR data...</p>}
       {error && <p className="error-text">Error: {error}</p>}
       {!loading && records.length === 0 && (
         <p className="info-text">No POR records found for {selectedYear}.</p>
