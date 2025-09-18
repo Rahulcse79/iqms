@@ -6,6 +6,7 @@ import ProfileViewLive from "../ProfileView_Live/ProfileView";
 import PORDATA from "../ProfileView/components/PORDataBankTab";
 import QueryDetails from "./QueryDetails";
 import PersonalDetails from "../ProfileView/components/PersonalDetails";
+import IRLAVIEW from "../ProfileView_Live/components/IRLAHistoryTab"
 import GCIHistory from "../ProfileView/components/GCIHistoryTab";
 import { fetchPersonalData } from "../../actions/ProfileAction";
 import { useDispatch, useSelector } from "react-redux";
@@ -80,7 +81,7 @@ const QueryView = ({ onBack }) => {
           />
         );
       case "Pay Related Issue":
-        return <h2 style={{ color: "var(--text)" }}>Pay Related Issue Page</h2>;
+        return <IRLAVIEW/>;
       case "Comparison Issue":
         return <Comparison />;
       case "Allowance Related Issue":
