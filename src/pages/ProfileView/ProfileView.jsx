@@ -573,7 +573,7 @@ export default function ProfileView() {
         handleSearch={handleSearch}
       />
 
-      {loading && <div className="loading-overlay">Loading profile...</div>}
+      {loading && <div className="loading-overlay">Loading Profile...</div>}
 
       {error && (
         <div className="error-banner" role="alert">

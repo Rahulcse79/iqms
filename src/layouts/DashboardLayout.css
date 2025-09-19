@@ -104,7 +104,7 @@
   --shadow: 0 6px 20px rgba(0,0,0,0.6);
 
   /* Glass/blurred states */
-  --glass: rgba(255,255,255,0.05);
+  --glass: #1e293b88;
 }
 
 /* ---------------- Data table theming (kept) ---------------- */
