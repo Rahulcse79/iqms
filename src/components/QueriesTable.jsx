@@ -59,6 +59,16 @@ const QueriesTable = ({ title, data = [] }) => {
         color: "var(--text)",
         backgroundColor: "transparent",
       },
+      pageButtonsStyle: {
+        borderRadius: "8px",
+        height: "32px",
+        width: "32px",
+        padding: "4px",
+        margin: "0 4px",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        color: "var(--text)",
+      },
     },
   };
 

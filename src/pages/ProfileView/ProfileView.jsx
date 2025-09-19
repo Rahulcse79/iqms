@@ -102,7 +102,6 @@ const SECTIONS = [
     Component: PORDataBankTab,
     icon: "folder",
   },
-  { id: "mvr", label: "MVR History", Component: MVRHistoryTab, icon: "drive" },
   { id: "irla", label: "IRLA History", Component: IRLAHistoryTab, icon: "doc" },
 ];
 

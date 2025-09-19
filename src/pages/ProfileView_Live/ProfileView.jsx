@@ -64,7 +64,6 @@ const SECTIONS = [
   { id: 'gci', label: 'GCI History', Component: GCIHistoryTab, icon: 'history' },
   { id: 'posting', label: 'Posting History', Component: PostingHistoryTab, icon: 'posting' },
   { id: 'por', label: 'POR Data Bank', Component: PORDataBankTab, icon: 'folder' },
-  { id: 'mvr', label: 'MVR History', Component: MVRHistoryTab, icon: 'drive' },
   { id: 'irla', label: 'IRLA History', Component: IRLAHistoryTab, icon: 'doc' },
   { id: 'iqms', label: 'IQMS details', Component: IQMSDetailsTab, icon: 'chart' },
 ];

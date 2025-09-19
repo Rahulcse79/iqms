@@ -22,59 +22,82 @@ const Comparison = () => {
     }))
   );
 
-  const customStyles = {
-    table: {
-      style: {
-        backgroundColor: "var(--surface)",
-        borderRadius: "12px",
-        overflow: "hidden",
-      },
+const customStyles = {
+  table: {
+    style: {
+      backgroundColor: "var(--surface)",
+      borderRadius: "12px",
+      overflow: "hidden",
     },
-    header: {
-      style: {
-        minHeight: "56px",
-        paddingLeft: "16px",
-        paddingRight: "8px",
-      },
+  },
+  header: {
+    style: {
+      minHeight: "56px",
+      paddingLeft: "16px",
+      paddingRight: "8px",
     },
-    headRow: {
-      style: {
+  },
+  headRow: {
+    style: {
+      backgroundColor: "var(--surface-accent)",
+      borderBottom: "1px solid var(--border)",
+      minHeight: "48px",
+    },
+  },
+  headCells: {
+    style: {
+      color: "var(--text)",
+      fontSize: "14px",
+      fontWeight: "600",
+      paddingLeft: "12px",
+      paddingRight: "12px",
+    },
+  },
+  rows: {
+    style: {
+      backgroundColor: "var(--surface)",
+      minHeight: "52px", // overrides row height
+    },
+  },
+  cells: {
+    style: {
+      paddingLeft: "12px",
+      paddingRight: "12px",
+      color: "var(--text)",
+      fontSize: "14px",
+    },
+  },
+  pagination: {
+    style: {
+      padding: "8px",
+      color: "var(--text)",
+      backgroundColor: "transparent",
+    },
+    pageButtonsStyle: {
+      borderRadius: "6px",
+      height: "32px",
+      width: "32px",
+      padding: "4px",
+      margin: "0 4px",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      color: "var(--text)",
+
+      "&:hover": {
         backgroundColor: "var(--surface-accent)",
-        borderBottom: "1px solid var(--border)",
-        minHeight: "48px",
-      },
-    },
-    headCells: {
-      style: {
         color: "var(--text)",
-        fontSize: "14px",
-        fontWeight: "600",
-        paddingLeft: "12px",
-        paddingRight: "12px",
+        fill: "var(--primary)",
       },
-    },
-    rows: {
-      style: {
-        backgroundColor: "var(--surface)",
-        minHeight: "52px", // overrides row height
-      },
-    },
-    cells: {
-      style: {
-        paddingLeft: "12px",
-        paddingRight: "12px",
+
+      "&[aria-current='true']": {
+        backgroundColor: "var(--primary)",
         color: "var(--text)",
-        fontSize: "14px",
+        fill: "var(--on-primary)",
       },
     },
-    pagination: {
-      style: {
-        padding: "8px",
-        color: "var(--text)",
-        backgroundColor: "transparent",
-      },
-    },
-  };
+  },
+};
+
 
   const [panelData, setPanelData] = useState(
     Array.from({ length: NUM_SLOTS }, () => [])

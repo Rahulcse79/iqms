@@ -33,9 +33,10 @@ const SidebarHeader = styled.div`
 `;
 
 const LogoImg = styled.img`
-  height: 32px;
+  height: 42px;
   width: 32px;
-  background-color:"var(--text)";
+  padding: 4px;
+  background-color:#fff;
 `;
 
 const HeaderTitle = styled.span` 
