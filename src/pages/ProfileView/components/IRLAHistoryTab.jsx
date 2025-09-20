@@ -96,7 +96,6 @@ export default function IRLAHistoryTab({ selSno, selCat }) {
   return (
     <div className="irla-root" role="region" aria-label="IRLA History">
       <div className="irla-header">
-        <h2 className="irla-title">IRLA History</h2>
       </div>
 
       <div className="irla-controls">

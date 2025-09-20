@@ -298,7 +298,7 @@ export default function FreqQuery() {
               <thead>
                 <tr>
                   <th style={{ width: 60 }}>S.No</th>
-                  <th>Name / Pers</th>
+                  <th>Name / Person</th>
                   <th style={{ width: 140 }}>Total FRQ Count</th>
                 </tr>
               </thead>

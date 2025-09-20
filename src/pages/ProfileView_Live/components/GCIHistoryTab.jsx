@@ -84,7 +84,7 @@ export default function GCIHistoryTab() {
 
   return (
     <div style={{ padding: 16 }}>
-      <h3>GCI History</h3>
+      <h3 style={{color:"var(--text)"}}>GCI History</h3>
 
       {/* Service number check */}
       {!serviceNo ? (
@@ -151,7 +151,7 @@ export default function GCIHistoryTab() {
         ) : !selectedAbc ? (
           <div style={{ color: "#374151" }}>Please select an ABC code to view GCI history.</div>
         ) : Array.isArray(gciItems) && gciItems.length === 0 ? (
-          <div>No GCI history records found for selected code.</div>
+          <div style={{color:"var(--text)"}}>No GCI history records found for selected code.</div>
         ) : (
           <div>
             {isFromCache && <div style={{ color: "#065f46", marginBottom: 6 }}>Served from cache</div>}

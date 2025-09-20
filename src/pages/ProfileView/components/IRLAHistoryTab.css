@@ -1,8 +1,8 @@
 /* Scoped with irla- prefix to avoid collisions */
 .irla-root {
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background: #fbfcff;
-  color: #0f1724;
+  background: var(--bg, #fbfcff);
+  color: var(--text, #0f1724);
   padding: 18px;
   box-sizing: border-box;
   border-radius: 10px;
@@ -12,7 +12,7 @@
 .irla-title {
   margin: 0 0 12px;
   font-size: 20px;
-  color: #0b1220;
+  color: var(--text, #0b1220);
 }
 
 /* controls container */
@@ -34,17 +34,18 @@
 .irla-picker__label {
   font-size: 13px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text, #111827);
   margin-right: 6px;
 }
 
 .irla-picker__select {
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid #e6e9ef;
-  background: #fff;
+  border: 1px solid var(--border, #e6e9ef);
+  background: var(--surface, #fff);
   min-width: 160px;
   font-size: 14px;
+  color: var(--text, #0f1724);
 }
 
 /* actions */
@@ -60,14 +61,15 @@
   border: 1px solid transparent;
   cursor: pointer;
   font-size: 14px;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
 }
+.irla-btn:active { transform: translateY(1px); }
 
 .irla-btn--primary {
-  background: #0b5cff;
-  color: #fff;
+  background: var(--primary, #0b5cff);
+  color: var(--surface, #fff);
   box-shadow: 0 8px 20px rgba(11,92,255,0.09);
 }
-
 .irla-btn--primary[disabled],
 .irla-btn--primary[aria-disabled="true"] {
   opacity: 0.6;
@@ -76,31 +78,31 @@
 }
 
 .irla-btn--secondary {
-  background: #fff;
-  color: #374151;
-  border: 1px solid #e6e9ef;
+  background: var(--surface, #fff);
+  color: var(--text, #374151);
+  border: 1px solid var(--border, #e6e9ef);
 }
 
 /* status */
 .irla-meta {
   font-size: 13px;
-  color: #111827;
+  color: var(--text, #111827);
   margin-bottom: 12px;
 }
 
 .irla-error {
-  color: #b91c1c;
-  background: #fff5f5;
+  color: var(--red, #b91c1c);
+  background: color-mix(in srgb, var(--red, #b91c1c) 5%, var(--surface, #fff) 95%);
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid #fecaca;
+  border: 1px solid color-mix(in srgb, var(--red, #b91c1c) 20%, transparent 80%);
 }
 
 .irla-loading {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #374151;
+  color: var(--muted, #374151);
   padding: 10px 0;
 }
 
@@ -109,8 +111,8 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  border: 3px solid rgba(11,92,255,0.18);
-  border-top-color: #0b5cff;
+  border: 3px solid color-mix(in srgb, var(--primary, #0b5cff) 18%, transparent 82%);
+  border-top-color: var(--primary, #0b5cff);
   animation: irla-spin 1s linear infinite;
 }
 
@@ -121,15 +123,16 @@
 /* iframe preview */
 .irla-iframe-wrap {
   margin-top: 12px;
-  background: #fff;
+  background: var(--surface, #fff);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(2,6,23,0.04);
+  box-shadow: var(--shadow, 0 8px 24px rgba(2,6,23,0.04));
   padding: 12px;
 }
 
 .irla-iframe {
   border: none;
   border-radius: 6px;
+  background: var(--surface, #fff);
 }
 
 /* download action above iframe */
@@ -143,10 +146,10 @@
 /* empty placeholder */
 .irla-empty {
   padding: 16px;
-  background: #fff;
+  background: var(--surface, #fff);
   border-radius: 8px;
-  border: 1px dashed #e6eefc;
-  color: #374151;
+  border: 1px dashed var(--border, #e6eefc);
+  color: var(--muted, #374151);
 }
 
 /* responsive: stack controls on small screens */

@@ -330,10 +330,10 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--accent, #2563eb);
-  z-index: 2000;
+  font-size: 3.05rem;
+  font-weight: 900;
+  color: var(--text, #2563eb);
+  z-index: 9999;
 }
 
 /* --- Error Banner --- */

@@ -28,19 +28,27 @@ const formatIso = (iso) => {
   }
 };
 
-const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => {
+const IncomingQueries = ({
+  cat = 1,
+  deptPrefix = "U",
+  personnelType = "A",
+}) => {
   const [activeTab, setActiveTab] = useState("creator");
   const dispatch = useDispatch();
 
   const pendingWith = `${deptPrefix}${roleDigitForTab[activeTab]}${personnelType}`;
 
-  const cachedEntry = useSelector((state) => state.pending_queries.byKey[pendingWith] || {});
+  const cachedEntry = useSelector(
+    (state) => state.pending_queries.byKey[pendingWith] || {}
+  );
   const items = Array.isArray(cachedEntry.items) ? cachedEntry.items : [];
   const loading = Boolean(cachedEntry.loading);
   const error = cachedEntry.error || null;
   const hasMore = Boolean(cachedEntry.hasMore); // may be undefined; used only for display
 
-  const tabTitle = `Pending Queries - ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`;
+  const tabTitle = `Pending Queries - ${
+    activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+  }`;
 
   const tableData = useMemo(() => {
     return (items || []).map((it, idx) => ({
@@ -51,7 +59,11 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
         it.doc_type ||
         it.subject ||
         "",
-      queryId: it.doc_id ? String(it.doc_id) : it.imprno ? String(it.imprno) : `${it.sno}-${idx}`,
+      queryId: it.doc_id
+        ? String(it.doc_id)
+        : it.imprno
+        ? String(it.imprno)
+        : `${it.sno}-${idx}`,
       date: formatIso(it.submit_date ?? it.action_dt ?? it.last_action_dt),
       cat: it?.cat ?? null,
       raw: it,
@@ -94,7 +106,14 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
         </button>
       </div>
 
-      <div style={{ margin: "8px 0", display: "flex", gap: 8, alignItems: "center" }}>
+      <div
+        style={{
+          margin: "8px 0",
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+        }}
+      >
         <h3 style={{ margin: 0, color: "var(--text)" }}>{tabTitle}</h3>
 
         <button
@@ -102,23 +121,32 @@ const IncomingQueries = ({ cat = 1, deptPrefix = "U", personnelType = "A" }) => 
           style={{ marginLeft: 8, background: "var(--button-bg)" }}
           disabled={loading}
         >
-                    {loading ? <HiOutlineRefresh /> : <HiOutlineRefresh />}
-          
+          {loading ? <HiOutlineRefresh /> : <HiOutlineRefresh />}
         </button>
 
         <div style={{ marginLeft: 8 }}>
-          {loading && <small>Loading first page / refreshing…</small>}
-          {!loading && <small style={{ color: "var(--text)" }}>Loaded: {items.length}</small>}
+          {loading && <small style={{color:"var(--text)"}}>Loading first page / refreshing…</small>}
+          {!loading && (
+            <small style={{ color: "var(--text)" }}>
+              Loaded: {items.length}
+            </small>
+          )}
         </div>
 
-        {error && <small style={{ marginLeft: 8, color: "crimson" }}>Error: {error}</small>}
+        {error && (
+          <small style={{ marginLeft: 8, color: "crimson" }}>
+            Error: {error}
+          </small>
+        )}
       </div>
 
       <QueriesTable title={tabTitle} data={tableData} loading={loading} />
 
       {/* No show-more UI — refresh triggers full fetch */}
       <div style={{ marginTop: 12 }}>
-        <small style={{ color: "var(--text)" }}>{items.length} items cached.</small>
+        <small style={{ color: "var(--text)" }}>
+          {items.length} items cached.
+        </small>
       </div>
     </>
   );

@@ -32,7 +32,7 @@
 
 .btn.export-btn {
   background-color: var(--blue);
-  color: var(--surface);
+  color: var(--text);
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
@@ -71,6 +71,7 @@
   transition: background-color 0.3s ease;
 }
 
-.action-btn:hover {
-  background-color: color-mix(in srgb, var(--green) 90%, black 10%);
+
+.queries-container button{
+  color: var(--text);
 }

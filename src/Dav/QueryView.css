@@ -190,7 +190,7 @@
   gap: var(--gap);
 }
 .card {
-  background: var(--card-bg);
+  background: var(--bg);
   border-radius: var(--radius);
   padding: 18px;
   width: auto;

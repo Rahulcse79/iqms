@@ -79,7 +79,7 @@
 
 /* Results container */
 .comparison-results {
-  width: 100%;
+  width: auto;
   max-width: 1200px;
   margin-top: 26px;
 }
@@ -138,11 +138,11 @@
 }
 
 .label-searchbox input {
-  width: 300px;
+  width: auto;
 }
 
 /* Each card */
-.card {
+.card-comparision {
   flex: 1;
   border-radius: 6px;
   overflow: hidden;

@@ -181,7 +181,7 @@ function InfoGrid({ data }) {
 /** ---------- Styles (theme-based) ---------- */
 const styles = {
   card: {
-    background: 'var(--surface, #fff)',
+    background: 'var(--surface)',
     borderRadius: 'var(--radius-sm, 12px)',
     boxShadow: 'var(--shadow, 0 4px 12px rgba(0,0,0,0.08))',
     padding: 20,

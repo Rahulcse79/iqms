@@ -536,10 +536,6 @@ export default function FAQPage() {
         )}
       </div>
 
-      <footer className="faq-footer">
-        Tip: answers may contain formatted HTML (lists, line breaks). Install
-        DOMPurify to sanitize HTML: <code>npm i dompurify</code>
-      </footer>
     </div>
   );
 }

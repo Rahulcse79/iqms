@@ -28,8 +28,10 @@ const devLog = (...args) => {
 const styles = {
   container: {
     padding: 20,
-    fontFamily: "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
-    color: '#111827',
+    fontFamily:
+      "var(--font-family, 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial)",
+    color: 'var(--text, #111827)',
+    background: 'transparent',
   },
   controlsRow: {
     display: 'flex',
@@ -47,36 +49,41 @@ const styles = {
   rowsSelect: {
     padding: '6px 8px',
     borderRadius: 6,
-    border: '1px solid #d1d5db',
-    background: '#fff',
+    border: '1px solid var(--border, #d1d5db)',
+    background: 'var(--surface, #fff)',
+    color: 'var(--text, #111827)',
   },
   sortButton: {
     padding: '6px 10px',
     borderRadius: 6,
-    border: '1px solid #d1d5db',
-    background: '#f8fafc',
+    border: '1px solid var(--border, #d1d5db)',
+    background: 'var(--surface-accent, #f8fafc)',
     cursor: 'pointer',
+    color: 'var(--text, #111827)',
   },
   tableWrap: {
     overflowX: 'auto',
     borderRadius: 8,
-    boxShadow: '0 1px 2px rgba(15,23,42,0.05)',
-    border: '1px solid #e6eaea',
+    boxShadow: 'var(--shadow, 0 1px 2px rgba(15,23,42,0.05))',
+    border: '1px solid var(--border, #e6eaea)',
+    background: 'var(--surface, #fff)',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     minWidth: 720,
+    color: 'var(--text, #111827)',
+    fontSize: 14,
   },
   thead: {
-    background: '#f8fafc',
-    color: '#0f172a',
+    background: 'var(--surface-accent, #f8fafc)',
+    color: 'var(--text, #0f172a)',
     fontSize: 14,
     textAlign: 'left',
   },
   th: {
     padding: '12px 14px',
-    borderBottom: '1px solid #e6eaea',
+    borderBottom: '1px solid var(--border, #e6eaea)',
     fontWeight: 600,
     verticalAlign: 'middle',
   },
@@ -85,16 +92,18 @@ const styles = {
     userSelect: 'none',
   },
   tbodyRow: {
-    background: '#ffffff',
+    background: 'var(--surface, #ffffff)',
   },
   tbodyRowAlt: {
-    background: '#fbfbfb',
+    background: 'color-mix(in srgb, var(--surface, #ffffff) 92%, var(--glass, rgba(0,0,0,0.02)) 8%)',
   },
   td: {
     padding: '12px 14px',
-    borderBottom: '1px solid #f1f5f9',
+    borderBottom: '1px solid color-mix(in srgb, var(--border, #f1f5f9) 80%, transparent 20%)',
     verticalAlign: 'middle',
     fontSize: 14,
+    color: 'var(--text, #111827)',
+    background: 'transparent',
   },
   footer: {
     marginTop: 12,
@@ -107,22 +116,24 @@ const styles = {
   navButton: {
     padding: '6px 10px',
     borderRadius: 6,
-    border: '1px solid #e2e8f0',
-    background: '#fff',
+    border: '1px solid var(--border, #e2e8f0)',
+    background: 'var(--surface, #fff)',
     cursor: 'pointer',
+    color: 'var(--text, #111827)',
   },
   pageInput: {
     width: 72,
     padding: '6px 8px',
     borderRadius: 6,
-    border: '1px solid #d1d5db',
+    border: '1px solid var(--border, #d1d5db)',
+    background: 'var(--surface, #fff)',
+    color: 'var(--text, #111827)',
   },
   metaText: {
     fontSize: 13,
-    color: '#374151',
+    color: 'var(--muted, #374151)',
   },
 };
-
 /* ---------------- Component ---------------- */
 export default function TradeHistoryTab({ items = [], loading, error }) {
   /* ---------------- Hooks (always at top) ---------------- */
@@ -318,7 +329,7 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: '#374151' }}>
+          <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: 'var(--text, #374151)' }}>
             Go to page:
             <input
               type="number"
