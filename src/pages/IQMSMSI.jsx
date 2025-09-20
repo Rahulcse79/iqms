@@ -1,311 +1,478 @@
-import React, { useMemo, useState } from "react";
-import "./ConsolidatedQueries.css"; 
+import React, { useEffect, useMemo, useState } from "react";
+import "./ConsolidatedQueries.css";
+import API_CALL from "../utils/MISApiCall";
 
-const sampleSummary = [
-    { key: "AFG", name: "AFG", received: 1391, replied: 1353, pending: 38 },
-    { key: "CCS-AFGS", name: "CCS-AFGS", received: 66, replied: 66, pending: 0 },
-    { key: "CCS-GOVADV", name: "CCS-GOVADV", received: 40, replied: 38, pending: 2 },
-    { key: "CCS-JAFBA", name: "CCS-JAFBA", received: 59, replied: 59, pending: 0 },
-    { key: "CCS-IT", name: "CCS-IT", received: 346, replied: 345, pending: 1 },
-    { key: "CCS-PLI", name: "CCS-PLI", received: 536, replied: 532, pending: 4 },
-    { key: "CQC", name: "CQC", received: 17226, replied: 17082, pending: 124 },
-    { key: "SR-JR", name: "SR JR", received: 1814, replied: 1804, pending: 10 },
-    { key: "APG", name: "APG", received: 305, replied: 300, pending: 5 },
-];
-
-const subSectionData = {
-    AFG: [
-        { typeName: "Provident Fund", received: 800, replied: 790, pending: 10 },
-        { typeName: "Provident Fund / Nomination", received: 591, replied: 563, pending: 28 },
-    ],
-    "CCS-GOVADV": [
-        { typeName: "Govt Loans/Advances", received: 40, replied: 38, pending: 2 },
-    ],
-    "CCS-IT": [{ typeName: "Income Tax", received: 346, replied: 345, pending: 1 }],
-    "CCS-PLI": [{ typeName: "PLI Related", received: 536, replied: 532, pending: 4 }],
-    CQC: Array.from({ length: 8 }).map((_, i) => ({
-        typeName: `CQC - ${i + 1}`,
-        received: 200 + i * 2,
-        replied: 195 + i * 2,
-        pending: 5,
-    })),
-    "SR-JR": [{ typeName: "SR JR", received: 1814, replied: 1804, pending: 10 }],
-    APG: Array.from({ length: 8 }).map((_, i) => ({
-        typeName: `APS - ${i + 1}`,
-        received: 10 + i,
-        replied: 9 + i,
-        pending: 1,
-    })),
+const ROLE_TYPE_MAP = {
+  OFFICER: "IQMS_MIS_OPW",
+  AIRMEN: "IQMS_MIS_APW",
+  CIVILIAN: "IQMS_MIS_CPW",
 };
 
-const samplePendingList = [
-    {
-        queryId: "106664381",
-        persDetails: "968237-A CPL UPENDRA KUMAR (PRO) FIT",
-        cell: "601",
-        receivedDate: "2025-08-01",
-        queryType: "Provident Fund / Nomination",
-        pendingWith: "WO/C Cell - APW",
-    },
-    {
-        queryId: "106963175",
-        persDetails: "919516-H SGT SHINDE AMIT RAMESH (ADM ASST)(GD)",
-        cell: "306",
-        receivedDate: "2025-08-02",
-        queryType: "Provident Fund / Nomination",
-        pendingWith: "WO/C Cell - APW",
-    },
-    {
-        queryId: "106772033",
-        persDetails: "986630-H CPL POTHUREDDY GANDAIAH SATISH AUTO TECH",
-        cell: "611",
-        receivedDate: "2025-08-04",
-        queryType: "POR/Office Order Related Queries",
-        pendingWith: "AFG Approver",
-    },
-    {
-        queryId: "106723320",
-        persDetails: "743005-A NO AGARWAL LAL YADAV RAF/ FIT",
-        cell: "611",
-        receivedDate: "2025-08-04",
-        queryType: "Sr Jr",
-        pendingWith: "SR JR Clerk",
-    },
-    {
-        queryId: "106768370",
-        persDetails: "732737-K WMO BIDYARTHI PANKAJ (ADM) FIT",
-        cell: "814",
-        receivedDate: "2025-08-04",
-        queryType: "Pay & Advances",
-        pendingWith: "CCS-GOVADV Approver",
-    },
-    { queryId: "106900111", persDetails: "900111-A LOKESH KUMAR (ACCTS) FIT", cell: "305", receivedDate: "2025-07-15", queryType: "Income Tax", pendingWith: "CCS-IT" },
-    { queryId: "106900222", persDetails: "900222-S RAJESH KUMAR (CQC) FIT", cell: "308", receivedDate: "2025-06-20", queryType: "CQC Query", pendingWith: "CQC" },
-];
+const ENDPOINTS = {
+  IQMS_MIS_APW: [
+    { section: "CQC", id: 1 },
+    { section: "AFG", id: 2 },
+    { section: "CCS GOVADV", id: 3 },
+    { section: "CCS-IT", id: 4 },
+    { section: "CQC", id: 5 },
+    { section: "CQC", id: 6 },
+    { section: "CQC", id: 7 },
+    { section: "CCS-PLI", id: 10 },
+    { section: "CCS-IAFBA", id: 11 },
+    { section: "CCS-AFGIS", id: 12 },
+    { section: "SR JR", id: 13 },
+    { section: "CQC", id: 14 },
+    { section: "CQC", id: 18 },
+    { section: "CQC", id: 19 },
+  ],
+  IQMS_MIS_OPW: [
+    { section: "PAY GROUP", id: 1 },
+    { section: "FUND GROUP", id: 2 },
+    { section: "GOVADV", id: 3 },
+    { section: "IT", id: 4 },
+    { section: "PAY GROUP", id: 5 },
+    { section: "PAY GROUP", id: 6 },
+    { section: "PAY GROUP", id: 7 },
+    { section: "IT", id: 10 },
+    { section: "LE", id: 16 },
+    { section: "PAY GROUP", id: 18 },
+  ],
+  IQMS_MIS_CPW: [
+    { section: "PAY GROUP", id: 1 },
+    { section: "PAY GROUP", id: 5 },
+    { section: "PAY GROUP", id: 6 },
+    { section: "PAY GROUP", id: 18 },
+    { section: "FUND GROUP", id: 2 },
+    { section: "CCS", id: 3 },
+    { section: "IT", id: 4 },
+    { section: "NE", id: 7 },
+    { section: "NPS", id: 9 },
+    { section: "CCS", id: 10 },
+  ],
+};
 
 function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr;
-    return d.toLocaleDateString();
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  return d.toLocaleDateString();
 }
+
 function formatNumber(n) {
-    return n?.toLocaleString?.() ?? n;
+  return n?.toLocaleString?.() ?? n;
 }
 
-const ConsolidatedQueries = () => {
+const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
+  const [role, setRole] = useState(initialRole);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [expanded, setExpanded] = useState({});
+  const [showAllPending, setShowAllPending] = useState(false);
 
-    const [expanded, setExpanded] = useState({});
-    const [fromDate, setFromDate] = useState("");
-    const [toDate, setToDate] = useState("");
-    const [showAllPending, setShowAllPending] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiResults, setApiResults] = useState([]); // [{ section, id, data, error }]
+  const [globalError, setGlobalError] = useState(null);
 
-    const handleSearch = () => {
-        console.log("Searching from:", fromDate, "to:", toDate);
+  const [selectedRow, setSelectedRow] = useState(null); // modal selected item
+
+  const type = ROLE_TYPE_MAP[role] || ROLE_TYPE_MAP.OFFICER;
+
+  useEffect(() => {
+    let mounted = true;
+    const endpoints = ENDPOINTS[type] || [];
+
+    async function fetchAll() {
+      setLoading(true);
+      setGlobalError(null);
+      setApiResults([]);
+      try {
+        const calls = endpoints.map((ep) =>
+          API_CALL(type, ep.section, ep.id, 0, 25)
+            .then((data) => ({ section: ep.section, id: ep.id, data }))
+            .catch((err) => ({ section: ep.section, id: ep.id, error: err }))
+        );
+
+        const settled = await Promise.all(calls);
+        if (!mounted) return;
+        setApiResults(settled);
+      } catch (e) {
+        if (!mounted) return;
+        setGlobalError(e.message || "Unexpected error while fetching endpoints");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    fetchAll();
+    return () => {
+      mounted = false;
     };
+  }, [type]);
 
-    const totals = useMemo(() => {
-        const totalReceived = sampleSummary.reduce((s, it) => s + (it.received || 0), 0);
-        const totalReplied = sampleSummary.reduce((s, it) => s + (it.replied || 0), 0);
-        const totalPending = sampleSummary.reduce((s, it) => s + (it.pending || 0), 0);
-        return { totalReceived, totalReplied, totalPending };
-    }, []);
+  const summaryBySection = useMemo(() => {
+    const map = {};
+    apiResults.forEach((r) => {
+      const key = r.section;
+      if (!map[key]) map[key] = { received: 0, replied: 0, pending: 0, rows: [] };
 
-    const filteredPending = useMemo(() => {
-        const list = samplePendingList.slice();
-        return list.filter((item) => {
-            if (fromDate) {
-                const fd = new Date(fromDate);
-                if (new Date(item.receivedDate) < fd) return false;
-            }
-            if (toDate) {
-                const td = new Date(toDate);
-                if (new Date(item.receivedDate) > td) return false;
-            }
+      if (r.data && Array.isArray(r.data.items)) {
+        const items = r.data.items;
+        map[key].rows.push(...items);
+        map[key].received += items.length;
+        items.forEach((it) => {
+          const pw = (it.pending_with || "").toString().toUpperCase();
+          if (pw === "RPY" || (it.pending_with_cap || "").toLowerCase().includes("replied")) {
+            map[key].replied += 1;
+          } else {
+            map[key].pending += 1;
+          }
+        });
+      }
+      // keep error entries too (no-op for counts)
+    });
+    return map;
+  }, [apiResults]);
 
-            return true;
-        }).sort((a, b) => new Date(a.receivedDate) - new Date(b.receivedDate));
-    }, [fromDate, toDate]);
+  // --- NEW: totals computed from summaryBySection
+  const totals = useMemo(() => {
+    let totalReceived = 0;
+    let totalReplied = 0;
+    let totalPending = 0;
+    Object.values(summaryBySection).forEach((s) => {
+      totalReceived += s.received || 0;
+      totalReplied += s.replied || 0;
+      totalPending += s.pending || 0;
+    });
+    return { totalReceived, totalReplied, totalPending };
+  }, [summaryBySection]);
 
-    const oldestFive = filteredPending.slice(0, 5);
+  const allItems = useMemo(() => {
+    const arr = [];
+    apiResults.forEach((r) => {
+      if (r.data && Array.isArray(r.data.items)) {
+        arr.push(...r.data.items.map((it) => ({ ...it, _section: r.section })));
+      }
+    });
+    return arr;
+  }, [apiResults]);
 
-    const toggleExpand = (key) => {
-        setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
+  const filteredPending = useMemo(() => {
+    const list = allItems.slice();
+    return list
+      .filter((item) => {
+        if (fromDate) {
+          const fd = new Date(fromDate);
+          const ts = new Date(item.submit_date || item.action_date || item.receivedDate || 0);
+          if (ts < fd) return false;
+        }
+        if (toDate) {
+          const td = new Date(toDate);
+          const ts = new Date(item.submit_date || item.action_date || item.receivedDate || 0);
+          if (ts > td) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => new Date(a.submit_date || a.action_date || 0) - new Date(b.submit_date || b.action_date || 0));
+  }, [allItems, fromDate, toDate]);
 
+  const oldestFive = filteredPending.slice(0, 5);
+  const toggleExpand = (key) => setExpanded((p) => ({ ...p, [key]: !p[key] }));
+
+  // helpers for CQC column grouping
+  const firstDigitOfCell = (cell) => {
+    if (cell === null || typeof cell === "undefined") return null;
+    const s = String(cell).trim();
+    if (s.length === 0) return null;
+    const first = s[0];
+    return /^[0-9]$/.test(first) ? first : null;
+  };
+
+  // Render modal with full row details
+  const Modal = ({ item, onClose }) => {
+    if (!item) return null;
     return (
-        <div className="consolidated-page">
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    marginBottom: "15px",
-                }}
-            >
-                <label style={{ display: "flex", flexDirection: "column", fontSize: "14px" }}>
-                    From
-                    <input
-                        type="date"
-                        value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
-                        style={{ padding: "5px", fontSize: "14px" }}
-                    />
-                </label>
-
-                <label style={{ display: "flex", flexDirection: "column", fontSize: "14px" }}>
-                    To
-                    <input
-                        type="date"
-                        value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
-                        style={{ padding: "5px", fontSize: "14px" }}
-                    />
-                </label>
-
-                <button
-                    onClick={handleSearch}
-                    style={{
-                        marginTop: "20px",
-                        padding: "6px 12px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        border: "1px solid #ccc",
-                        borderRadius: "4px",
-                        backgroundColor: "#007bff",
-                        color: "white",
-                    }}
-                >
-                    Search
-                </button>
-            </div>
-
-            <div className="summary-table-wrap">
-                <table className="summary-table" role="grid" aria-label="Summary table">
-                    <thead>
-                        <tr>
-                            <th>View</th>
-                            <th>Sub Section</th>
-                            <th className="num">Total Received</th>
-                            <th className="num">Replied</th>
-                            <th className="num">Pending</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {sampleSummary.map((row) => (
-                            <React.Fragment key={row.key}>
-                                <tr className="main-row">
-                                    <td className="view-col">
-                                        <button
-                                            className="expand-btn"
-                                            onClick={() => toggleExpand(row.key)}
-                                            aria-expanded={!!expanded[row.key]}
-                                            aria-controls={`sub-${row.key}`}
-                                        >
-                                            {expanded[row.key] ? "−" : "+"}
-                                        </button>
-                                    </td>
-
-                                    <td>{row.name}</td>
-                                    <td className="num">{formatNumber(row.received)}</td>
-                                    <td className="num">{formatNumber(row.replied)}</td>
-                                    <td className="num pending">{formatNumber(row.pending)}</td>
-                                </tr>
-
-                                {expanded[row.key] && (
-                                    <tr className="sub-row">
-                                        <td colSpan="5" id={`sub-${row.key}`}>
-                                            <div className="sub-table-wrap">
-                                                <table className="sub-table" role="table" aria-label={`${row.name} detail`}>
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Query Type</th>
-                                                            <th className="num">Total Received</th>
-                                                            <th className="num">Replied</th>
-                                                            <th className="num">Pending</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {(subSectionData[row.key] || []).map((s, idx) => (
-                                                            <tr key={idx}>
-                                                                <td>{s.typeName}</td>
-                                                                <td className="num">{formatNumber(s.received)}</td>
-                                                                <td className="num">{formatNumber(s.replied)}</td>
-                                                                <td className="num pending">{formatNumber(s.pending)}</td>
-                                                            </tr>
-                                                        ))}
-
-                                                        {(!subSectionData[row.key] || subSectionData[row.key].length === 0) && (
-                                                            <tr>
-                                                                <td colSpan="4" className="no-data">No sub-section data available</td>
-                                                            </tr>
-                                                        )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-                            </React.Fragment>
-                        ))}
-
-                        <tr className="total-row">
-                            <td></td>
-                            <td className="total-label">TOTAL COUNT</td>
-                            <td className="num">{formatNumber(totals.totalReceived || sampleSummary.reduce((s, i) => s + i.received, 0))}</td>
-                            <td className="num">{formatNumber(totals.totalReplied || sampleSummary.reduce((s, i) => s + i.replied, 0))}</td>
-                            <td className="num pending">{formatNumber(totals.totalPending || sampleSummary.reduce((s, i) => s + i.pending, 0))}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div className="oldest-card">
-                <div className="oldest-header">
-                    <div>Oldest five query pending with : <strong>APW</strong></div>
-                    <div>
-                        <button className="view-all-btn" onClick={() => setShowAllPending((s) => !s)}>
-                            {showAllPending ? "Show Top 5" : "View All"}
-                        </button>
-                    </div>
-                </div>
-
-                <div className="oldest-table-wrap">
-                    <table className="oldest-table">
-                        <thead>
-                            <tr>
-                                <th>Sl. No.</th>
-                                <th>Query ID</th>
-                                <th>Pers Details</th>
-                                <th>Cell</th>
-                                <th>Query Received Date</th>
-                                <th>Query Type</th>
-                                <th>Pending With</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {(showAllPending ? filteredPending : oldestFive).map((r, idx) => (
-                                <tr key={r.queryId}>
-                                    <td>{idx + 1}</td>
-                                    <td>{r.queryId}</td>
-                                    <td className="pers">{r.persDetails}</td>
-                                    <td>{r.cell}</td>
-                                    <td>{formatDate(r.receivedDate)}</td>
-                                    <td>{r.queryType}</td>
-                                    <td>{r.pendingWith}</td>
-                                </tr>
-                            ))}
-                            {(!showAllPending && oldestFive.length === 0) && (
-                                <tr>
-                                    <td colSpan="7" className="no-data">No pending queries found</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+      <div className="cq-modal-overlay" role="dialog" aria-modal="true">
+        <div className="cq-modal">
+          <div className="cq-modal-header">
+            <strong>Query details: {item.doc_id || item.queryId}</strong>
+            <button aria-label="Close" onClick={onClose} className="cq-modal-close">✕</button>
+          </div>
+          <div className="cq-modal-body">
+            <table className="cq-modal-table">
+              <tbody>
+                {Object.entries(item).map(([k, v]) => (
+                  <tr key={k}>
+                    <td className="k">{k}</td>
+                    <td className="v">{typeof v === "string" || typeof v === "number" ? String(v) : JSON.stringify(v)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="cq-modal-footer">
+            <button onClick={onClose} className="btn">Close</button>
+          </div>
         </div>
+      </div>
     );
+  };
+
+  // Highlight matches: cell === 207 && apw_sub_section === 'CQC'
+  const highlightedMatches = useMemo(
+    () => allItems.filter((it) => Number(it.cell) === 207 && (it.apw_sub_section || "").toUpperCase() === "CQC"),
+    [allItems]
+  );
+
+  return (
+    <div className="consolidated-page">
+      {/* Loading overlay */}
+      {loading && (
+        <div className="loading-overlay" aria-hidden={false}>
+          <div className="loading-box" role="status" aria-live="polite">
+            <div className="spinner" />
+            <div className="loading-text">Loading data — please wait</div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+        <label>
+          Role:
+          <select value={role} onChange={(e) => setRole(e.target.value)} style={{ marginLeft: 8 }}>
+            <option value="OFFICER">OFFICER</option>
+            <option value="AIRMEN">AIRMEN</option>
+            <option value="CIVILIAN">CIVILIAN</option>
+          </select>
+        </label>
+
+        <label style={{ display: "flex", flexDirection: "column" }}>
+          From
+          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        </label>
+
+        <label style={{ display: "flex", flexDirection: "column" }}>
+          To
+          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+        </label>
+
+        <button onClick={() => { /* optional manual refetch logic */ }} style={{ marginLeft: 8 }}>
+          Refresh
+        </button>
+      </div>
+
+      {globalError && <div className="error">Error: {globalError}</div>}
+
+      {/* per-endpoint errors */}
+      {apiResults.some((r) => r.error) && (
+        <div className="error-list">
+          <strong>Endpoint errors:</strong>
+          <ul>
+            {apiResults.map((r, idx) => r.error && <li key={idx}>{r.section}/{r.id}: {r.error.message}</li>)}
+          </ul>
+        </div>
+      )}
+
+      <div className="summary-table-wrap">
+        <table className="summary-table" role="grid" aria-label="Summary table">
+          <thead>
+            <tr>
+              <th>View</th>
+              <th>Section</th>
+              <th className="num">Total Received</th>
+              <th className="num">Replied</th>
+              <th className="num">Pending</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(summaryBySection).map(([section, s]) => (
+              <React.Fragment key={section}>
+                <tr className="main-row">
+                  <td className="view-col">
+                    <button className="expand-btn" onClick={() => toggleExpand(section)} aria-expanded={!!expanded[section]}>
+                      {expanded[section] ? "−" : "+"}
+                    </button>
+                  </td>
+                  <td>{section}</td>
+                  <td className="num">{formatNumber(s.received)}</td>
+                  <td className="num">{formatNumber(s.replied)}</td>
+                  <td className="num pending">{formatNumber(s.pending)}</td>
+                </tr>
+
+                {expanded[section] && (
+                  <tr className="sub-row">
+                    <td colSpan="5">
+                      <div className="sub-table-wrap">
+                        {/* If section looks like CQC -> render 1..9 columns grouped by first digit of cell */}
+                        {String(section).toUpperCase().includes("CQC") ? (
+                          <div className="cqc-grid" role="region" aria-label={`${section} CQC grid`}>
+                            {/* header with digits 1..9 */}
+                            <div className="cqc-grid-header">
+                              {Array.from({ length: 9 }).map((_, idx) => (
+                                <div key={idx} className="cqc-grid-col-header">{idx + 1}</div>
+                              ))}
+                            </div>
+
+                            <div className="cqc-grid-body">
+                              {Array.from({ length: 9 }).map((_, idx) => {
+                                const digit = String(idx + 1);
+                                const rowsForCol = s.rows.filter((it) => firstDigitOfCell(it.cell) === digit);
+
+                                return (
+                                  <div key={idx} className="cqc-grid-col" aria-label={`Column ${digit}`}>
+                                    {rowsForCol.length === 0 ? (
+                                      <div className="cqc-empty">—</div>
+                                    ) : (
+                                      rowsForCol.map((it) => {
+                                        const isHighlight = Number(it.cell) === 207 && (it.apw_sub_section || "").toUpperCase() === "CQC";
+                                        return (
+                                          <div
+                                            key={it.doc_id || `${it._id || Math.random()}`}
+                                            className={`cqc-item ${isHighlight ? "highlighted-row" : ""}`}
+                                            onClick={() => setSelectedRow(it)}
+                                            tabIndex={0}
+                                            role="button"
+                                            aria-pressed="false"
+                                          >
+                                            <div className="doc">{it.doc_id}</div>
+                                            <div className="pers">{it.pers || it.persDetails}</div>
+                                            <div className="cell">{it.cell}</div>
+                                          </div>
+                                        );
+                                      })
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : (
+                          /* fallback: show normal table for non-CQC sections */
+                          <table className="sub-table" role="table" aria-label={`${section} details`}>
+                            <thead>
+                              <tr>
+                                <th>doc_id</th>
+                                <th>pers</th>
+                                <th>cell</th>
+                                <th>submit_date</th>
+                                <th>action_date</th>
+                                <th>querytype</th>
+                                <th>pending_with</th>
+                                <th>apw_sub_section</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {s.rows.length ? (
+                                s.rows.map((it) => {
+                                  const isHighlight = Number(it.cell) === 207 && (it.apw_sub_section || "").toUpperCase() === "CQC";
+                                  return (
+                                    <tr
+                                      key={it.doc_id || Math.random()}
+                                      onClick={() => setSelectedRow(it)}
+                                      style={{ cursor: "pointer" }}
+                                      className={isHighlight ? "highlighted-row" : ""}
+                                    >
+                                      <td>{it.doc_id}</td>
+                                      <td className="pers">{it.pers || it.persDetails}</td>
+                                      <td>{it.cell}</td>
+                                      <td>{formatDate(it.submit_date)}</td>
+                                      <td>{formatDate(it.action_date)}</td>
+                                      <td>{it.querytype}</td>
+                                      <td>{it.pending_with_cap || it.pending_with}</td>
+                                      <td>{it.apw_sub_section}</td>
+                                    </tr>
+                                  );
+                                })
+                              ) : (
+                                <tr><td colSpan="8" className="no-data">No data</td></tr>
+                              )}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+
+            {/* --- Totals row now shows Total Received / Replied / Pending --- */}
+            <tr className="total-row">
+              <td />
+              <td className="total-label">TOTAL COUNT</td>
+              <td className="num">{formatNumber(totals.totalReceived)}</td>
+              <td className="num">{formatNumber(totals.totalReplied)}</td>
+              <td className="num pending">{formatNumber(totals.totalPending)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Highlighted matches (optional quick view) */}
+      {highlightedMatches.length > 0 && (
+        <div className="summary-table-wrap" style={{ marginTop: 8 }}>
+          <strong>Matched rows (cell = 207 & apw_sub_section = CQC)</strong>
+          <div style={{ marginTop: 8 }}>
+            {highlightedMatches.map((it) => (
+              <div key={it.doc_id} style={{ padding: 6, borderBottom: "1px solid #f1f1f1" }}>
+                {it.doc_id} — {it.pers} — {it.cell} — {formatDate(it.submit_date)}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Oldest / pending card */}
+      <div className="oldest-card">
+        <div className="oldest-header">
+          <div>Oldest pending (showing for {type})</div>
+          <div>
+            <button className="view-all-btn" onClick={() => setShowAllPending((s) => !s)}>
+              {showAllPending ? "Show Top 5" : "View All"}
+            </button>
+          </div>
+        </div>
+
+        <div className="oldest-table-wrap">
+          <table className="oldest-table" role="table" aria-label="Oldest pending">
+            <thead>
+              <tr>
+                <th>Sl. No.</th>
+                <th>Query ID</th>
+                <th>Pers Details</th>
+                <th>Cell</th>
+                <th>Submit Date</th>
+                <th>Query Type</th>
+                <th>Pending With</th>
+                <th>Section</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(showAllPending ? filteredPending : oldestFive).map((r, idx) => (
+                <tr key={r.doc_id || r.queryId || idx}>
+                  <td>{idx + 1}</td>
+                  <td>{r.doc_id || r.queryId}</td>
+                  <td className="pers">{r.pers || r.persDetails}</td>
+                  <td>{r.cell}</td>
+                  <td>{formatDate(r.submit_date || r.receivedDate)}</td>
+                  <td>{r.querytype || r.queryType}</td>
+                  <td>{r.pending_with_cap || r.pending_with || r.pendingWith}</td>
+                  <td>{r._section}</td>
+                </tr>
+              ))}
+              {(!showAllPending && oldestFive.length === 0) && (
+                <tr>
+                  <td colSpan="8" className="no-data">No pending queries found</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* modal */}
+      {selectedRow && <Modal item={selectedRow} onClose={() => setSelectedRow(null)} />}
+    </div>
+  );
 };
 
 export default ConsolidatedQueries;
