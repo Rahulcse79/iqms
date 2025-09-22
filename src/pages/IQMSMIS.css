@@ -1,0 +1,428 @@
+/* Consolidated.css — theme-aware, industrial level
+   Improvements:
+   - clearer, accessible table headers (sticky + subtle gradient)
+   - highlighted TOTAL row that reads like a footer band
+   - zebra striping, hover/focus states, numeric alignment
+   - responsive padding adjustments
+   - preserves original rules where present (only enhanced)
+*/
+
+/* ---------- Base Container ---------- */
+.consolidated-page {
+  padding: 1.5rem;
+  background-color: var(--bg, #f9fafb);
+  color: var(--text, #111827);
+  font-family: var(--font-family, Inter, system-ui, sans-serif);
+}
+
+/* ---------- Loading Overlay ---------- */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--glass, rgba(255, 255, 255, 0.85));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--surface, #fff);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow, 0 6px 24px rgba(0,0,0,0.08));
+}
+.spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--accent, #3b82f6);
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent, #2563eb);
+}
+
+/* ---------- Controls (filters row) ---------- */
+.consolidated-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  background: var(--surface, #fff);
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border, #e5e7eb);
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow, 0 2px 6px rgba(0,0,0,0.04));
+}
+.consolidated-controls label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted, #374151);
+  gap: 0.4rem;
+}
+
+/* Inputs & Selects */
+.themed-input,
+.themed-select {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--surface-accent, #f9fafb);
+  color: var(--text, #111827);
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.themed-input:focus,
+.themed-select:focus {
+  border-color: var(--accent, #3b82f6);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #3b82f6) 30%, transparent);
+  outline: none;
+}
+
+/* Buttons */
+.primary-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--primary, #0ea5a4);
+  color: var(--button-text, #fff);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+.secondary-btn {
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--surface, #fff);
+  color: var(--text, #111827);
+  cursor: pointer;
+}
+.secondary-btn:hover {
+  background: var(--surface-accent, #f3f4f6);
+}
+
+/* ---------- Error banners ---------- */
+.error-banner {
+  background: var(--red-bg, #fff5f5);
+  color: var(--red-text, #b91c1c);
+  border: 1px solid var(--red-hover, #fecaca);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+.error-list {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--red-text, #b91c1c);
+  margin-bottom: 1rem;
+}
+
+/* ---------- Summary Table ---------- */
+.summary-table-wrap {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e6e6e6);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: var(--shadow, 0 2px 6px rgba(0,0,0,0.04));
+  overflow-x: auto;
+}
+
+/* make table fluid and readable */
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 700px; /* keep scannable, allows horizontal scroll on smaller screens */
+}
+
+/* header + body cell baseline */
+.summary-table th,
+.summary-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border, #e6e6e6);
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* sticky header: slightly elevated with subtle inner shadow */
+.summary-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 60; /* high so it sits above other pieces while scrolling */
+  background: linear-gradient(180deg, var(--surface-accent, #f3f4f6), var(--surface, #fff));
+  color: var(--text, #1f2937);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.85rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid color-mix(in srgb, var(--border, #e6e6e6) 70%, transparent 30%);
+  /* subtle emboss to separate from rows */
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border, #e6e6e6) 45%, transparent 55%);
+}
+
+/* align numeric columns to the right - you already use .num on numeric TDs */
+.summary-table td.num,
+.summary-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* zebra striping for readability */
+.summary-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface, #ffffff) 92%, var(--surface-accent, #f9fafb) 8%);
+}
+
+/* hover & focus for rows for better scanning */
+.summary-table tbody tr {
+  transition: background 140ms ease, transform 140ms ease;
+}
+.summary-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent, #6366f1) 6%, var(--surface, #fff) 94%);
+  cursor: pointer;
+}
+.summary-table tbody tr:focus-within,
+.summary-table tbody tr:focus {
+  outline: 3px solid color-mix(in srgb, var(--accent, #6366f1) 14%, transparent 86%);
+  outline-offset: -2px;
+}
+
+/* pending color for important numbers */
+.summary-table td.pending {
+  color: var(--red, #ef4444);
+  font-weight: 700;
+}
+
+/* expand buttons */
+.expand-btn {
+  border: none;
+  background: var(--surface-accent, #f1f5f9);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1;
+}
+.expand-btn:hover {
+  background: var(--accent, #6366f1);
+  color: var(--surface, #fff);
+}
+
+/* TOTAL row — make it strongly visible but tasteful,
+   keep first td (empty) consistent and make the TOTAL label centered */
+.total-row td {
+  font-weight: 700;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #3b82f6) 14%, var(--surface, #fff) 86%), var(--accent, #3b82f6));
+  color: var(--surface, #fff);
+  border-top: 2px solid color-mix(in srgb, var(--accent, #3b82f6) 90%, rgba(0,0,0,0.04) 10%);
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+/* ensure the TOTAL label reads clearly (second cell was .total-label in your markup) */
+.summary-table .total-label {
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+/* ensure first empty cell in total row inherits same background */
+.summary-table .total-row td:first-child {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent, #3b82f6) 14%, var(--surface, #fff) 86%), var(--accent, #3b82f6));
+}
+
+/* ---------- Sub tables ---------- */
+.sub-table-wrap {
+  margin-top: 0.5rem;
+  overflow-x: auto;
+}
+.sub-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.sub-table th,
+.sub-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  color: var(--text);
+}
+.sub-table th {
+  background: linear-gradient(to bottom, var(--surface-accent, #f3f4f6), var(--surface, #fff));
+  font-weight: 600;
+}
+.sub-table tr.highlighted-row,
+.cqc-item.highlighted-row {
+  background: color-mix(in srgb, var(--accent, #6366f1) 10%, var(--surface, #fff));
+}
+
+/* ---------- CQC Grid ---------- */
+.cqc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.cqc-grid-header {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted, #475569);
+}
+.cqc-grid-body {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.25rem;
+}
+.cqc-grid-col {
+  border-left: 1px solid var(--border, #e5e7eb);
+  padding: 0.25rem;
+}
+.cqc-item {
+  background: var(--surface-accent, #f8fafc);
+  border-radius: 0.5rem;
+  padding: 0.4rem;
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.15s ease;
+}
+.cqc-item:hover {
+  background: var(--accent, #6366f1);
+  color: var(--surface, #fff);
+}
+.cqc-empty {
+  color: var(--muted, #94a3b8);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+/* ---------- Highlighted Matches ---------- */
+.highlight-box {
+  margin-top: 1rem;
+  border: 1px solid var(--accent, #6366f1);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+.highlight-list {
+  margin-top: 0.5rem;
+}
+.highlight-row {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  font-size: 0.85rem;
+}
+
+/* ---------- Oldest Pending ---------- */
+.oldest-card {
+  margin-top: 1.25rem;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow, 0 2px 6px rgba(0,0,0,0.04));
+}
+.oldest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  font-weight: 600;
+  color: var(--text, #0f172a);
+}
+.view-all-btn {
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--surface-accent, #f3f4f6);
+  color: var(--text, #111827);
+  cursor: pointer;
+}
+.view-all-btn:hover {
+  background: var(--accent, #6366f1);
+  color: var(--surface, #fff);
+}
+.oldest-table-wrap {
+  overflow-x: auto;
+}
+.oldest-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.oldest-table th,
+.oldest-table td {
+  padding: 0.6rem;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  color: var(--text);
+}
+.oldest-table th {
+  background: linear-gradient(to bottom, var(--surface-accent, #f3f4f6), var(--surface, #fff));
+  font-weight: 600;
+}
+.no-data {
+  text-align: center;
+  color: var(--muted, #6b7280);
+  padding: 1rem;
+}
+
+/* ---------- Responsive tweaks ---------- */
+@media (max-width: 900px) {
+  .consolidated-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .summary-table,
+  .sub-table,
+  .oldest-table {
+    font-size: 0.82rem;
+  }
+  /* reduce padding for narrow screens */
+  .summary-table th,
+  .summary-table td,
+  .oldest-table th,
+  .oldest-table td,
+  .sub-table th,
+  .sub-table td {
+    padding: 0.45rem 0.5rem;
+  }
+  .summary-table {
+    min-width: 650px;
+  }
+}
+
+@media (max-width: 520px) {
+  .summary-table {
+    font-size: 0.78rem;
+    min-width: 520px;
+  }
+  .summary-table th,
+  .summary-table td {
+    padding: 0.4rem 0.45rem;
+  }
+}

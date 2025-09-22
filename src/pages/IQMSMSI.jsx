@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ConsolidatedQueries.css";
 import API_CALL from "../utils/MISApiCall";
+import "./IQMSMIS.css"
 
 const ROLE_TYPE_MAP = {
   OFFICER: "IQMS_MIS_OPW",
@@ -224,255 +225,320 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
   );
 
   return (
-    <div className="consolidated-page">
-      {/* Loading overlay */}
-      {loading && (
-        <div className="loading-overlay" aria-hidden={false}>
-          <div className="loading-box" role="status" aria-live="polite">
-            <div className="spinner" />
-            <div className="loading-text">Loading data — please wait</div>
-          </div>
+  <div className="consolidated-page">
+    {/* Loading overlay */}
+    {loading && (
+      <div className="loading-overlay" aria-hidden={false}>
+        <div className="loading-box" role="status" aria-live="polite">
+          <div className="spinner" />
+          <div className="loading-text">Loading data — please wait</div>
         </div>
-      )}
+      </div>
+    )}
 
-      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
-        <label>
-          Role:
-          <select value={role} onChange={(e) => setRole(e.target.value)} style={{ marginLeft: 8 }}>
-            <option value="OFFICER">OFFICER</option>
-            <option value="AIRMEN">AIRMEN</option>
-            <option value="CIVILIAN">CIVILIAN</option>
-          </select>
-        </label>
+    {/* Controls */}
+    <div className="consolidated-controls">
+      <label>
+        Role:
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="themed-select"
+        >
+          <option value="OFFICER">OFFICER</option>
+          <option value="AIRMEN">AIRMEN</option>
+          <option value="CIVILIAN">CIVILIAN</option>
+        </select>
+      </label>
 
-        <label style={{ display: "flex", flexDirection: "column" }}>
-          From
-          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-        </label>
+      <label>
+        From
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="themed-input"
+        />
+      </label>
 
-        <label style={{ display: "flex", flexDirection: "column" }}>
-          To
-          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
-        </label>
+      <label>
+        To
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          className="themed-input"
+        />
+      </label>
 
-        <button onClick={() => { /* optional manual refetch logic */ }} style={{ marginLeft: 8 }}>
-          Refresh
-        </button>
+      <button className="primary-btn" onClick={() => {/* optional refetch */}}>
+        Refresh
+      </button>
+    </div>
+
+    {/* Global error */}
+    {globalError && <div className="error-banner">Error: {globalError}</div>}
+
+    {/* Per-endpoint errors */}
+    {apiResults.some((r) => r.error) && (
+      <div className="error-list">
+        <strong>Endpoint errors:</strong>
+        <ul>
+          {apiResults.map(
+            (r, idx) =>
+              r.error && (
+                <li key={idx}>
+                  {r.section}/{r.id}: {r.error.message}
+                </li>
+              )
+          )}
+        </ul>
+      </div>
+    )}
+
+    {/* Summary table */}
+    <div className="summary-table-wrap">
+      <table className="summary-table" role="grid" aria-label="Summary table">
+        <thead>
+          <tr>
+            <th>View</th>
+            <th>Section</th>
+            <th className="num">Total Received</th>
+            <th className="num">Replied</th>
+            <th className="num">Pending</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(summaryBySection).map(([section, s]) => (
+            <React.Fragment key={section}>
+              <tr className="main-row">
+                <td className="view-col">
+                  <button
+                    className="expand-btn"
+                    onClick={() => toggleExpand(section)}
+                    aria-expanded={!!expanded[section]}
+                  >
+                    {expanded[section] ? "−" : "+"}
+                  </button>
+                </td>
+                <td>{section}</td>
+                <td className="num">{formatNumber(s.received)}</td>
+                <td className="num">{formatNumber(s.replied)}</td>
+                <td className="num pending">{formatNumber(s.pending)}</td>
+              </tr>
+
+              {expanded[section] && (
+                <tr className="sub-row">
+                  <td colSpan="5">
+                    <div className="sub-table-wrap">
+                      {String(section).toUpperCase().includes("CQC") ? (
+                        <div
+                          className="cqc-grid"
+                          role="region"
+                          aria-label={`${section} CQC grid`}
+                        >
+                          <div className="cqc-grid-header">
+                            {Array.from({ length: 9 }).map((_, idx) => (
+                              <div
+                                key={idx}
+                                className="cqc-grid-col-header"
+                              >
+                                {idx + 1}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="cqc-grid-body">
+                            {Array.from({ length: 9 }).map((_, idx) => {
+                              const digit = String(idx + 1);
+                              const rowsForCol = s.rows.filter(
+                                (it) => firstDigitOfCell(it.cell) === digit
+                              );
+
+                              return (
+                                <div
+                                  key={idx}
+                                  className="cqc-grid-col"
+                                  aria-label={`Column ${digit}`}
+                                >
+                                  {rowsForCol.length === 0 ? (
+                                    <div className="cqc-empty">—</div>
+                                  ) : (
+                                    rowsForCol.map((it) => {
+                                      const isHighlight =
+                                        Number(it.cell) === 207 &&
+                                        (it.apw_sub_section || "").toUpperCase() === "CQC";
+                                      return (
+                                        <div
+                                          key={it.doc_id || `${it._id || Math.random()}`}
+                                          className={`cqc-item ${
+                                            isHighlight ? "highlighted-row" : ""
+                                          }`}
+                                          onClick={() => setSelectedRow(it)}
+                                          tabIndex={0}
+                                          role="button"
+                                          aria-pressed="false"
+                                        >
+                                          <div className="doc">{it.doc_id}</div>
+                                          <div className="pers">
+                                            {it.pers || it.persDetails}
+                                          </div>
+                                          <div className="cell">{it.cell}</div>
+                                        </div>
+                                      );
+                                    })
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <table
+                          className="sub-table"
+                          role="table"
+                          aria-label={`${section} details`}
+                        >
+                          <thead>
+                            <tr>
+                              <th>doc_id</th>
+                              <th>pers</th>
+                              <th>cell</th>
+                              <th>submit_date</th>
+                              <th>action_date</th>
+                              <th>querytype</th>
+                              <th>pending_with</th>
+                              <th>apw_sub_section</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {s.rows.length ? (
+                              s.rows.map((it) => {
+                                const isHighlight =
+                                  Number(it.cell) === 207 &&
+                                  (it.apw_sub_section || "").toUpperCase() === "CQC";
+                                return (
+                                  <tr
+                                    key={it.doc_id || Math.random()}
+                                    onClick={() => setSelectedRow(it)}
+                                    className={isHighlight ? "highlighted-row" : ""}
+                                  >
+                                    <td>{it.doc_id}</td>
+                                    <td className="pers">
+                                      {it.pers || it.persDetails}
+                                    </td>
+                                    <td>{it.cell}</td>
+                                    <td>{formatDate(it.submit_date)}</td>
+                                    <td>{formatDate(it.action_date)}</td>
+                                    <td>{it.querytype}</td>
+                                    <td>
+                                      {it.pending_with_cap || it.pending_with}
+                                    </td>
+                                    <td>{it.apw_sub_section}</td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td colSpan="8" className="no-data">
+                                  No data
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          ))}
+
+          {/* Totals row */}
+          <tr  style={{background:"var('--bg')"}} className="total-row">
+            <td />
+            <td className="total-label">TOTAL COUNT</td>
+            <td className="num">{formatNumber(totals.totalReceived)}</td>
+            <td className="num">{formatNumber(totals.totalReplied)}</td>
+            <td className="num pending">{formatNumber(totals.totalPending)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    {/* Highlighted matches */}
+    {highlightedMatches.length > 0 && (
+      <div className="summary-table-wrap highlight-box">
+        <strong>Matched rows (cell = 207 & apw_sub_section = CQC)</strong>
+        <div className="highlight-list">
+          {highlightedMatches.map((it) => (
+            <div key={it.doc_id} className="highlight-row">
+              {it.doc_id} — {it.pers} — {it.cell} — {formatDate(it.submit_date)}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Oldest / pending card */}
+    <div className="oldest-card">
+      <div className="oldest-header">
+        <div style={{color:"var('--text')"}}>Oldest pending (showing for {type})</div>
+        <div>
+          <button
+            className="secondary-btn"
+            onClick={() => setShowAllPending((s) => !s)}
+          >
+            {showAllPending ? "Show Top 5" : "View All"}
+          </button>
+        </div>
       </div>
 
-      {globalError && <div className="error">Error: {globalError}</div>}
-
-      {/* per-endpoint errors */}
-      {apiResults.some((r) => r.error) && (
-        <div className="error-list">
-          <strong>Endpoint errors:</strong>
-          <ul>
-            {apiResults.map((r, idx) => r.error && <li key={idx}>{r.section}/{r.id}: {r.error.message}</li>)}
-          </ul>
-        </div>
-      )}
-
-      <div className="summary-table-wrap">
-        <table className="summary-table" role="grid" aria-label="Summary table">
+      <div className="oldest-table-wrap">
+        <table style={{color:"var('--text')"}} className="oldest-table" role="table" aria-label="Oldest pending">
           <thead>
             <tr>
-              <th>View</th>
+              <th>Sl. No.</th>
+              <th>Query ID</th>
+              <th>Pers Details</th>
+              <th>Cell</th>
+              <th>Submit Date</th>
+              <th>Query Type</th>
+              <th>Pending With</th>
               <th>Section</th>
-              <th className="num">Total Received</th>
-              <th className="num">Replied</th>
-              <th className="num">Pending</th>
             </tr>
           </thead>
           <tbody>
-            {Object.entries(summaryBySection).map(([section, s]) => (
-              <React.Fragment key={section}>
-                <tr className="main-row">
-                  <td className="view-col">
-                    <button className="expand-btn" onClick={() => toggleExpand(section)} aria-expanded={!!expanded[section]}>
-                      {expanded[section] ? "−" : "+"}
-                    </button>
-                  </td>
-                  <td>{section}</td>
-                  <td className="num">{formatNumber(s.received)}</td>
-                  <td className="num">{formatNumber(s.replied)}</td>
-                  <td className="num pending">{formatNumber(s.pending)}</td>
-                </tr>
-
-                {expanded[section] && (
-                  <tr className="sub-row">
-                    <td colSpan="5">
-                      <div className="sub-table-wrap">
-                        {/* If section looks like CQC -> render 1..9 columns grouped by first digit of cell */}
-                        {String(section).toUpperCase().includes("CQC") ? (
-                          <div className="cqc-grid" role="region" aria-label={`${section} CQC grid`}>
-                            {/* header with digits 1..9 */}
-                            <div className="cqc-grid-header">
-                              {Array.from({ length: 9 }).map((_, idx) => (
-                                <div key={idx} className="cqc-grid-col-header">{idx + 1}</div>
-                              ))}
-                            </div>
-
-                            <div className="cqc-grid-body">
-                              {Array.from({ length: 9 }).map((_, idx) => {
-                                const digit = String(idx + 1);
-                                const rowsForCol = s.rows.filter((it) => firstDigitOfCell(it.cell) === digit);
-
-                                return (
-                                  <div key={idx} className="cqc-grid-col" aria-label={`Column ${digit}`}>
-                                    {rowsForCol.length === 0 ? (
-                                      <div className="cqc-empty">—</div>
-                                    ) : (
-                                      rowsForCol.map((it) => {
-                                        const isHighlight = Number(it.cell) === 207 && (it.apw_sub_section || "").toUpperCase() === "CQC";
-                                        return (
-                                          <div
-                                            key={it.doc_id || `${it._id || Math.random()}`}
-                                            className={`cqc-item ${isHighlight ? "highlighted-row" : ""}`}
-                                            onClick={() => setSelectedRow(it)}
-                                            tabIndex={0}
-                                            role="button"
-                                            aria-pressed="false"
-                                          >
-                                            <div className="doc">{it.doc_id}</div>
-                                            <div className="pers">{it.pers || it.persDetails}</div>
-                                            <div className="cell">{it.cell}</div>
-                                          </div>
-                                        );
-                                      })
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ) : (
-                          /* fallback: show normal table for non-CQC sections */
-                          <table className="sub-table" role="table" aria-label={`${section} details`}>
-                            <thead>
-                              <tr>
-                                <th>doc_id</th>
-                                <th>pers</th>
-                                <th>cell</th>
-                                <th>submit_date</th>
-                                <th>action_date</th>
-                                <th>querytype</th>
-                                <th>pending_with</th>
-                                <th>apw_sub_section</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {s.rows.length ? (
-                                s.rows.map((it) => {
-                                  const isHighlight = Number(it.cell) === 207 && (it.apw_sub_section || "").toUpperCase() === "CQC";
-                                  return (
-                                    <tr
-                                      key={it.doc_id || Math.random()}
-                                      onClick={() => setSelectedRow(it)}
-                                      style={{ cursor: "pointer" }}
-                                      className={isHighlight ? "highlighted-row" : ""}
-                                    >
-                                      <td>{it.doc_id}</td>
-                                      <td className="pers">{it.pers || it.persDetails}</td>
-                                      <td>{it.cell}</td>
-                                      <td>{formatDate(it.submit_date)}</td>
-                                      <td>{formatDate(it.action_date)}</td>
-                                      <td>{it.querytype}</td>
-                                      <td>{it.pending_with_cap || it.pending_with}</td>
-                                      <td>{it.apw_sub_section}</td>
-                                    </tr>
-                                  );
-                                })
-                              ) : (
-                                <tr><td colSpan="8" className="no-data">No data</td></tr>
-                              )}
-                            </tbody>
-                          </table>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
+            {(showAllPending ? filteredPending : oldestFive).map((r, idx) => (
+              <tr key={r.doc_id || r.queryId || idx}>
+                <td>{idx + 1}</td>
+                <td>{r.doc_id || r.queryId}</td>
+                <td className="pers">{r.pers || r.persDetails}</td>
+                <td>{r.cell}</td>
+                <td>{formatDate(r.submit_date || r.receivedDate)}</td>
+                <td>{r.querytype || r.queryType}</td>
+                <td>{r.pending_with_cap || r.pending_with || r.pendingWith}</td>
+                <td>{r._section}</td>
+              </tr>
             ))}
-
-            {/* --- Totals row now shows Total Received / Replied / Pending --- */}
-            <tr className="total-row">
-              <td />
-              <td className="total-label">TOTAL COUNT</td>
-              <td className="num">{formatNumber(totals.totalReceived)}</td>
-              <td className="num">{formatNumber(totals.totalReplied)}</td>
-              <td className="num pending">{formatNumber(totals.totalPending)}</td>
-            </tr>
+            {!showAllPending && oldestFive.length === 0 && (
+              <tr>
+                <td colSpan="8" className="no-data">
+                  No pending queries found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
-
-      {/* Highlighted matches (optional quick view) */}
-      {highlightedMatches.length > 0 && (
-        <div className="summary-table-wrap" style={{ marginTop: 8 }}>
-          <strong>Matched rows (cell = 207 & apw_sub_section = CQC)</strong>
-          <div style={{ marginTop: 8 }}>
-            {highlightedMatches.map((it) => (
-              <div key={it.doc_id} style={{ padding: 6, borderBottom: "1px solid #f1f1f1" }}>
-                {it.doc_id} — {it.pers} — {it.cell} — {formatDate(it.submit_date)}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Oldest / pending card */}
-      <div className="oldest-card">
-        <div className="oldest-header">
-          <div>Oldest pending (showing for {type})</div>
-          <div>
-            <button className="view-all-btn" onClick={() => setShowAllPending((s) => !s)}>
-              {showAllPending ? "Show Top 5" : "View All"}
-            </button>
-          </div>
-        </div>
-
-        <div className="oldest-table-wrap">
-          <table className="oldest-table" role="table" aria-label="Oldest pending">
-            <thead>
-              <tr>
-                <th>Sl. No.</th>
-                <th>Query ID</th>
-                <th>Pers Details</th>
-                <th>Cell</th>
-                <th>Submit Date</th>
-                <th>Query Type</th>
-                <th>Pending With</th>
-                <th>Section</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(showAllPending ? filteredPending : oldestFive).map((r, idx) => (
-                <tr key={r.doc_id || r.queryId || idx}>
-                  <td>{idx + 1}</td>
-                  <td>{r.doc_id || r.queryId}</td>
-                  <td className="pers">{r.pers || r.persDetails}</td>
-                  <td>{r.cell}</td>
-                  <td>{formatDate(r.submit_date || r.receivedDate)}</td>
-                  <td>{r.querytype || r.queryType}</td>
-                  <td>{r.pending_with_cap || r.pending_with || r.pendingWith}</td>
-                  <td>{r._section}</td>
-                </tr>
-              ))}
-              {(!showAllPending && oldestFive.length === 0) && (
-                <tr>
-                  <td colSpan="8" className="no-data">No pending queries found</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* modal */}
-      {selectedRow && <Modal item={selectedRow} onClose={() => setSelectedRow(null)} />}
     </div>
-  );
+
+    {/* modal */}
+    {selectedRow && (
+      <Modal item={selectedRow} onClose={() => setSelectedRow(null)} />
+    )}
+  </div>
+);
 };
 
 export default ConsolidatedQueries;
