@@ -162,9 +162,12 @@
   transform: translateY(-12px);
   transition-delay: var(--curtain-open-delay);
 }
+/* --- Realistic Ribbon Styling --- */
+/* Put this in your Inauguration.css in place of the previous ribbon block */
 
-/* --- Ribbon --- */
 .ribbon-wrapper {
+  --ribbon-bow-gap: 160px;    /* width reserved for the bow in the center (adjust to match .ribbon-bow width) */
+  --ribbon-fold-width: 28px;  /* width of the small folded band near the bow */
   position: absolute;
   top: 50%;
   left: 0;
@@ -176,51 +179,156 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.4));
+  perspective: 900px; /* gives subtle depth for shadows */
+  /* a gentle overall drop-shadow for the ribbon band */
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.30));
 }
 
+/* Focus outline for accessibility */
 .ribbon-wrapper:focus-visible {
   outline: 3px solid var(--focus-outline-color);
   outline-offset: 4px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
+/* The two halves of the ribbon (left + right) */
 .ribbon-left,
 .ribbon-right {
   position: absolute;
   top: 0;
   height: 100%;
   width: 50%;
-  background: linear-gradient(
-    170deg,
-    var(--ribbon-shadow) 0%,
-    var(--ribbon-color) 35%,
-    var(--ribbon-highlight) 45%,
-    var(--ribbon-highlight) 55%,
-    var(--ribbon-color) 65%,
-    var(--ribbon-shadow) 100%
-  );
+  overflow: hidden;
+  border-radius: 8px;
+
+  /* Layered backgrounds:
+     1) main satin gradient,
+     2) subtle vertical sheen band (for moving sheen animation),
+     3) micro fabric texture (repeating lines) for cloth feel,
+     4) two soft radial highlights to give volume.
+  */
+  background-image:
+    linear-gradient(170deg,
+      rgba(0,0,0,0.18) 0%,
+      var(--ribbon-shadow) 4%,
+      var(--ribbon-color) 36%,
+      var(--ribbon-highlight) 46%,
+      var(--ribbon-highlight) 54%,
+      var(--ribbon-color) 66%,
+      rgba(0,0,0,0.12) 100%),
+    linear-gradient(90deg,
+      rgba(255,255,255,0.06) 0%,
+      rgba(255,255,255,0) 38%,
+      rgba(255,255,255,0.06) 62%,
+      rgba(255,255,255,0) 100%),
+    repeating-linear-gradient(45deg,
+      rgba(255,255,255,0.015) 0 2px,
+      rgba(0,0,0,0.01) 2px 4px),
+    radial-gradient(220% 80% at 20% 40%, rgba(255,255,255,0.04), transparent 20%),
+    radial-gradient(220% 80% at 80% 60%, rgba(255,255,255,0.03), transparent 28%);
+
+  /* background sizing / initial positions (sheen layer is the second layer and will be animated) */
+  background-size: 100% 100%, 220% 100%, 12px 12px, 180% 90%, 180% 90%;
+  background-position: 0 0, -60% 0, 0 0, 0 0, 0 0;
+
+  /* depth inside the ribbon */
+  box-shadow:
+    inset 0 -6px 14px rgba(0,0,0,0.28),
+    inset 0 6px 8px rgba(255,255,255,0.02);
+  transition: transform 260ms ease, box-shadow 260ms ease;
+  transform-origin: center;
 }
 
-.ribbon-left {
-  left: 0;
-  transform-origin: right center;
+/* left and right origins */
+.ribbon-left { left: 0; transform-origin: right center; }
+.ribbon-right { right: 0; transform-origin: left center; }
+
+/* moving sheen: a pseudo-layer that sweeps across the ribbon to mimic satin */
+.ribbon-left::before,
+.ribbon-right::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* a bright narrow sheen stripe */
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.14) 0%,
+    rgba(255,255,255,0.04) 15%,
+    rgba(255,255,255,0.01) 40%,
+    rgba(255,255,255,0) 100%);
+  mix-blend-mode: overlay;
+  transform: translateX(-70%) skewX(-10deg);
+  opacity: 0;
+  transition: opacity 350ms ease;
 }
 
-.ribbon-right {
-  right: 0;
-  transform-origin: left center;
+/* give alternating sheen animation so it feels organic */
+.ribbon-left::before  { animation: ribbon-sheen 3.2s linear infinite; animation-delay: 0s; }
+.ribbon-right::before { animation: ribbon-sheen 4.2s linear infinite; animation-delay: 0.6s; }
+
+@keyframes ribbon-sheen {
+  0%   { transform: translateX(-70%) skewX(-10deg); opacity: 0; }
+  8%   { opacity: 1; }
+  65%  { transform: translateX(130%) skewX(-10deg); opacity: 1; }
+  100% { transform: translateX(220%) skewX(-10deg); opacity: 0; }
 }
 
+/* small folded band close to the bow (suggests the ribbon is tucked under the knot) */
+.ribbon-left::after,
+.ribbon-right::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: var(--ribbon-fold-width);
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.16),
+    rgba(255,255,255,0.03));
+  transform: skewX(-14deg);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* position fold near the center gap left/right */
+.ribbon-left::after {
+  right: calc(50% - (var(--ribbon-bow-gap) / 2));
+}
+.ribbon-right::after {
+  left: calc(50% - (var(--ribbon-bow-gap) / 2));
+}
+
+/* hover: a tiny lift to show interactivity (won't apply if reduced-motion) */
+.ribbon-wrapper:hover .ribbon-left,
+.ribbon-wrapper:hover .ribbon-right {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 -8px 18px rgba(0,0,0,0.32),
+    0 12px 28px rgba(0,0,0,0.22);
+}
+
+/* keep your cut/fall animations intact (re-apply existing animation triggers) */
 .is-revealed .ribbon-left {
   animation: fall-left var(--ribbon-fall-duration) ease-in forwards;
   animation-delay: var(--ribbon-fall-delay);
 }
-
 .is-revealed .ribbon-right {
   animation: fall-right var(--ribbon-fall-duration) ease-in forwards;
   animation-delay: var(--ribbon-fall-delay);
 }
+
+/* reduce motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .ribbon-left::before,
+  .ribbon-right::before {
+    animation: none !important;
+    opacity: 0.03;
+  }
+  .ribbon-wrapper:hover .ribbon-left,
+  .ribbon-wrapper:hover .ribbon-right {
+    transform: none;
+  }
+}
+
 
 .ribbon-bow {
   position: relative;
@@ -773,63 +881,37 @@ color: linear-gradient(120deg, #8b0000, #610000);
 @media (max-height: 420px) {
   .ribbon-bow { width: 110px; }
 }/* Base style for both ribbon labels */
+/* base label styles */
 .ribbon-label {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 5;
-  pointer-events: none;
-
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  font-weight: 700;
+  color: #353535;
   white-space: nowrap;
   text-transform: uppercase;
-
-  font-size: clamp(0.9rem, 1.6vw, 1.2rem);
-  color: #fff;
-
-  text-shadow: 
-    0 2px 8px rgba(0,0,0,0.45),
-    0 4px 12px rgba(0,0,0,0.25);
-
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 6px 14px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
   transition: opacity 220ms ease, transform 220ms ease;
+  z-index: 7;
 }
 
-/* Left side of the bow */
+/* left side of the bow */
 .ribbon-label-left {
-  left: 12%;   /* adjust distance from edge */
-  text-align: right;
-}
-
-/* Right side of the bow */
-.ribbon-label-right {
-  right: 12%;  /* adjust distance from edge */
+  left: 8%;              /* push to the left ribbon */
   text-align: left;
 }
 
-/* Fade labels when ribbon is cut */
+/* right side of the bow */
+.ribbon-label-right {
+  right: 8%;             /* push to the right ribbon */
+  text-align: right;
+}
+
+/* fade when ribbon is cut */
 .is-revealed .ribbon-label {
   opacity: 0;
-  transform: translateY(-60%) scale(0.95);
+  transform: translateY(-60%) scale(0.96);
   transition-delay: var(--ribbon-fall-delay, 0ms);
-}
-
-/* Bow sizing & responsiveness */
-.ribbon-bow {
-  width: clamp(120px, 14vh, 220px);
-  height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 6;
-  pointer-events: none;
-  transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 260ms ease;
-}
-.ribbon-bow svg { width: 100%; height: auto; display: block; }
-
-/* Responsive tweaks */
-@media (max-width: 720px) {
-  .ribbon-label-left { left: 6%; font-size: 0.88rem; }
-  .ribbon-label-right { right: 6%; font-size: 0.88rem; }
-  .ribbon-bow { width: 110px; }
 }
