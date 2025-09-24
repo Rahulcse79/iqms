@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { fetchPorData } from "../../../actions/ProfileAction";
-import { UserRole } from "../../../constants/Enum"; 
+import { UserRole } from "../../../constants/Enum";
+import axios from "axios";
 import "./PORDataTable.css";
 
+const IRLA_API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS"; 
+
 export default function PORDataTable() {
-  const dispatch = useDispatch();
-  const { loading, error, porList } = useSelector((state) => state.porData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [porList, setPorList] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedRow, setSelectedRow] = useState(null);
 
-  // Extract query params from URL
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const sno = queryParams.get("q");
@@ -19,16 +20,37 @@ export default function PORDataTable() {
   const cat = UserRole[catStr] !== undefined ? UserRole[catStr] : null;
 
   useEffect(() => {
-    if (sno && cat !== null) {
-      dispatch(fetchPorData({ sno, cat, porYear: selectedYear }));
-    }
-  }, [dispatch, sno, cat, selectedYear]);
+    const fetchPorData = async () => {
+      if (!sno || cat === null) return;
+
+      setLoading(true);
+      setError(null);
+      setPorList([]);
+
+      try {
+        const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
+
+        const url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${selectedYear}&requestFrom=PANKH`;
+
+        const response = await axios.post(url, body, {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          timeout: 20000,
+        });
+
+        setPorList(response.data || []);
+      } catch (err) {
+        setError(err?.response?.data?.message || err.message || "Failed to fetch POR data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPorData();
+  }, [sno, cat, selectedYear]);
 
   const records = Array.isArray(porList)
     ? porList.filter((item) => item.PORNO)
     : [];
-
-  const handleBack = () => setSelectedRow(null);
 
   return (
     <div className="por-container">
@@ -43,7 +65,7 @@ export default function PORDataTable() {
         />
       </div>
 
-      {loading && <p className="info-text" style={{color:"var(--text)"}}>Loading POR data...</p>}
+      {loading && <p className="info-text" style={{ color: "var(--text)" }}>Loading POR data...</p>}
       {error && <p className="error-text">Error: {error}</p>}
       {!loading && records.length === 0 && (
         <p className="info-text">No POR records found for {selectedYear}.</p>
@@ -72,10 +94,7 @@ export default function PORDataTable() {
                 <td>{row.POR_CODE}</td>
                 <td>{row.OCC_NAME}</td>
                 <td>
-                  <button
-                    className="view-btn"
-                    onClick={() => setSelectedRow(row)}
-                  >
+                  <button className="view-btn" onClick={() => setSelectedRow(row)}>
                     View Details
                   </button>
                 </td>
@@ -98,9 +117,7 @@ export default function PORDataTable() {
               ))}
             </tbody>
           </table>
-          <button className="back-btn" onClick={handleBack}>
-            Back
-          </button>
+          <button className="back-btn" onClick={() => setSelectedRow(null)}>Back</button>
         </div>
       )}
     </div>

@@ -1,54 +1,17 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import { useDispatch, useSelector } from "react-redux";
 import MonthYearPicker from "./MonthYearPicker";
-import { fetchIrlaView } from "../../../actions/ProfileAction";
+import axios from "axios";
 import "./IRLAHistoryTab.css";
 
-/**
- * IRLAHistoryTab
- * - Search-driven (manual fetch on click)
- * - Shows loader, error, or PDF preview
- * - Download / open PDF in new tab
- */
-export default function IRLAHistoryTab({ selSno, selCat }) {
-  const dispatch = useDispatch();
-  const { loading, pdfUrl, error } = useSelector((s) => s.irlaView || {});
+const IRLA_API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS"; 
 
+export default function IRLAHistoryTab({ selSno, selCat }) {
   const [selected, setSelected] = useState({ month: "", year: "" });
   const [lastSearched, setLastSearched] = useState(null);
   const [pdfSrc, setPdfSrc] = useState(null);
-
-  // Sync pdfUrl -> pdfSrc (string URL, data URI, or Blob)
-  useEffect(() => {
-    let objectUrl;
-
-    if (!pdfUrl) {
-      setPdfSrc(null);
-      return;
-    }
-
-    if (typeof pdfUrl === "string") {
-      setPdfSrc(pdfUrl);
-      return;
-    }
-
-    try {
-      if (pdfUrl instanceof Blob) {
-        objectUrl = URL.createObjectURL(pdfUrl);
-        setPdfSrc(objectUrl);
-      } else {
-        setPdfSrc(null);
-      }
-    } catch (err) {
-      console.error("Failed to handle pdfUrl:", err);
-      setPdfSrc(null);
-    }
-
-    return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [pdfUrl]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Validate month + year
   const isSelectionValid = useMemo(
@@ -57,8 +20,7 @@ export default function IRLAHistoryTab({ selSno, selCat }) {
   );
 
   const handlePickerChange = useCallback((val) => {
-    // val = { month: '01', year: '2025' }
-    setSelected(val);
+    setSelected(val); // val = { month: "01", year: "2025" }
   }, []);
 
   const handleSearch = useCallback(async () => {
@@ -67,25 +29,42 @@ export default function IRLAHistoryTab({ selSno, selCat }) {
     const selMon = month;
     const selYr = String(year);
     const fullMonth = `${selYr}${selMon}`; // e.g. 202509
+
     setLastSearched({ selMon, selYr });
+    setLoading(true);
+    setError(null);
+    setPdfSrc(null);
 
     try {
-      const result = dispatch(
-        fetchIrlaView({ selSno, selCat, selYr, selMon, month: fullMonth })
+      const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
+
+      const response = await axios.post(
+        `http://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${fullMonth}&section=FULL&request=PANKH`,
+        body,
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          responseType: "blob",
+          timeout: 20000,
+        }
       );
-      if (result && typeof result.then === "function") {
-        await result;
-      }
+
+      // Convert blob to object URL
+      const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+      const objectUrl = URL.createObjectURL(pdfBlob);
+      setPdfSrc(objectUrl);
     } catch (err) {
       console.error("IRLA fetch failed:", err);
+      setError(err?.response?.data?.message || err.message || "Failed to fetch IRLA View");
+    } finally {
+      setLoading(false);
     }
-  }, [dispatch, selected, isSelectionValid, selSno, selCat]);
+  }, [isSelectionValid, selected, selSno, selCat]);
 
   const handleReset = useCallback(() => {
     setSelected({ month: "", year: "" });
     setLastSearched(null);
     setPdfSrc(null);
-    // Optionally clear Redux state as well
+    setError(null);
   }, []);
 
   const handleDownload = useCallback(() => {
@@ -95,9 +74,6 @@ export default function IRLAHistoryTab({ selSno, selCat }) {
 
   return (
     <div className="irla-root" role="region" aria-label="IRLA History">
-      <div className="irla-header">
-      </div>
-
       <div className="irla-controls">
         <MonthYearPicker onChange={handlePickerChange} yearsBack={5} />
         <div className="irla-actions">
