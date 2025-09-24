@@ -87,35 +87,34 @@ export default function PersonalDetails(props) {
     }
     return rawData;
   }, [rawData]);
-
-  const cleaned = useMemo(() => {
-    if (!dataObj) return null;
-    return {
-      serviceNo: dataObj.sno ?? '-',
-      name: dataObj.p_name ?? '-',
-      category: mapCategory(dataObj.cat),
-      system: dataObj.system ?? '-',
-      rankCode: dataObj.rankcd ?? '-',
-      rankType: mapRankType(dataObj.ranktype),
-      rankDate: formatDate(dataObj.rankdt),
-      tradeCode: dataObj.trdcd ?? '-',
-      dateOfBirth: formatDate(dataObj.dob),
-      enlistmentDate: formatDate(dataObj.enrldt),
-      sex: mapSex(dataObj.sex),
-      maritalStatus: mapMaritalStatus(dataObj.mstatus),
-      currentUnit: dataObj.unitcd ?? '-',
-      previousUnit: dataObj.prev_unitcd ?? '-',
-      sorsDate: formatDate(dataObj.sorsdt),
-      pan: dataObj.pan ?? '-',
-      pran: dataObj.pran ?? '-',
-      irla: dataObj.irla ?? '-',
-      cell: dataObj.cell ?? '-',
-      cs: dataObj.cs ?? '-',
-      flag: dataObj.flag ?? '-',
-      decoration: dataObj.decoration ?? '-',
-      commtype: dataObj.commtype ?? '-',
-    };
-  }, [dataObj]);
+const cleaned = useMemo(() => {
+  if (!dataObj) return null;
+  return {
+    serviceNo: dataObj.sno ?? '-',
+    name: dataObj.p_name ?? '-',
+    category: mapCategory(dataObj.cat),
+    system: dataObj.system ?? '-',
+    rankCode: dataObj.rankcd ?? '-',
+    rankType: mapRankType(dataObj.ranktype),
+    rankDate: (dataObj.rankdt),
+    tradeCode: dataObj.trtcd ?? '-',   // ✅ updated key
+    dateOfBirth: (dataObj.dob),
+    enlistmentDate: (dataObj.enrldt),
+    sex: mapSex(dataObj.sex),
+    maritalStatus: mapMaritalStatus(dataObj.mstatus),
+    currentUnit: dataObj.unitcd ?? '-',
+    previousUnit: dataObj.prev_unitcd ?? '-',
+    sorsDate: (dataObj.sonsdt),  // ✅ updated key
+    pan: dataObj.pan ?? '-',
+    pran: dataObj.pran ?? '-',
+    irla: dataObj.irla ?? '-', // will show "-" if not present
+    cell: dataObj.cell ?? '-',
+    cs: dataObj.cs ?? '-',
+    flag: dataObj.flag ?? '-',
+    decoration: dataObj.decoration ?? '-',
+    commtype: dataObj.commtype ?? '-',
+  };
+}, [dataObj]);
 
   // Conditional returns after hooks
   if (loading) return <div style={styles.loader}>Loading personal details...</div>;
