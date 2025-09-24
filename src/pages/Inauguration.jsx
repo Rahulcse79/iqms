@@ -159,14 +159,14 @@ const Inauguration = ({
               >
                 <defs>
                   <linearGradient id="bowGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#d4af37" />
-                    <stop offset="55%" stopColor="#ffeca8" />
-                    <stop offset="100%" stopColor="#b8872a" />
+                    <stop offset="0%" stopColor="#d43737ff" />
+                    <stop offset="55%" stopColor="#ffa8a8ff" />
+                    <stop offset="100%" stopColor="#b82a2aff" />
                   </linearGradient>
 
                   <linearGradient id="knotGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#b8872a" />
-                    <stop offset="100%" stopColor="#ffd98a" />
+                    <stop offset="0%" stopColor="#b82a2aff" />
+                    <stop offset="100%" stopColor="#ff8a8aff" />
                   </linearGradient>
 
                   <filter

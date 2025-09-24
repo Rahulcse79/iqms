@@ -3,21 +3,28 @@ import { useSelector } from 'react-redux';
 
 /** ---------- utils ---------- */
 const formatDate = (iso) => {
-  if (!iso) return '-';
   try {
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '-';
+    if (Number.isNaN(d.getTime())) {
+      console.log('[formatDate] Invalid date:', iso);
+      return '-';
+    }
 
     // Convert UTC to IST (+5:30)
     const istOffset = 5 * 60 + 30; // minutes
     const istDate = new Date(d.getTime() + istOffset * 60000);
 
-    return istDate.toLocaleDateString('en-GB', {
+    const formatted = istDate.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
     });
-  } catch {
+
+    console.log('[formatDate] Input:', iso, '| IST Date:', istDate, '| Formatted:', formatted);
+
+    return formatted;
+  } catch (err) {
+    console.log('[formatDate] Error formatting date:', iso, err);
     return '-';
   }
 };
@@ -264,14 +271,4 @@ const styles = {
     textAlign: 'center',
     color: 'var(--muted, #6b7280)',
   },
-
-  
-
-  /* small responsive helper — used in style prop where appropriate (not applied automatically) */
-  // Note: When inline styles are used we can't use media queries here.
-  // For improved responsive control, include this CSS snippet in a global stylesheet:
-  //
-  // @media (max-width: 720px) {
-  //   .personal-info-grid { grid-template-columns: 1fr !important; }
-  // }
 };
