@@ -331,10 +331,9 @@
 
 
 .ribbon-bow {
-  position: relative;
+  position: sticky;
   width: clamp(80px, 12vh, 110px);
   height: clamp(80px, 12vh, 110px);
-color: linear-gradient(120deg, #8b0000, #610000);  
   transition: opacity 0.2s, transform 0.2s;
 }
 
@@ -899,13 +898,13 @@ color: linear-gradient(120deg, #8b0000, #610000);
 
 /* left side of the bow */
 .ribbon-label-left {
-  left: 8%;              /* push to the left ribbon */
+  left: 22%;              /* push to the left ribbon */
   text-align: left;
 }
 
 /* right side of the bow */
 .ribbon-label-right {
-  right: 8%;             /* push to the right ribbon */
+  right: 20%;             /* push to the right ribbon */
   text-align: right;
 }
 
@@ -914,4 +913,142 @@ color: linear-gradient(120deg, #8b0000, #610000);
   opacity: 0;
   transform: translateY(-60%) scale(0.96);
   transition-delay: var(--ribbon-fall-delay, 0ms);
+}
+/* ---------- Bow size control (10x) ---------- */
+/* Set this on the ribbon wrapper so other rules can reference it. */
+.ribbon-wrapper {
+  /* 10x of original 80px-110px: min 800px, max 1100px. Preferred uses vw for responsiveness. */
+  --ribbon-bow-size: clamp(400px, 20vw, 900px);
+  --ribbon-fold-width: 28px; /* keep fold width; tweak if needed */
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  height: clamp(50px, 8vh, 70px);
+  z-index: 3;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 900px;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.30));
+}
+
+/* ---------- Ribbon halves (keep your prior styling, folds align to bow) ---------- */
+.ribbon-left,
+.ribbon-right {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  overflow: hidden;
+  border-radius: 8px;
+  /* keep your existing layered satin backgrounds or copy them here */
+  background: linear-gradient(
+    170deg,
+    var(--ribbon-shadow, rgba(0,0,0,0.18)) 0%,
+    var(--ribbon-color, #b82a2a) 36%,
+    var(--ribbon-highlight, #ff9a9a) 46%,
+    var(--ribbon-highlight, #ff9a9a) 54%,
+    var(--ribbon-color, #b82a2a) 66%,
+    rgba(0,0,0,0.12) 100%
+  );
+  box-shadow:
+    inset 0 -6px 14px rgba(0,0,0,0.28),
+    inset 0 6px 8px rgba(255,255,255,0.02);
+}
+
+.ribbon-left { left: 0; transform-origin: right center; }
+.ribbon-right { right: 0; transform-origin: left center; }
+
+/* small folded band (adjusted to the new bow width) */
+.ribbon-left::after,
+.ribbon-right::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: var(--ribbon-fold-width);
+  background: linear-gradient(90deg, rgba(0,0,0,0.16), rgba(255,255,255,0.03));
+  transform: skewX(-14deg);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* position the fold flush to the left/right edge of the bow */
+.ribbon-left::after {
+  right: calc(50% - (var(--ribbon-bow-size) / 2));
+}
+.ribbon-right::after {
+  left: calc(50% - (var(--ribbon-bow-size) / 2));
+}
+
+/* ---------- Big 10x Bow ---------- */
+.ribbon-bow {
+  position: relative;
+  width: var(--ribbon-bow-size);        /* controlled by the wrapper variable above */
+  aspect-ratio: 200 / 120;              /* match your SVG viewBox (200:120) */
+  transition: opacity 240ms ease, transform 240ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+  pointer-events: none;                /* decorative only */
+}
+
+/* ensure the SVG fills that wrapper */
+.ribbon-bow svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  stroke-linejoin: round;
+}
+
+/* ---------- Ribbon labels (auto-position based on bow size) ---------- */
+.ribbon-label {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);   /* we set left to the midpoint of label area */
+  z-index: 7;
+  pointer-events: none;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+
+  /* scale text reasonably with viewport */
+  font-size: clamp(1rem, 2.2vw, 1.6rem);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+/* left label center = midpoint between left edge and left edge of bow:
+   midpoint = 25% - (bowSize / 4)  (works because leftEdgeOfBow = 50% - bowSize/2)
+*/
+.ribbon-label-left {
+  left: calc(25% - (var(--ribbon-bow-size) / 4));
+  text-align: center;
+}
+
+/* right label center = midpoint between right edge of bow and right edge:
+   midpoint = 75% + (bowSize / 4)
+*/
+.ribbon-label-right {
+  left: calc(65% + (var(--ribbon-bow-size) / 4));
+  text-align: center;
+}
+
+/* Fade both labels when ribbon is revealed/cut */
+.is-revealed .ribbon-label {
+  opacity: 0;
+  transform: translate(-50%, -70%) scale(0.96);
+  transition-delay: var(--ribbon-fall-delay, 0ms);
+}
+
+/* small responsive tweak: if viewport is narrow, scale down bow to avoid overflow */
+@media (max-width: 720px) {
+  .ribbon-wrapper { --ribbon-bow-size: clamp(460px, 72vw, 720px); }
+  .ribbon-label { font-size: clamp(0.86rem, 3.1vw, 1.1rem); }
 }
