@@ -9,8 +9,8 @@
 
 :root {
   --loader-height: 60vh;
-  --duration: 6.2s; /* full loop time */
-  --duration-fly: 6.2s; /* full loop time */
+  --duration: 5s; /* full loop time */
+  --duration-fly: 5s; /* full loop time */
   --easing: cubic-bezier(0.22, 0.93, 0.16, 0.98);
 }
 
