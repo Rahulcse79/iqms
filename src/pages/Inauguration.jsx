@@ -6,7 +6,7 @@ import "./Inauguration.css";
 import logo1 from "../assets/Images/login-logo1.png";
 import logo2 from "../assets/Images/login-logo.png";
 import logo3 from "../assets/Images/dav-logo.png";
-
+import ribbon from "../assets/Images/ribbon-img.png"
 const Inauguration = ({
   duration = 2400,
   showConfetti = false,
@@ -172,97 +172,7 @@ const Inauguration = ({
 
             {/* Bow in the center */}
             <div className="ribbon-bow" aria-hidden="true">
-              <svg
-                viewBox="0 0 200 120"
-                preserveAspectRatio="xMidYMid meet"
-                role="img"
-                aria-hidden="true"
-              >
-                <defs>
-                  <linearGradient id="bowGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#d43737ff" />
-                    <stop offset="55%" stopColor="#ffa8a8ff" />
-                    <stop offset="100%" stopColor="#b82a2aff" />
-                  </linearGradient>
-
-                  <linearGradient id="knotGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#b82a2aff" />
-                    <stop offset="100%" stopColor="#ff8a8aff" />
-                  </linearGradient>
-
-                  <filter
-                    id="bowShadow"
-                    x="-50%"
-                    y="-50%"
-                    width="200%"
-                    height="200%"
-                  >
-                    <feDropShadow
-                      dx="0"
-                      dy="8"
-                      stdDeviation="8"
-                      floodColor="#000"
-                      floodOpacity="0.32"
-                    />
-                  </filter>
-                </defs>
-
-                <path
-                  d="M40 55 C10 10, 90 6, 70 60 C62 86, 26 96, 40 55 Z"
-                  fill="url(#bowGrad)"
-                  filter="url(#bowShadow)"
-                  stroke="rgba(0,0,0,0.08)"
-                  strokeWidth="1"
-                />
-                <path
-                  d="M160 55 C190 10, 110 6, 130 60 C138 86, 174 96, 160 55 Z"
-                  fill="url(#bowGrad)"
-                  filter="url(#bowShadow)"
-                  stroke="rgba(0,0,0,0.08)"
-                  strokeWidth="1"
-                />
-                <path
-                  d="M78 72 C72 86, 66 100, 74 112 C62 108, 56 96, 78 72 Z"
-                  fill="url(#bowGrad)"
-                  opacity="0.98"
-                />
-                <path
-                  d="M122 72 C128 86, 134 100, 126 112 C138 108, 144 96, 122 72 Z"
-                  fill="url(#bowGrad)"
-                  opacity="0.98"
-                />
-                <ellipse
-                  cx="100"
-                  cy="60"
-                  rx="22"
-                  ry="14"
-                  fill="url(#knotGrad)"
-                  stroke="rgba(0,0,0,0.12)"
-                  strokeWidth="1"
-                />
-                <path
-                  d="M60 44 C74 42, 86 46, 100 48"
-                  stroke="rgba(255,255,255,0.28)"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M140 44 C126 42, 114 46, 100 48"
-                  stroke="rgba(255,255,255,0.22)"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-                <ellipse
-                  cx="96"
-                  cy="56"
-                  rx="6.5"
-                  ry="3.6"
-                  fill="rgba(255,255,255,0.28)"
-                  transform="rotate(-12 96 56)"
-                />
-              </svg>
+              <img src={ribbon} alt="Ribbon"/>
             </div>
 
             {/* Right label */}

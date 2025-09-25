@@ -337,8 +337,8 @@
   transition: opacity 0.2s, transform 0.2s;
 }
 
-.ribbon-bow svg {
-  width: 100%;
+.ribbon-bow img {
+  width: 60%;
   height: 100%;
   fill: currentColor;
   stroke-linejoin: round;
