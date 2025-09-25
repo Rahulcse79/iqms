@@ -9,7 +9,7 @@ import { fetchRepliedQueries } from "../actions/repliedQueryAction";
 import { fetchPendingQueries } from "../actions/pendingQueryAction";
 import { fetchTransferredQueries } from "../actions/transferredQueryAction";
 import Loader from "../components/Loader";
-import { UserRole } from "../constants/Enum";
+import { UserRole, DepartmentMapping } from "../constants/Enum";
 import users from "../utils/users.json";
 
 const Login = () => {
@@ -47,10 +47,19 @@ const Login = () => {
       const serviceNo = baseUser.airForceServiceNumber;
       const categoryStr = baseUser.airForceCategory; // e.g. AIRMEN/OFFICER/CIVILIAN
       const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
+      const userDept =
+        response.data.airForceUserDetails?.airForceDepartment?.[0];
+      const deptConfig = DepartmentMapping[userDept];
 
       if (!serviceNo || categoryCode === null) {
         setInitializing(false);
         setError("Invalid user details. Please contact admin.");
+        return;
+      }
+
+      if (!deptConfig) {
+        setInitializing(false);
+        setError(`Unsupported department: ${userDept || "Unknown"}`);
         return;
       }
 
@@ -88,31 +97,34 @@ const Login = () => {
       login(response);
 
       // 🔹 Fetch queries only if login is valid
-      const deptPrefix = "U";
-      const personnelType = "A";
+      const { cat, suffix } = deptConfig;
       const roleDigitForTab = { creator: "1", approver: "2", verifier: "3" };
       const pendingTabs = Object.values(roleDigitForTab).map(
-        (digit) => `${deptPrefix}${digit}${personnelType}`
+        (digit) => `U${digit}${suffix}`
       );
 
-      const tasks = [
-        dispatch(fetchRepliedQueries()),
-        ...pendingTabs.map((pw) =>
-          dispatch(fetchPendingQueries({ cat: 1, pendingWith: pw }))
-        ),
-        ...pendingTabs.map((pw) =>
-          dispatch(fetchTransferredQueries({ cat: 1, pendingWith: pw }))
-        ),
-      ];
+      try {
+        const tasks = [
+          dispatch(fetchRepliedQueries()),
+          ...pendingTabs.map((pw) =>
+            dispatch(fetchPendingQueries({ cat, pendingWith: pw }))
+          ),
+          ...pendingTabs.map((pw) =>
+            dispatch(fetchTransferredQueries({ cat, pendingWith: pw }))
+          ),
+        ];
 
-      const results = await Promise.allSettled(tasks);
+        const results = await Promise.allSettled(tasks);
 
-      results.forEach((r, i) => {
-        if (r.status === "rejected") {
-          console.error("Background API failed:", tasks[i], r.reason);
-          // optional: trigger toast or retry logic here
-        }
-      });
+        results.forEach((r, i) => {
+          if (r.status === "rejected") {
+            console.error("Background API failed:", tasks[i], r.reason);
+            // optional: show toast or retry
+          }
+        });
+      } catch (err) {
+        console.error("Error dispatching background queries:", err);
+      }
 
       setInitializing(false);
       navigate("/");

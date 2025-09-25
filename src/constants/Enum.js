@@ -22,3 +22,9 @@ export const userRoleOptions = Object.keys(UserRoleLabel).map((k) => ({
   value: Number(k),
   label: UserRoleLabel[k],
 }));
+
+export const DepartmentMapping = {
+  OPW: { cat: 0, suffix: "O" },
+  APW: { cat: 1, suffix: "A" },
+  CPW: { cat: 2, suffix: "C" },
+};

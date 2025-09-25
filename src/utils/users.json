@@ -16,7 +16,7 @@
       "airForceUserDetails": {
         "airForceServiceNumber": "916369",
         "airForceCategory": "AIRMEN",
-        "airForceDepartment": ["CQC"],
+        "airForceDepartment": ["APW"],
         "airForceLevel": ["CLERK"],
         "airForceRole_Access": [
           "ASP-I",
@@ -54,7 +54,7 @@
       "airForceUserDetails": {
         "airForceServiceNumber": "936547",
         "airForceCategory": "AIRMEN",
-        "airForceDepartment": ["CQC"],
+        "airForceDepartment": ["APW"],
         "airForceLevel": ["CREATOR"],
         "airForceRole_Access": ["ADMIN"],
         "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
@@ -83,7 +83,7 @@
       "airForceUserDetails": {
         "airForceServiceNumber": "1008668",
         "airForceCategory": "AIRMEN",
-        "airForceDepartment": ["CQC"],
+        "airForceDepartment": ["OPW"],
         "airForceLevel": ["CREATOR"],
         "airForceRole_Access": ["ADMIN"],
         "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
@@ -112,7 +112,7 @@
       "airForceUserDetails": {
         "airForceServiceNumber": "919670",
         "airForceCategory": "AIRMEN",
-        "airForceDepartment": ["CQC"],
+        "airForceDepartment": ["OPW"],
         "airForceLevel": ["CREATOR"],
         "airForceRole_Access": ["ADMIN"],
         "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
@@ -141,7 +141,7 @@
       "airForceUserDetails": {
         "airForceServiceNumber": "921128",
         "airForceCategory": "AIRMEN",
-        "airForceDepartment": ["CQC"],
+        "airForceDepartment": ["OPW"],
         "airForceLevel": ["CREATOR"],
         "airForceRole_Access": ["ADMIN"],
         "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
