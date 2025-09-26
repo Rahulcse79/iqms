@@ -403,7 +403,6 @@ export default function ProfileView() {
         dispatch(fetchPersonalData(serviceNo, category)),
         dispatch(getRankHistory(serviceNo, category, 1)),
         dispatch(getTradeHistory(serviceNo, category, 1)),
-        dispatch(getPostingHistory(serviceNo, category, 1)),
       ];
 
       const results = await Promise.allSettled(promises);
@@ -616,8 +615,7 @@ export default function ProfileView() {
               let tabProps = {};
               if (id === "rank") tabProps = rankHistory;
               if (id === "trade") tabProps = tradeHistory;
-              if (id === "posting") tabProps = postingHistory;
-
+              if (id === "posting") {tabProps = { serviceNo, category };}
               // debug the props being passed to the component (dev only)
               if (process.env.NODE_ENV !== "production") {
                 try {
