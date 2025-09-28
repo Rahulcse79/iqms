@@ -1,16 +1,67 @@
-/* Container */
-.qview-container {
-  display: grid;
-  grid-template-columns: 50% 50%;
+/* Enhanced Container */
+.qview-container.resizable-container {
+  display: flex;
   position: relative;
   background: var(--bg);
   border-radius: 10px;
   height: calc(100vh - 190px);
   box-shadow: var(--shadow);
   overflow: hidden;
+  width: 100%;
 }
 
-/* Left & Right Panel */
+/* Panel Controls */
+.panel-controls {
+  position: absolute;
+  top: 50px;
+  right: 15px;
+  display: flex;
+  gap: 4px;
+  z-index: 20;
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  position: relative;
+}
+
+.control-btn:hover {
+  background: var(--primary);
+  color: var(--surface);
+}
+
+.control-btn.active {
+  background: var(--primary);
+  color: var(--surface);
+}
+
+.control-btn.inactive {
+  background: var(--surface-accent);
+  color: var(--text-muted);
+}
+
+.control-btn:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Enhanced Left & Right Panel */
 .left-panel,
 .right-panel {
   padding: 20px;
@@ -18,6 +69,16 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+  position: relative;
+}
+
+.left-panel.collapsed,
+.right-panel.collapsed {
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Left panel = content area */
@@ -58,6 +119,7 @@
   font-size: 0.9rem;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
+
 .right-panel select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent 80%);
@@ -67,6 +129,83 @@
 .panel-content {
   width: 100%;
   overflow: visible;
+  flex: 1;
+}
+
+/* Resize Handle */
+.resize-handle {
+  width: 8px;
+  height: 100%;
+  background: transparent;
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.resize-handle:hover,
+.resize-handle:focus {
+  background-color: var(--primary-light);
+  outline: none;
+}
+
+.resize-handle:focus {
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.resize-handle.resizing {
+  background-color: var(--primary);
+}
+
+.resize-handle-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.resize-grip {
+  width: 3px;
+  height: 30px;
+  background: var(--border);
+  border-radius: 2px;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.resize-handle:hover .resize-grip,
+.resize-handle:focus .resize-grip,
+.resize-handle.resizing .resize-grip {
+  background: var(--primary);
+}
+
+/* Add visual dots to the grip */
+.resize-grip::before,
+.resize-grip::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: currentColor;
+  border-radius: 50%;
+  left: 0;
+}
+
+.resize-grip::before {
+  top: 25%;
+}
+
+.resize-grip::after {
+  bottom: 25%;
 }
 
 /* Floating close button */
@@ -86,37 +225,119 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 30;
   box-shadow: var(--shadow);
   transition: background 0.2s, transform 0.1s;
 }
+
 .close-btn:hover {
   background: var(--button-hover, #d32f2f);
   transform: scale(1.05);
 }
 
+.close-btn:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Performance optimization for animations */
+.left-panel,
+.right-panel,
+.resize-handle {
+  will-change: width, transform;
+}
+
+.resize-handle.resizing ~ .right-panel,
+.resize-handle.resizing ~ .left-panel {
+  pointer-events: none;
+}
+
 /* Responsive Layout */
 @media (max-width: 1024px) {
-  .qview-container {
-    grid-template-columns: 60% 40%;
+  .panel-controls {
+    top: 10px;
+    right: 60px;
   }
 }
 
 @media (max-width: 768px) {
-  .qview-container {
-    grid-template-columns: 1fr;
+  .qview-container.resizable-container {
+    flex-direction: column;
     height: auto;
   }
 
   .left-panel,
   .right-panel {
+    width: 100% !important;
     height: auto;
     border-radius: 0;
+    min-height: 300px;
   }
 
   .left-panel {
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+
+  .resize-handle {
+    width: 100%;
+    height: 8px;
+    cursor: row-resize;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .resize-grip {
+    width: 30px;
+    height: 3px;
+  }
+
+  .panel-controls {
+    position: static;
+    margin: 10px;
+    align-self: center;
+  }
+
+  /* Reset button specific styling */
+  .control-btn.reset-btn {
+    background: var(--warning, #ff9800);
+    color: var(--surface);
+    font-weight: bold;
+  }
+
+  .control-btn.reset-btn:hover {
+    background: var(--warning-dark, #f57c00);
+    transform: rotate(180deg);
+  }
+
+  .control-btn.reset-btn:focus {
+    outline: 2px solid var(--warning);
+    outline-offset: 2px;
+  }
+
+  /* Reset icon animation */
+  .icon-reset {
+    display: inline-block;
+    transition: transform 0.3s ease;
+  }
+
+  .control-btn.reset-btn:hover .icon-reset {
+    transform: rotate(180deg);
   }
 
   .close-btn {
@@ -132,8 +353,71 @@
   .right-panel label {
     font-size: 13px;
   }
+
   .right-panel select {
     font-size: 13px;
     padding: 8px 10px;
   }
+
+  .panel-controls {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .control-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .resize-handle {
+    background: Canvas;
+    border: 2px solid ButtonText;
+  }
+
+  .resize-grip {
+    background: ButtonText;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .left-panel,
+  .right-panel,
+  .resize-handle,
+  .control-btn {
+    transition: none;
+  }
+}
+
+/* Focus management for better accessibility */
+.qview-container:focus-within .resize-handle {
+  border-color: var(--primary);
+}
+
+/* Ensure proper layering */
+.qview-container.resizable-container {
+  isolation: isolate;
+}
+
+/* Error state styles */
+.qview-container.error {
+  border: 2px solid var(--error, #f44336);
+}
+
+.qview-container.error .resize-handle {
+  background: var(--error-light, #ffebee);
+}
+
+/* Loading state */
+.qview-container.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.qview-container.loading .resize-handle {
+  cursor: not-allowed;
 }
