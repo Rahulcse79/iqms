@@ -4,24 +4,45 @@ import { FaUserCircle } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import { GrRefresh } from "react-icons/gr";
 import useTheme from "../hooks/useTheme";
+import { useActiveRole } from "../hooks/useActiveRole";
 import "./Topbar.css";
 import { useDataRefresher } from "../hooks/useDataRefresher";
 import { getUserRoleLabel } from "../constants/Enum";
+import { fetchQueriesForRole } from "../utils/helpers";
+import { useDispatch } from "react-redux";
 
 /**
- * Topbar
+ * Topbar with Enhanced Active Role Management
  *
- * - preserves all existing functionality (search, portfolio, refresh, theme).
- * - replaces the visible username with a profile icon which opens a small popup
- *   containing the user details and portfolio info.
+ * - Manages active role switching with automatic query fetching
+ * - Fetches queries whenever role changes
+ * - Shows loading states during role switches
  */
 const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const { refreshing, refreshData } = useDataRefresher();
   const [errorPlaceholder, setErrorPlaceholder] = useState("");
   const [isError, setIsError] = useState(false);
-  const [fullProfile, setFullProfile] = useState(null);
+
+  // Role switching states
+  const [switchingRole, setSwitchingRole] = useState(false);
+  const [switchProgress, setSwitchProgress] = useState({});
+
+  // Use the active role hook
+  const {
+    activeRole,
+    userDetails: fullProfile,
+    portfolioOptions: portfolios,
+    roleInfo,
+    loading: roleLoading,
+    error: roleError,
+    setActiveRole,
+    hasPermission,
+    hasAccessToCell,
+  } = useActiveRole();
+
   const [airForceProfile, setAirForceProfile] = useState(null);
 
   // Profile popup state & refs
@@ -31,13 +52,10 @@ const Topbar = ({ toggleSidebar }) => {
 
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem("userDetails");
       const storedAFUser = localStorage.getItem("airForceUserDetails");
-
-      if (storedUser) setFullProfile(JSON.parse(storedUser));
       if (storedAFUser) setAirForceProfile(JSON.parse(storedAFUser));
     } catch (err) {
-      console.warn("Failed to load extended user profile:", err);
+      console.warn("Failed to load air force user profile:", err);
     }
   }, []);
 
@@ -82,29 +100,94 @@ const Topbar = ({ toggleSidebar }) => {
   ];
   const [searchCategory, setSearchCategory] = useState(categories[0] || "");
 
-  /** ✅ Extract portfolios directly from normalized userDetails */
-  const portfolios = useMemo(() => {
-    if (!fullProfile) return [];
-    return fullProfile.LOGIN_PORTFOLIO || [];
-  }, [fullProfile]);
-
-  const [selectedPortfolio, setSelectedPortfolio] = useState(
-    portfolios.length > 0 ? portfolios[0] : null
-  );
-
   /** 🔄 Manual Refresh */
   const handleRefreshScreen = async () => {
     navigate("/");
     await refreshData();
   };
 
-  /** 🔄 Portfolio Change */
-  const handlePortfolioChange = (e) => {
-    const selected = portfolios.find(
-      (p) => p.PORTFOLIO_NAME === e.target.value
-    );
-    setSelectedPortfolio(selected || null);
-    console.log("Switched to portfolio:", selected);
+  /** 🔄 Enhanced Portfolio Change - Now fetches queries for new role */
+  const handlePortfolioChange = async (e) => {
+    const portfolioName = e.target.value;
+    const selected = portfolios.find((p) => p.PORTFOLIO_NAME === portfolioName);
+
+    if (!selected || selected.PORTFOLIO_NAME === activeRole?.PORTFOLIO_NAME) {
+      return; // No change needed
+    }
+
+    console.log("🔄 Switching role to:", selected.PORTFOLIO_NAME);
+    setSwitchingRole(true);
+    setSwitchProgress({ step: "switching", roleName: selected.PORTFOLIO_NAME });
+    localStorage.removeItem("pendingQueries_v1");
+    localStorage.removeItem("transferredQueries_v1");
+
+    try {
+      // Set the new active role
+      const success = setActiveRole(selected);
+      if (!success) {
+        throw new Error("Failed to set active role");
+      }
+
+      console.log("✅ Active role updated successfully");
+      setSwitchProgress({
+        step: "fetching",
+        roleName: selected.PORTFOLIO_NAME,
+      });
+
+      // Fetch queries for the new role
+      const fetchResult = await fetchQueriesForRole(
+        dispatch,
+        selected,
+        (progress) => {
+          setSwitchProgress({
+            step: "fetching",
+            roleName: selected.PORTFOLIO_NAME,
+            current: progress.current || 0,
+            total: progress.total || 0,
+            taskName: progress.taskName || "",
+            ...progress,
+          });
+        },
+        (error) => {
+          console.warn("Non-critical error during role switch:", error);
+        }
+      );
+
+      console.log(`🎯 Role switch completed:`, fetchResult);
+
+      if (fetchResult.success) {
+        console.log(
+          `✅ Queries loaded for ${selected.PORTFOLIO_NAME}: ${fetchResult.successful}/${fetchResult.total} successful`
+        );
+
+        // Optional: Show success notification
+        setSwitchProgress({
+          step: "completed",
+          roleName: selected.PORTFOLIO_NAME,
+          successful: fetchResult.successful,
+          total: fetchResult.total,
+        });
+      } else {
+        console.warn(
+          `⚠️ Some queries failed for ${selected.PORTFOLIO_NAME}, but role switched successfully`
+        );
+      }
+
+      // Small delay to show completion
+      setTimeout(() => {
+        setSwitchingRole(false);
+        setSwitchProgress({});
+      }, 1000);
+    } catch (error) {
+      console.error("❌ Error during role switch:", error);
+      setSwitchProgress({ step: "error", error: error.message });
+
+      // Reset after showing error
+      setTimeout(() => {
+        setSwitchingRole(false);
+        setSwitchProgress({});
+      }, 3000);
+    }
   };
 
   /** 🔍 Search Logic */
@@ -160,6 +243,24 @@ const Topbar = ({ toggleSidebar }) => {
   /** 🌓 Theme */
   const { theme, toggleTheme } = useTheme();
 
+  // Get role switching status text
+  const getRoleSwitchingText = () => {
+    switch (switchProgress.step) {
+      case "switching":
+        return `Switching to ${switchProgress.roleName}...`;
+      case "fetching":
+        return switchProgress.taskName
+          ? `Loading ${switchProgress.taskName} (${switchProgress.current}/${switchProgress.total})`
+          : `Loading data for ${switchProgress.roleName}...`;
+      case "completed":
+        return `✅ ${switchProgress.roleName} loaded (${switchProgress.successful}/${switchProgress.total})`;
+      case "error":
+        return `❌ Error: ${switchProgress.error}`;
+      default:
+        return "";
+    }
+  };
+
   // Small helper to render a profile row if value exists
   const ProfileRow = ({ label, value }) =>
     !value ? null : (
@@ -180,6 +281,19 @@ const Topbar = ({ toggleSidebar }) => {
         </div>
       </div>
     );
+
+  // Show loading state if role is loading
+  if (roleLoading) {
+    return (
+      <header className="topbar">
+        <div className="topbar-content">
+          <div style={{ padding: "10px", textAlign: "center" }}>
+            Loading user roles...
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="topbar">
@@ -204,10 +318,13 @@ const Topbar = ({ toggleSidebar }) => {
 
           <select
             id="portfolioDropdown"
-            className="control portfolio-dropdown"
-            value={selectedPortfolio?.PORTFOLIO_NAME || ""}
+            className={`control portfolio-dropdown ${
+              switchingRole ? "switching" : ""
+            }`}
+            value={activeRole?.PORTFOLIO_NAME || ""}
             onChange={handlePortfolioChange}
-            disabled={portfolios.length === 0}
+            disabled={portfolios.length === 0 || switchingRole}
+            title={switchingRole ? getRoleSwitchingText() : "Select portfolio"}
           >
             {portfolios.length > 0 ? (
               portfolios.map((p, idx) => (
@@ -219,17 +336,57 @@ const Topbar = ({ toggleSidebar }) => {
               <option disabled>No portfolios available</option>
             )}
           </select>
+
+          {/* Role switching indicator */}
+          {switchingRole && (
+            <div
+              className="role-switch-indicator"
+              style={{
+                fontSize: "11px",
+                color: "var(--primary)",
+                marginLeft: "8px",
+                maxWidth: "200px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              title={getRoleSwitchingText()}
+            >
+              {switchProgress.step === "fetching" && "🔄"}{" "}
+              {getRoleSwitchingText()}
+            </div>
+          )}
+
+          {/* Show error if role error exists */}
+          {roleError && (
+            <div
+              style={{
+                color: "var(--error)",
+                fontSize: "12px",
+                marginLeft: "8px",
+              }}
+              title={roleError}
+            >
+              ⚠️
+            </div>
+          )}
         </div>
 
         {/* Refresh Button */}
         <div className="refresh-container">
           <GrRefresh
             className={`refresh-button-api control ${
-              refreshing ? "spinning" : ""
+              refreshing || switchingRole ? "spinning" : ""
             }`}
             onClick={handleRefreshScreen}
-            title="Refresh data"
+            title={
+              switchingRole ? "Role switching in progress..." : "Refresh data"
+            }
             aria-label="Refresh"
+            style={{
+              opacity: switchingRole ? 0.6 : 1,
+              cursor: switchingRole ? "not-allowed" : "pointer",
+            }}
           />
         </div>
 
@@ -335,7 +492,7 @@ const Topbar = ({ toggleSidebar }) => {
                   boxShadow: "var(--shadow)",
                   padding: 12,
                   borderRadius: 10,
-                  minWidth: 280,
+                  minWidth: 320,
                   zIndex: 2000,
                 }}
               >
@@ -346,7 +503,7 @@ const Topbar = ({ toggleSidebar }) => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     gap: 8,
-                    marginBottom: 8,
+                    marginBottom: 12,
                   }}
                 >
                   <div
@@ -399,7 +556,8 @@ const Topbar = ({ toggleSidebar }) => {
                   </button>
                 </div>
 
-                <div style={{ display: "grid", gap: 8, marginBottom: 6 }}>
+                {/* User Details */}
+                <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
                   <ProfileRow
                     label="Service No."
                     value={fullProfile?.LOGIN_SNO}
@@ -415,28 +573,60 @@ const Topbar = ({ toggleSidebar }) => {
                   />
                   <ProfileRow label="Dept." value={fullProfile?.MODULE || ""} />
                   <ProfileRow
-                    label="Module"
-                    value={selectedPortfolio?.SUB_SECTION || ""}
-                  />
-                  <ProfileRow
-                    label="Portfolio"
-                    value={selectedPortfolio?.PORTFOLIO_NAME || ""}
-                  />
-                  <ProfileRow
                     label="Category"
-                    value={getUserRoleLabel(fullProfile.LOGIN_CAT)}
-                  />{" "}
-                  {/* ✅ Enum mapping */}
+                    value={getUserRoleLabel(fullProfile?.LOGIN_CAT)}
+                  />
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 8,
-                    justifyContent: "flex-end",
-                    marginTop: 6,
-                  }}
-                ></div>
+                {/* Active Role Details */}
+                {activeRole && (
+                  <>
+                    <div
+                      style={{
+                        borderTop: "1px solid var(--border)",
+                        paddingTop: 8,
+                        marginTop: 8,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "var(--primary)",
+                          marginBottom: 8,
+                        }}
+                      >
+                        Active Role{" "}
+                        {switchingRole && (
+                          <span style={{ color: "var(--warning)" }}>🔄</span>
+                        )}
+                      </div>
+                      <div style={{ display: "grid", gap: 6 }}>
+                        <ProfileRow
+                          label="Portfolio"
+                          value={activeRole.PORTFOLIO_NAME}
+                        />
+                        <ProfileRow label="Role" value={activeRole.USER_ROLE} />
+                        <ProfileRow
+                          label="Sub Section"
+                          value={activeRole.SUB_SECTION}
+                        />
+                        <ProfileRow label="Module" value={activeRole.MODULE} />
+                        <ProfileRow
+                          label="Level"
+                          value={activeRole.PORTFOLIO_LEVEL}
+                        />
+                        {roleInfo?.cellsAlloted &&
+                          roleInfo.cellsAlloted.length > 0 && (
+                            <ProfileRow
+                              label="Cells"
+                              value={`${roleInfo.cellsAlloted.length} assigned`}
+                            />
+                          )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
