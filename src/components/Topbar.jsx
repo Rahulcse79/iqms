@@ -120,6 +120,7 @@ const Topbar = ({ toggleSidebar }) => {
     setSwitchProgress({ step: "switching", roleName: selected.PORTFOLIO_NAME });
     localStorage.removeItem("pendingQueries_v1");
     localStorage.removeItem("transferredQueries_v1");
+    navigate("/");
 
     try {
       // Set the new active role

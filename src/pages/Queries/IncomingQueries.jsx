@@ -1,17 +1,18 @@
-// src/pages/IncomingQueries/IncomingQueries.jsx
-import React, { useMemo, useState, useEffect } from "react";
+// src/pages/IncomingQueries/IncomingQueries.jsx - FULLY FIXED VERSION
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import { useSelector, useDispatch } from "react-redux";
 import "./IncomingQueries.css";
 import { refreshPendingQueries } from "../../actions/pendingQueryAction";
 import { HiOutlineRefresh } from "react-icons/hi";
+import { useActiveRole } from "../../hooks/useActiveRole";
+import { getAllRoleLevelCodes } from "../../constants/Enum";
 
 /**
- * IncomingQueries (reads from localStorage directly)
- *
- * - Primary data source: localStorage with key "pendingQueries_v1"
- * - Fallback: Redux state if localStorage is empty
- * - Refresh button triggers full fetch and updates localStorage
+ * IncomingQueries with FULL Live Updates - COMPLETELY FIXED VERSION
+ * - Live role changes with proper code updates
+ * - Live localStorage changes detection
+ * - Background data updates without refresh
  */
 
 const roleDigitForTab = {
@@ -40,98 +41,211 @@ const getLocalStorageData = (key) => {
   }
 };
 
-const IncomingQueries = ({
-  cat = 1,
-  deptPrefix = "U",
-  personnelType = "A",
-}) => {
+const IncomingQueries = () => {
   const [activeTab, setActiveTab] = useState("creator");
   const [localData, setLocalData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [forceRefresh, setForceRefresh] = useState(0);
+  const [storageData, setStorageData] = useState(null); // Track localStorage state
 
   const dispatch = useDispatch();
 
-  const pendingWith = `${deptPrefix}${roleDigitForTab[activeTab]}${personnelType}`;
+  // Use active role hook
+  const { activeRole } = useActiveRole();
+
+  // Generate all role codes for active role (for tab display)
+  const allRoleCodes = useMemo(() => {
+    if (!activeRole) return [];
+
+    try {
+      console.log("🔍 Generating codes for activeRole:", activeRole.SUB_SECTION, activeRole.MODULE);
+      const codes = getAllRoleLevelCodes(activeRole.SUB_SECTION, activeRole.MODULE);
+      console.log("📋 Generated codes:", codes);
+      return codes;
+    } catch (error) {
+      console.error("Error generating all role codes:", error);
+      return [];
+    }
+  }, [activeRole, forceRefresh]);
+
+  // Generate pending codes based on active role and current tab
+  const { pendingWith, cat } = useMemo(() => {
+    if (!activeRole) {
+      return { pendingWith: "U1A", cat: 1 }; // fallback
+    }
+
+    try {
+      console.log("🎯 Calculating pendingWith for:", {
+        activeTab,
+        allRoleCodes: allRoleCodes.length,
+        activeRole: activeRole.SUB_SECTION,
+        module: activeRole.MODULE
+      });
+
+      // Find the code for current tab
+      const roleDigitMapping = { creator: "1", approver: "2", verifier: "3" };
+      const targetRoleLevel = roleDigitMapping[activeTab];
+
+      // Map digits to role levels
+      const digitToRole = { "1": "CREATOR", "2": "VERIFIER", "3": "APPROVER" };
+      const targetRole = digitToRole[targetRoleLevel];
+
+      const matchingCode = allRoleCodes.find(
+        (code) => code.roleLevel === targetRole && code.isValid
+      );
+
+      const result = {
+        pendingWith: matchingCode?.apiCode || "U1A",
+        cat: activeRole.MODULE_CAT || 1,
+      };
+
+      console.log("✅ Calculated pendingWith:", result);
+      return result;
+    } catch (error) {
+      console.error("Error generating pending codes:", error);
+      return { pendingWith: "U1A", cat: 1 };
+    }
+  }, [activeRole, activeTab, allRoleCodes, forceRefresh]);
 
   // Redux fallback data
   const cachedEntry = useSelector(
     (state) => state.pending_queries?.byKey?.[pendingWith] || {}
   );
 
-  // Load data from localStorage on component mount and tab change
-  useEffect(() => {
-    const loadDataFromStorage = () => {
-      try {
-        setLoading(true);
-        setError(null);
+  // Function to load data from localStorage
+  const loadDataFromStorage = useCallback(() => {
+    try {
+      console.log(`🔍 Loading data for pendingWith: ${pendingWith}`);
+      setLoading(true);
+      setError(null);
 
-        // Read from localStorage first
-        const storageData = getLocalStorageData("pendingQueries_v1");
+      // Read from localStorage first
+      const currentStorageData = getLocalStorageData("pendingQueries_v1");
+      console.log("📂 localStorage keys:", currentStorageData ? Object.keys(currentStorageData) : "no data");
+      
+      // Update storage data state for live updates
+      setStorageData(currentStorageData);
 
-        if (storageData && storageData[pendingWith]) {
-          console.log(
-            `Loading pending queries for ${pendingWith} from localStorage:`,
-            storageData[pendingWith]
-          );
-          setLocalData(storageData[pendingWith]);
-        } else {
-          console.log(
-            `No data found in localStorage for ${pendingWith}, checking Redux...`
-          );
-          // Fallback to Redux if localStorage is empty
-          const reduxItems = Array.isArray(cachedEntry.items)
-            ? cachedEntry.items
-            : [];
-          setLocalData(reduxItems);
+      if (currentStorageData && currentStorageData[pendingWith]) {
+        console.log(
+          `✅ Found data for ${pendingWith}:`,
+          currentStorageData[pendingWith].length,
+          "items"
+        );
+        setLocalData(currentStorageData[pendingWith]);
+      } else {
+        console.log(
+          `❌ No data found in localStorage for ${pendingWith}, checking Redux...`
+        );
+        // Fallback to Redux if localStorage is empty
+        const reduxItems = Array.isArray(cachedEntry.items)
+          ? cachedEntry.items
+          : [];
+        setLocalData(reduxItems);
 
-          // If Redux is also empty, try to fetch fresh data
-          if (reduxItems.length === 0) {
-            console.log("No data in Redux either, triggering refresh...");
-            handleRefresh();
-          }
+        if (reduxItems.length === 0) {
+          console.log("❌ No data in Redux either");
         }
-      } catch (err) {
-        console.error("Error loading data from storage:", err);
-        setError("Failed to load queries from storage");
-        setLocalData([]);
-      } finally {
-        setLoading(false);
+      }
+    } catch (err) {
+      console.error("❌ Error loading data from storage:", err);
+      setError("Failed to load queries from storage");
+      setLocalData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [pendingWith, cachedEntry.items]);
+
+  // ENHANCED: Polling mechanism for live localStorage updates
+  useEffect(() => {
+    let pollingInterval;
+
+    const checkForStorageChanges = () => {
+      const currentStorage = getLocalStorageData("pendingQueries_v1");
+      
+      // Compare with previous storage data
+      if (JSON.stringify(currentStorage) !== JSON.stringify(storageData)) {
+        console.log("🔄 localStorage data changed, updating...");
+        loadDataFromStorage();
       }
     };
 
-    loadDataFromStorage();
-  }, [activeTab, pendingWith]);
+    // Poll every 2 seconds for localStorage changes
+    pollingInterval = setInterval(checkForStorageChanges, 2000);
 
-  // Listen for localStorage changes (when data is updated by API calls)
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
+  }, [storageData, loadDataFromStorage]);
+
+  // Load data when dependencies change
+  useEffect(() => {
+    console.log("🔄 Dependencies changed, loading data...", { pendingWith, activeRole: !!activeRole });
+    if (pendingWith && activeRole) {
+      loadDataFromStorage();
+    }
+  }, [loadDataFromStorage, pendingWith, activeRole]);
+
+  // Listen for localStorage changes (cross-tab)
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === "pendingQueries_v1") {
-        console.log("localStorage updated, reloading data...");
-        const storageData = getLocalStorageData("pendingQueries_v1");
-        if (storageData && storageData[pendingWith]) {
-          setLocalData(storageData[pendingWith]);
-        }
+        console.log("📢 localStorage updated from another tab, reloading data...");
+        setTimeout(loadDataFromStorage, 100);
       }
+    };
+
+    const handleCustomUpdate = () => {
+      console.log("📢 Custom localStorage update event, reloading data...");
+      setTimeout(loadDataFromStorage, 100);
     };
 
     window.addEventListener("storage", handleStorageChange);
-
-    // Also listen for custom events (in case data is updated in same tab)
-    const handleCustomUpdate = () => {
-      const storageData = getLocalStorageData("pendingQueries_v1");
-      if (storageData && storageData[pendingWith]) {
-        setLocalData(storageData[pendingWith]);
-      }
-    };
-
     window.addEventListener("pendingQueriesUpdated", handleCustomUpdate);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("pendingQueriesUpdated", handleCustomUpdate);
     };
-  }, [pendingWith]);
+  }, [loadDataFromStorage]);
+
+  // ENHANCED: Active role change listener with immediate UI updates
+  useEffect(() => {
+    const handleActiveRoleChange = (event) => {
+      const newRole = event.detail?.newRole;
+      if (newRole) {
+        console.log("🔄 Active role changed to:", newRole.PORTFOLIO_NAME);
+        console.log("🔄 Forcing immediate UI refresh...");
+
+        // Force complete refresh of all calculations IMMEDIATELY
+        setForceRefresh(prev => prev + 1);
+
+        // Reset current data to show loading state
+        setLocalData([]);
+        setLoading(true);
+
+        // Multiple attempts with increasing delays
+        setTimeout(() => {
+          console.log("📂 Attempt 1: Loading data for new role...");
+          loadDataFromStorage();
+        }, 50); // Much faster first attempt
+
+        setTimeout(() => {
+          console.log("📂 Attempt 2: Loading data for new role...");
+          loadDataFromStorage();
+        }, 300);
+
+        setTimeout(() => {
+          console.log("📂 Attempt 3: Loading data for new role...");
+          loadDataFromStorage();
+        }, 800);
+      }
+    };
+
+    window.addEventListener("activeRoleChanged", handleActiveRoleChange);
+    return () => window.removeEventListener("activeRoleChanged", handleActiveRoleChange);
+  }, [loadDataFromStorage]);
 
   // Use local data as primary source
   const items = Array.isArray(localData) ? localData : [];
@@ -164,25 +278,15 @@ const IncomingQueries = ({
     try {
       setLoading(true);
       setError(null);
+      console.log(`🔄 Refreshing pending queries for ${pendingWith}...`);
 
-      console.log(`Refreshing pending queries for ${pendingWith}...`);
-
-      // Dispatch Redux action to fetch fresh data
       await dispatch(refreshPendingQueries({ cat, pendingWith }));
 
-      // After API call, read updated data from localStorage
       setTimeout(() => {
-        const updatedData = getLocalStorageData("pendingQueries_v1");
-        if (updatedData && updatedData[pendingWith]) {
-          console.log(
-            "Data refreshed, updating local state:",
-            updatedData[pendingWith]
-          );
-          setLocalData(updatedData[pendingWith]);
-        }
-      }, 500); // Small delay to ensure localStorage is updated
+        loadDataFromStorage();
+      }, 500);
     } catch (err) {
-      console.error("Refresh pending failed", err);
+      console.error("❌ Refresh pending failed", err);
       setError("Failed to refresh queries");
     } finally {
       setLoading(false);
@@ -190,68 +294,84 @@ const IncomingQueries = ({
   };
 
   return (
-    <>
-      <div className="incoming-queries">
-        <div className="header">
-          <h2>{tabTitle}</h2>
-          <div className="header-controls">
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className="refresh-btn"
-              title="Refresh queries"
-            >
-              <HiOutlineRefresh className={loading ? "spinning" : ""} />
-              {loading ? "Loading..." : "Refresh"}
-            </button>
-          </div>
+    <div className="incoming-queries">
+      <div className="header">
+        <h2>{tabTitle}</h2>
+        <div className="header-controls">
+          {/* FIXED: Live updating role info */}
+          {activeRole && (
+            <small style={{ marginRight: "1rem", color: "var(--muted)" }} key={`${activeRole.SUB_SECTION}-${activeRole.MODULE}-${pendingWith}`}>
+              {activeRole.SUB_SECTION} | {activeRole.MODULE} | Code: {pendingWith} | Items: {items.length}
+            </small>
+          )}
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="refresh-btn"
+            title="Refresh queries"
+          >
+            <HiOutlineRefresh className={loading ? "spinning" : ""} />
+            {loading ? "Loading..." : "Refresh"}
+          </button>
         </div>
+      </div>
 
-        <div className="tabs">
-          {Object.keys(roleDigitForTab).map((role) => (
+      <div className="tabs">
+        {Object.keys(roleDigitForTab).map((role) => {
+          const roleDigit = roleDigitForTab[role];
+          const digitToRole = { "1": "CREATOR", "2": "VERIFIER", "3": "APPROVER" };
+          const roleLevel = digitToRole[roleDigit];
+
+          // FIXED: Find role code using current active role (not stale data)
+          const roleCode = allRoleCodes.find(
+            (code) => code.roleLevel === roleLevel && code.isValid
+          );
+
+          // FIXED: Get count from current storage data state (live updates)
+          const currentStorageData = storageData || getLocalStorageData("pendingQueries_v1");
+          const count = currentStorageData?.[roleCode?.apiCode]?.length || 0;
+
+          return (
             <button
-              key={role}
+              key={`${role}-${roleCode?.apiCode}-${forceRefresh}`} // Force re-render on role change
               className={`tab ${activeTab === role ? "active" : ""}`}
               onClick={() => setActiveTab(role)}
             >
               {role.charAt(0).toUpperCase() + role.slice(1)}
-              {/* Show count if data is available */}
-              {(() => {
-                const roleKey = `${deptPrefix}${roleDigitForTab[role]}${personnelType}`;
-                const storageData = getLocalStorageData("pendingQueries_v1");
-                const count = storageData?.[roleKey]?.length || 0;
-                return count > 0 ? ` (${count})` : "";
-              })()}
+              {roleCode && (
+                <span className="tab-code">({roleCode.apiCode})</span>
+              )}
+              {count > 0 && <span className="tab-count"> • {count}</span>}
             </button>
-          ))}
-        </div>
-
-        {error && (
-          <div className="error-message">
-            <p>{error}</p>
-            <button onClick={handleRefresh}>Try Again</button>
-          </div>
-        )}
-
-        <div className="table-container">
-          <QueriesTable
-            data={tableData}
-            loading={loading}
-            onRowClick={(row) => {
-              console.log("Row clicked:", row);
-              // Handle row click navigation
-            }}
-          />
-        </div>
-
-        <div className="footer-info">
-          <p>
-            Total queries: {items.length} | Active tab: {pendingWith} | Data
-            source: {items.length > 0 ? "localStorage" : "empty"}
-          </p>
-        </div>
+          );
+        })}
       </div>
-    </>
+
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={handleRefresh}>Try Again</button>
+        </div>
+      )}
+
+      <div className="table-container">
+        <QueriesTable
+          data={tableData}
+          loading={loading}
+          onRowClick={(row) => {
+            console.log("Row clicked:", row);
+          }}
+        />
+      </div>
+
+      <div className="footer-info">
+        <p>
+          Total queries: {items.length} | Active tab: {pendingWith} | Data
+          source: {items.length > 0 ? "localStorage" : "empty"}
+          {activeRole && ` | Role: ${activeRole.PORTFOLIO_NAME}`}
+        </p>
+      </div>
+    </div>
   );
 };
 
