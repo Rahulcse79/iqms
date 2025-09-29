@@ -156,7 +156,7 @@ html, body {
 
 /* Make sure topbar inside main-content remains sticky */
 .topbar {
-  position: sticky;
+  position: sticky !important ;
   top: 0;
   z-index: 1000;
 }

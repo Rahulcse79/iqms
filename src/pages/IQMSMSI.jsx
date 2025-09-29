@@ -483,7 +483,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
     {/* Oldest / pending card */}
     <div className="oldest-card">
       <div className="oldest-header">
-        <div style={{color:"var('--text')"}}>Oldest pending (showing for {type})</div>
+        <div>Oldest pending (showing for {type})</div>
         <div>
           <button
             className="secondary-btn"

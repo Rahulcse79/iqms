@@ -1,11 +1,3 @@
-/* FreqQuery.css — Theme-aware styles for FreqQuery component
-   Uses theme variables: --bg, --surface, --panel, --surface-accent,
-   --text, --muted, --primary, --primary-dark, --accent, --accent-600, --accent-dark,
-   --border, --shadow, --shadow-sm, --focus-ring, --danger, --danger-light,
-   --radius, --max-width, --gap
-   Fallbacks are provided so this file is resilient if some tokens are missing.
-*/
-
 /* Page wrapper */
 .freq-page {
   max-width: var(--max-width, 1200px);
@@ -152,7 +144,7 @@
 /* Panel */
 .freq-panel {
   border-radius: var(--radius, 10px);
-  background: var(--panel, var(--surface, #fff));
+  background: var(--bg);
   border: 1px solid var(--border, rgba(15,23,42,0.06));
   padding: 18px;
   box-shadow: var(--shadow, 0 6px 20px rgba(0,0,0,0.06));
@@ -211,7 +203,8 @@
 }
 .freq-pers {
   font-weight: 600;
-  color: var(--text, #0f1724);
+  background-color: var(--bg);
+  color: var(--text);
 }
 .freq-count {
   font-weight: 700;
@@ -241,7 +234,8 @@
   padding: 7px 12px;
   border-radius: var(--radius, 8px);
   border: 1px solid var(--border, rgba(15,23,42,0.06));
-  background: var(--surface, #fff);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   font-weight: 600;
   font-size: 13px;
