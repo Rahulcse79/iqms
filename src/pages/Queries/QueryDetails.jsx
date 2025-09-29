@@ -3,6 +3,11 @@ import axios from "axios";
 import "./QueryDetails.css";
 import { useQuery } from "@tanstack/react-query";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import {
+  getCurrentActiveRole,
+  fetchTransferToVerifierOption,
+  fetchTransferToSubsectionOptions,
+} from "../../utils/helpers";
 
 const STORAGE_KEY = "queryDrafts_v2";
 
@@ -119,6 +124,17 @@ const QueryDetails = ({
   const [formError, setFormError] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  // API-driven dropdown states
+  const [verifierOption, setVerifierOption] = useState(null);
+  const [subsectionOptions, setSubsectionOptions] = useState([]);
+  const [loadingVerifierOption, setLoadingVerifierOption] = useState(false);
+  const [loadingSubsectionOptions, setLoadingSubsectionOptions] =
+    useState(false);
+  const [apiErrors, setApiErrors] = useState({
+    verifier: null,
+    subsection: null,
+  });
+
   const [internalDraft, setInternalDraft] = useState({
     replyText: "",
     forwardOption: "",
@@ -150,9 +166,69 @@ const QueryDetails = ({
     staleTime: 1000 * 60 * 5,
   });
 
+  // Load verifier option when query data is available
+  useEffect(() => {
+    const loadVerifierOption = async () => {
+      if (!item?.pending_with) return;
+
+      setLoadingVerifierOption(true);
+      setApiErrors((prev) => ({ ...prev, verifier: null }));
+
+      try {
+        const option = await fetchTransferToVerifierOption(item.pending_with);
+        setVerifierOption(option);
+        console.log("📋 Verifier option loaded:", option.DESCRIPTION);
+      } catch (error) {
+        console.error("❌ Failed to load verifier option:", error);
+        setApiErrors((prev) => ({ ...prev, verifier: error.message }));
+        setVerifierOption(null);
+      } finally {
+        setLoadingVerifierOption(false);
+      }
+    };
+
+    loadVerifierOption();
+  }, [item?.pending_with]);
+
+  // Load subsection options when "Transfer to Sub-Section" is selected
+  useEffect(() => {
+    const loadSubsectionOptions = async () => {
+      if (
+        localDraft.forwardOption !== "Transfer to Sub-Section" ||
+        !item?.doc_id
+      ) {
+        setSubsectionOptions([]);
+        return;
+      }
+
+      setLoadingSubsectionOptions(true);
+      setApiErrors((prev) => ({ ...prev, subsection: null }));
+
+      try {
+        const options = await fetchTransferToSubsectionOptions(item.doc_id);
+        setSubsectionOptions(options);
+        console.log("📋 Subsection options loaded:", options.length, "options");
+      } catch (error) {
+        console.error("❌ Failed to load subsection options:", error);
+        setApiErrors((prev) => ({ ...prev, subsection: error.message }));
+        setSubsectionOptions([]);
+      } finally {
+        setLoadingSubsectionOptions(false);
+      }
+    };
+
+    loadSubsectionOptions();
+  }, [localDraft.forwardOption, item?.doc_id]);
+
   const handleChange = (field, value) => {
     localSetDraft((prev) => {
       const newDraft = { ...prev, [field]: value };
+
+      // Reset transfer section when forward option changes
+      if (field === "forwardOption" && value !== "Transfer to Sub-Section") {
+        newDraft.transferSection = "";
+      }
+
       if (enableCache) {
         const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
         allDrafts[queryId] = newDraft;
@@ -186,6 +262,17 @@ const QueryDetails = ({
   const handleConfirmSubmit = () => {
     console.log("Submitted:", localDraft);
 
+    // Get selected subsection details if applicable
+    if (
+      localDraft.forwardOption === "Transfer to Sub-Section" &&
+      localDraft.transferSection
+    ) {
+      const selectedSubsection = subsectionOptions.find(
+        (option) => option.ACTIVITY === localDraft.transferSection
+      );
+      console.log("Selected subsection details:", selectedSubsection);
+    }
+
     if (enableCache) {
       const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
       delete allDrafts[queryId];
@@ -196,7 +283,12 @@ const QueryDetails = ({
     setShowConfirmDialog(false);
   };
 
-  if (isLoading) return <div   style={{color: "var(--text)"}} className="qdetails-container">Loading...</div>;
+  if (isLoading)
+    return (
+      <div style={{ color: "var(--text)" }} className="qdetails-container">
+        Loading...
+      </div>
+    );
   if (isError)
     return (
       <div className="qdetails-container">
@@ -260,7 +352,6 @@ const QueryDetails = ({
   };
 
   return (
-    /* keep your existing imports at top of file; this is the JSX portion */
     <div className="qdetails-container split-active">
       {onBack && (
         <button className="btn back-btn" onClick={onBack}>
@@ -367,7 +458,7 @@ const QueryDetails = ({
               </div>
             )}
 
-            {/* Reply Form */}
+            {/* Enhanced Reply Form with Dynamic Dropdowns */}
             <div className="form-section">
               <div className="form-group">
                 <label>Reply</label>
@@ -380,17 +471,34 @@ const QueryDetails = ({
               </div>
 
               <div className="form-group">
-                <label>Reply / Forward To</label>
+                <label>
+                  Reply / Forward To
+                  {loadingVerifierOption && (
+                    <span className="loading-indicator"> 🔄</span>
+                  )}
+                  {apiErrors.verifier && (
+                    <span
+                      className="error-indicator"
+                      title={apiErrors.verifier}
+                    >
+                      {" "}
+                      ⚠️
+                    </span>
+                  )}
+                </label>
                 <select
                   value={localDraft.forwardOption}
                   onChange={(e) =>
                     handleChange("forwardOption", e.target.value)
                   }
+                  disabled={loadingVerifierOption}
                 >
                   <option value="">--Select--</option>
-                  <option value="Transfer to Supervisor">
-                    Transfer to Supervisor
-                  </option>
+                  {verifierOption && (
+                    <option value="Transfer to Supervisor">
+                      {verifierOption.DESCRIPTION || "Transfer to Supervisor"}
+                    </option>
+                  )}
                   <option value="Transfer to Sub-Section">
                     Transfer to Sub-Section
                   </option>
@@ -399,25 +507,75 @@ const QueryDetails = ({
 
               {localDraft.forwardOption === "Transfer to Sub-Section" && (
                 <div className="form-group">
-                  <label>Select Sub-Section</label>
+                  <label>
+                    Select Sub-Section
+                    {loadingSubsectionOptions && (
+                      <span className="loading-indicator"> 🔄</span>
+                    )}
+                    {apiErrors.subsection && (
+                      <span
+                        className="error-indicator"
+                        title={apiErrors.subsection}
+                      >
+                        {" "}
+                        ⚠️
+                      </span>
+                    )}
+                  </label>
                   <select
                     value={localDraft.transferSection}
                     onChange={(e) =>
                       handleChange("transferSection", e.target.value)
                     }
+                    disabled={loadingSubsectionOptions}
                   >
                     <option value="">--Select Sub-Section--</option>
-                    <option value="Section A">Section A</option>
-                    <option value="Section B">Section B</option>
-                    <option value="Section C">Section C</option>
+                    {subsectionOptions.map((option, index) => (
+                      <option key={index} value={option.ACTIVITY}>
+                        {option.DESCRIPTION}
+                      </option>
+                    ))}
                   </select>
+
+                  {/* Show count of available options */}
+                  {subsectionOptions.length > 0 && (
+                    <div className="options-count">
+                      {subsectionOptions.length} subsection
+                      {subsectionOptions.length !== 1 ? "s" : ""} available
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Show active role info for debugging */}
+              {process.env.NODE_ENV === "development" && (
+                <div className="debug-info">
+                  <details>
+                    <summary>Debug Info (dev only)</summary>
+                    <div>
+                      <strong>Active Role:</strong>{" "}
+                      {getCurrentActiveRole()?.PORTFOLIO_NAME || "Not found"}
+                    </div>
+                    <div>
+                      <strong>Pending With:</strong> {item.pending_with}
+                    </div>
+                    <div>
+                      <strong>Doc ID:</strong> {item.doc_id}
+                    </div>
+                  </details>
                 </div>
               )}
 
               <div className="form-actions">
                 {formError && <div className="form-error">{formError}</div>}
-                <button className="btn primary" onClick={handleSubmit}>
-                  Submit
+                <button
+                  className="btn primary"
+                  onClick={handleSubmit}
+                  disabled={loadingVerifierOption || loadingSubsectionOptions}
+                >
+                  {loadingVerifierOption || loadingSubsectionOptions
+                    ? "Loading..."
+                    : "Submit"}
                 </button>
               </div>
             </div>
@@ -461,4 +619,3 @@ const QueryDetails = ({
 };
 
 export default QueryDetails;
-  

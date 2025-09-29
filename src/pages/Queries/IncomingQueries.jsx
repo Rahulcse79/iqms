@@ -1,5 +1,5 @@
 // src/pages/IncomingQueries/IncomingQueries.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import { useSelector, useDispatch } from "react-redux";
 import "./IncomingQueries.css";
@@ -7,10 +7,11 @@ import { refreshPendingQueries } from "../../actions/pendingQueryAction";
 import { HiOutlineRefresh } from "react-icons/hi";
 
 /**
- * IncomingQueries (reads cache)
+ * IncomingQueries (reads from localStorage directly)
  *
- * - Data comes from Redux pending_queries.byKey[pendingWith]
- * - No Show more / Load all in UI: Refresh button triggers full fetch (refreshPendingQueries)
+ * - Primary data source: localStorage with key "pendingQueries_v1"
+ * - Fallback: Redux state if localStorage is empty
+ * - Refresh button triggers full fetch and updates localStorage
  */
 
 const roleDigitForTab = {
@@ -28,23 +29,112 @@ const formatIso = (iso) => {
   }
 };
 
+// Function to read data directly from localStorage
+const getLocalStorageData = (key) => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn(`Failed to read from localStorage key: ${key}`, error);
+    return null;
+  }
+};
+
 const IncomingQueries = ({
   cat = 1,
   deptPrefix = "U",
   personnelType = "A",
 }) => {
   const [activeTab, setActiveTab] = useState("creator");
+  const [localData, setLocalData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const dispatch = useDispatch();
 
   const pendingWith = `${deptPrefix}${roleDigitForTab[activeTab]}${personnelType}`;
 
+  // Redux fallback data
   const cachedEntry = useSelector(
-    (state) => state.pending_queries.byKey[pendingWith] || {}
+    (state) => state.pending_queries?.byKey?.[pendingWith] || {}
   );
-  const items = Array.isArray(cachedEntry.items) ? cachedEntry.items : [];
-  const loading = Boolean(cachedEntry.loading);
-  const error = cachedEntry.error || null;
-  const hasMore = Boolean(cachedEntry.hasMore); // may be undefined; used only for display
+
+  // Load data from localStorage on component mount and tab change
+  useEffect(() => {
+    const loadDataFromStorage = () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Read from localStorage first
+        const storageData = getLocalStorageData("pendingQueries_v1");
+
+        if (storageData && storageData[pendingWith]) {
+          console.log(
+            `Loading pending queries for ${pendingWith} from localStorage:`,
+            storageData[pendingWith]
+          );
+          setLocalData(storageData[pendingWith]);
+        } else {
+          console.log(
+            `No data found in localStorage for ${pendingWith}, checking Redux...`
+          );
+          // Fallback to Redux if localStorage is empty
+          const reduxItems = Array.isArray(cachedEntry.items)
+            ? cachedEntry.items
+            : [];
+          setLocalData(reduxItems);
+
+          // If Redux is also empty, try to fetch fresh data
+          if (reduxItems.length === 0) {
+            console.log("No data in Redux either, triggering refresh...");
+            handleRefresh();
+          }
+        }
+      } catch (err) {
+        console.error("Error loading data from storage:", err);
+        setError("Failed to load queries from storage");
+        setLocalData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDataFromStorage();
+  }, [activeTab, pendingWith]);
+
+  // Listen for localStorage changes (when data is updated by API calls)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "pendingQueries_v1") {
+        console.log("localStorage updated, reloading data...");
+        const storageData = getLocalStorageData("pendingQueries_v1");
+        if (storageData && storageData[pendingWith]) {
+          setLocalData(storageData[pendingWith]);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Also listen for custom events (in case data is updated in same tab)
+    const handleCustomUpdate = () => {
+      const storageData = getLocalStorageData("pendingQueries_v1");
+      if (storageData && storageData[pendingWith]) {
+        setLocalData(storageData[pendingWith]);
+      }
+    };
+
+    window.addEventListener("pendingQueriesUpdated", handleCustomUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("pendingQueriesUpdated", handleCustomUpdate);
+    };
+  }, [pendingWith]);
+
+  // Use local data as primary source
+  const items = Array.isArray(localData) ? localData : [];
 
   const tabTitle = `Pending Queries - ${
     activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
@@ -72,81 +162,94 @@ const IncomingQueries = ({
 
   const handleRefresh = async () => {
     try {
+      setLoading(true);
+      setError(null);
+
+      console.log(`Refreshing pending queries for ${pendingWith}...`);
+
+      // Dispatch Redux action to fetch fresh data
       await dispatch(refreshPendingQueries({ cat, pendingWith }));
+
+      // After API call, read updated data from localStorage
+      setTimeout(() => {
+        const updatedData = getLocalStorageData("pendingQueries_v1");
+        if (updatedData && updatedData[pendingWith]) {
+          console.log(
+            "Data refreshed, updating local state:",
+            updatedData[pendingWith]
+          );
+          setLocalData(updatedData[pendingWith]);
+        }
+      }, 500); // Small delay to ensure localStorage is updated
     } catch (err) {
       console.error("Refresh pending failed", err);
+      setError("Failed to refresh queries");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
-      <div className="tab-buttons">
-        <button
-          className={activeTab === "creator" ? "active" : ""}
-          onClick={() => setActiveTab("creator")}
-          disabled={loading}
-        >
-          Pending at Creator
-        </button>
+      <div className="incoming-queries">
+        <div className="header">
+          <h2>{tabTitle}</h2>
+          <div className="header-controls">
+            <button
+              onClick={handleRefresh}
+              disabled={loading}
+              className="refresh-btn"
+              title="Refresh queries"
+            >
+              <HiOutlineRefresh className={loading ? "spinning" : ""} />
+              {loading ? "Loading..." : "Refresh"}
+            </button>
+          </div>
+        </div>
 
-        <button
-          className={activeTab === "verifier" ? "active" : ""}
-          onClick={() => setActiveTab("verifier")}
-          disabled={loading}
-        >
-          Pending at Verifier
-        </button>
-
-        <button
-          className={activeTab === "approver" ? "active" : ""}
-          onClick={() => setActiveTab("approver")}
-          disabled={loading}
-        >
-          Pending at Approver
-        </button>
-      </div>
-
-      <div
-        style={{
-          margin: "8px 0",
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-        }}
-      >
-        <h3 style={{ margin: 0, color: "var(--text)" }}>{tabTitle}</h3>
-
-        <button
-          onClick={handleRefresh}
-          style={{ marginLeft: 8, background: "var(--button-bg)" }}
-          disabled={loading}
-        >
-          {loading ? <HiOutlineRefresh /> : <HiOutlineRefresh />}
-        </button>
-
-        <div style={{ marginLeft: 8 }}>
-          {loading && <small style={{color:"var(--text)"}}>Loading first page / refreshing…</small>}
-          {!loading && (
-            <small style={{ color: "var(--text)" }}>
-              Loaded: {items.length}
-            </small>
-          )}
+        <div className="tabs">
+          {Object.keys(roleDigitForTab).map((role) => (
+            <button
+              key={role}
+              className={`tab ${activeTab === role ? "active" : ""}`}
+              onClick={() => setActiveTab(role)}
+            >
+              {role.charAt(0).toUpperCase() + role.slice(1)}
+              {/* Show count if data is available */}
+              {(() => {
+                const roleKey = `${deptPrefix}${roleDigitForTab[role]}${personnelType}`;
+                const storageData = getLocalStorageData("pendingQueries_v1");
+                const count = storageData?.[roleKey]?.length || 0;
+                return count > 0 ? ` (${count})` : "";
+              })()}
+            </button>
+          ))}
         </div>
 
         {error && (
-          <small style={{ marginLeft: 8, color: "crimson" }}>
-            Error: {error}
-          </small>
+          <div className="error-message">
+            <p>{error}</p>
+            <button onClick={handleRefresh}>Try Again</button>
+          </div>
         )}
-      </div>
 
-      <QueriesTable title={tabTitle} data={tableData} loading={loading} />
+        <div className="table-container">
+          <QueriesTable
+            data={tableData}
+            loading={loading}
+            onRowClick={(row) => {
+              console.log("Row clicked:", row);
+              // Handle row click navigation
+            }}
+          />
+        </div>
 
-      {/* No show-more UI — refresh triggers full fetch */}
-      <div style={{ marginTop: 12 }}>
-        <small style={{ color: "var(--text)" }}>
-          {items.length} items cached.
-        </small>
+        <div className="footer-info">
+          <p>
+            Total queries: {items.length} | Active tab: {pendingWith} | Data
+            source: {items.length > 0 ? "localStorage" : "empty"}
+          </p>
+        </div>
       </div>
     </>
   );

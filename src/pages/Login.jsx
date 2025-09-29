@@ -5,18 +5,23 @@ import "./login.css";
 import Cookies from "js-cookie";
 import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchRepliedQueries } from "../actions/repliedQueryAction";
-import { fetchPendingQueries } from "../actions/pendingQueryAction";
-import { fetchTransferredQueries } from "../actions/transferredQueryAction";
 import Loader from "../components/Loader";
 import { UserRole, DepartmentMapping } from "../constants/Enum";
 import users from "../utils/users.json";
+import { fetchAllUserQueries } from "../utils/helpers";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [initializing, setInitializing] = useState(false);
+  const [initProgress, setInitProgress] = useState({
+    step: "idle",
+    current: 0,
+    total: 0,
+    taskName: "",
+  });
+
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -33,6 +38,7 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setInitializing(true);
+    setInitProgress({ step: "authenticating", current: 0, total: 1 });
 
     try {
       const response = await fakeLoginAPI(username, password);
@@ -45,7 +51,7 @@ const Login = () => {
 
       const baseUser = response.data.airForceUserDetails;
       const serviceNo = baseUser.airForceServiceNumber;
-      const categoryStr = baseUser.airForceCategory; // e.g. AIRMEN/OFFICER/CIVILIAN
+      const categoryStr = baseUser.airForceCategory;
       const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
       const userDept =
         response.data.airForceUserDetails?.airForceDepartment?.[0];
@@ -63,7 +69,9 @@ const Login = () => {
         return;
       }
 
-      // 🔹 Fetch user details from new API
+      setInitProgress({ step: "fetching-user-details", current: 1, total: 4 });
+
+      // Fetch user details from API
       let userDetails = null;
       try {
         const res = await fetch(
@@ -90,44 +98,80 @@ const Login = () => {
         return;
       }
 
-      // 🔹 Enrich login response
+      // Enrich login response
       response.data.userDetails = userDetails;
 
-      // 🔹 Save in context & cookies
+      // Save in context & cookies
       login(response);
 
-      // 🔹 Fetch queries only if login is valid
-      const { cat, suffix } = deptConfig;
-      const roleDigitForTab = { creator: "1", approver: "2", verifier: "3" };
-      const pendingTabs = Object.values(roleDigitForTab).map(
-        (digit) => `U${digit}${suffix}`
-      );
+      setInitProgress({ step: "setting-active-role", current: 2, total: 4 });
 
-      try {
-        const tasks = [
-          dispatch(fetchRepliedQueries()),
-          ...pendingTabs.map((pw) =>
-            dispatch(fetchPendingQueries({ cat, pendingWith: pw }))
-          ),
-          ...pendingTabs.map((pw) =>
-            dispatch(fetchTransferredQueries({ cat, pendingWith: pw }))
-          ),
-        ];
+      // Set the first portfolio as the default active role
+      const firstRole = userDetails.LOGIN_PORTFOLIO[0];
+      if (firstRole) {
+        try {
+          localStorage.setItem("activeRole_v1", JSON.stringify(firstRole));
+          console.log("🎯 Default active role set:", firstRole.PORTFOLIO_NAME);
 
-        const results = await Promise.allSettled(tasks);
-
-        results.forEach((r, i) => {
-          if (r.status === "rejected") {
-            console.error("Background API failed:", tasks[i], r.reason);
-            // optional: show toast or retry
-          }
-        });
-      } catch (err) {
-        console.error("Error dispatching background queries:", err);
+          // Dispatch custom event to notify useActiveRole hook
+          window.dispatchEvent(
+            new CustomEvent("activeRoleChanged", {
+              detail: { newRole: firstRole },
+            })
+          );
+        } catch (err) {
+          console.warn("Failed to set default active role:", err);
+        }
       }
 
-      setInitializing(false);
-      navigate("/");
+      setInitProgress({ step: "fetching-queries", current: 3, total: 4 });
+
+      // Fetch queries using the first (default) active role
+      try {
+        console.log(
+          "🚀 Fetching initial queries for role:",
+          firstRole.PORTFOLIO_NAME
+        );
+
+        const fetchResult = await fetchAllUserQueries(dispatch, {
+          activeRole: firstRole, // Use the active role instead of cat/suffix
+          onProgress: (progress) => {
+            setInitProgress({
+              step: "fetching-queries",
+              current: progress.current || 0,
+              total: progress.total || 0,
+              taskName: progress.taskName || "",
+              roleName: progress.activeRole || "",
+              ...progress,
+            });
+          },
+          onError: (error) => {
+            console.warn("Non-critical query fetch error:", error);
+          },
+        });
+
+        console.log("📊 Initial query fetch summary:", fetchResult);
+
+        if (fetchResult.success) {
+          console.log(
+            `✅ Initial queries loaded: ${fetchResult.successful}/${fetchResult.total} successful for role: ${firstRole.PORTFOLIO_NAME}`
+          );
+        } else {
+          console.warn(
+            "⚠️ Some initial queries failed to fetch, but continuing..."
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching initial queries (non-critical):", err);
+      }
+
+      setInitProgress({ step: "completed", current: 4, total: 4 });
+
+      // Small delay to show completion
+      setTimeout(() => {
+        setInitializing(false);
+        navigate("/");
+      }, 500);
     } catch (err) {
       console.error("Login error:", err);
       setInitializing(false);
@@ -135,26 +179,50 @@ const Login = () => {
     }
   };
 
+  // Enhanced loading text based on progress
+  const getLoadingText = () => {
+    switch (initProgress.step) {
+      case "authenticating":
+        return "Authenticating user...";
+      case "fetching-user-details":
+        return "Fetching user permissions...";
+      case "setting-active-role":
+        return "Setting up user roles...";
+      case "fetching-queries":
+        return initProgress.roleName
+          ? `Loading data for ${initProgress.roleName} (${initProgress.current}/${initProgress.total})`
+          : initProgress.taskName
+          ? `Loading ${initProgress.taskName} (${initProgress.current}/${initProgress.total})`
+          : "Loading queries and data...";
+      case "completed":
+        return "Setup complete! Redirecting...";
+      default:
+        return "Starting system... Please wait.";
+    }
+  };
+
   if (initializing || loading) {
-    return <Loader text="Starting system... Fetching all data, please wait." />;
+    return (
+      <Loader
+        text={getLoadingText()}
+        progress={
+          initProgress.total > 0
+            ? (initProgress.current / initProgress.total) * 100
+            : undefined
+        }
+      />
+    );
   }
 
   return (
-    // at top of file (if not already)
-
-    // inside your component render (exactly replace the portion you showed)
     <>
       <div className="login-container-outer" aria-hidden="true"></div>
 
-      {/* Heading with one-time sweep animation — uses CSS only */}
       <h1 className="ivrs-head" aria-hidden="true">
         INTERACTIVE VOICE RESPONSE SYSTEM (IVRS)
       </h1>
 
       <div className="login-container" role="main">
-        {/* Optional left column: subtle illustration / message — keep empty if you want */}
-
-        {/* Login card (kept functionality intact) */}
         <div className="login-box" role="region" aria-label="Login form">
           <div className="login-header">
             <img src={logo} alt="CRM Logo" className="login-logo" />
@@ -198,7 +266,6 @@ const Login = () => {
               <button type="submit" className="login-btn" aria-label="Login">
                 Login
               </button>
-              {/* kept intentionally simple — add "forgot" or "help" buttons here if needed */}
             </div>
 
             <div className="login-footer" aria-hidden="true">
