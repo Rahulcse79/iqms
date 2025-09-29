@@ -181,5 +181,266 @@
         "crm": true
       }
     }
+  },
+  {
+    "username": "937488",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "937488",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "937488",
+        "airForceCategory": "AIRMEN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
+  },
+  {
+    "username": "935740",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "935740",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "935740",
+        "airForceCategory": "AIRMEN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
+  },
+  {
+    "username": "42640",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "42640",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "42640",
+        "airForceCategory": "CIVILIAN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
+  },
+  {
+    "username": "905559",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "905559",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "905559",
+        "airForceCategory": "AIRMEN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
+  },
+  {
+    "username": "920184",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "920184",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "920184",
+        "airForceCategory": "AIRMEN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
+  },
+  {
+    "username": "44247",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "44247",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "44247",
+        "airForceCategory": "CIVILIAN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
+  },
+  {
+    "username": "47076",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "47076",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "47076",
+        "airForceCategory": "CIVILIAN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
+  },
+  {
+    "username": "921075",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "921075",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "921075",
+        "airForceCategory": "AIRMEN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
+  },
+  {
+    "username": "948696",
+    "password": "CPW",
+    "status": "OK",
+    "message": "Authenticated",
+    "data": {
+      "token": "xyz789",
+      "refreshToken": "refresh456",
+      "userId": 200,
+      "userName": "948696",
+      "fullName": "RAKESH KUMAR",
+      "roles": ["ROLE_ADMIN"],
+      "roleId": [99],
+      "extension": "5000",
+      "airForceUserDetails": {
+        "airForceServiceNumber": "948696",
+        "airForceCategory": "AIRMEN",
+        "airForceDepartment": ["CPW"],
+        "airForceLevel": ["CREATOR"],
+        "airForceRole_Access": ["ADMIN"],
+        "categoryQuery": ["OFFICER", "AIRMEN", "CIVILIAN"]
+      },
+      "sipPhoneButton": {
+        "mute": true,
+        "hold": false,
+        "crm": true
+      }
+    }
   }
 ]
