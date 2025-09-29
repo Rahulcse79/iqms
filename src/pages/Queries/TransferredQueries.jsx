@@ -1,22 +1,22 @@
-// src/pages/IncomingQueries/IncomingQueries.jsx
+// src/pages/TransferredQueries/TransferredQueries.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import { useSelector, useDispatch } from "react-redux";
-import "./IncomingQueries.css";
-import { refreshPendingQueries } from "../../actions/pendingQueryAction";
+import "../../layouts/DashboardLayout.css";
+import { refreshTransferredQueries } from "../../actions/transferredQueryAction";
 import { HiOutlineRefresh } from "react-icons/hi";
 
 /**
- * IncomingQueries (reads from localStorage directly)
+ * TransferredQueries (reads from localStorage directly)
  * 
- * - Primary data source: localStorage with key "pendingQueries_v1"
+ * - Primary data source: localStorage with key "transferredQueries_v1"
  * - Fallback: Redux state if localStorage is empty
  * - Refresh button triggers full fetch and updates localStorage
  */
 
 const roleDigitForTab = {
   creator: "1",
-  approver: "2", 
+  approver: "2",
   verifier: "3",
 };
 
@@ -24,7 +24,7 @@ const formatIso = (iso) => {
   if (!iso) return "";
   try {
     return new Date(iso).toLocaleString();
-  } catch (e) {
+  } catch {
     return iso;
   }
 };
@@ -40,7 +40,7 @@ const getLocalStorageData = (key) => {
   }
 };
 
-const IncomingQueries = ({ 
+const TransferredQueries = ({ 
   cat = 1, 
   deptPrefix = "U", 
   personnelType = "A" 
@@ -56,8 +56,8 @@ const IncomingQueries = ({
   
   // Redux fallback data
   const cachedEntry = useSelector(
-    (state) => state.pending_queries?.byKey?.[pendingWith] || {}
-  );
+    (state) => state.transferred_queries?.byKey?.[pendingWith] || {}
+  ) || {};
 
   // Load data from localStorage on component mount and tab change
   useEffect(() => {
@@ -67,10 +67,10 @@ const IncomingQueries = ({
         setError(null);
         
         // Read from localStorage first
-        const storageData = getLocalStorageData("pendingQueries_v1");
+        const storageData = getLocalStorageData("transferredQueries_v1");
         
         if (storageData && storageData[pendingWith]) {
-          console.log(`Loading pending queries for ${pendingWith} from localStorage:`, storageData[pendingWith]);
+          console.log(`Loading transferred queries for ${pendingWith} from localStorage:`, storageData[pendingWith]);
           setLocalData(storageData[pendingWith]);
         } else {
           console.log(`No data found in localStorage for ${pendingWith}, checking Redux...`);
@@ -99,9 +99,9 @@ const IncomingQueries = ({
   // Listen for localStorage changes (when data is updated by API calls)
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === "pendingQueries_v1") {
+      if (e.key === "transferredQueries_v1") {
         console.log("localStorage updated, reloading data...");
-        const storageData = getLocalStorageData("pendingQueries_v1");
+        const storageData = getLocalStorageData("transferredQueries_v1");
         if (storageData && storageData[pendingWith]) {
           setLocalData(storageData[pendingWith]);
         }
@@ -112,24 +112,24 @@ const IncomingQueries = ({
     
     // Also listen for custom events (in case data is updated in same tab)
     const handleCustomUpdate = () => {
-      const storageData = getLocalStorageData("pendingQueries_v1");
+      const storageData = getLocalStorageData("transferredQueries_v1");
       if (storageData && storageData[pendingWith]) {
         setLocalData(storageData[pendingWith]);
       }
     };
 
-    window.addEventListener('pendingQueriesUpdated', handleCustomUpdate);
+    window.addEventListener('transferredQueriesUpdated', handleCustomUpdate);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('pendingQueriesUpdated', handleCustomUpdate);
+      window.removeEventListener('transferredQueriesUpdated', handleCustomUpdate);
     };
   }, [pendingWith]);
 
   // Use local data as primary source
   const items = Array.isArray(localData) ? localData : [];
   
-  const tabTitle = `Pending Queries - ${
+  const tabTitle = `Transferred Queries - ${
     activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
   }`;
 
@@ -152,14 +152,14 @@ const IncomingQueries = ({
       setLoading(true);
       setError(null);
       
-      console.log(`Refreshing pending queries for ${pendingWith}...`);
+      console.log(`Refreshing transferred queries for ${pendingWith}...`);
       
       // Dispatch Redux action to fetch fresh data
-      await dispatch(refreshPendingQueries({ cat, pendingWith }));
+      await dispatch(refreshTransferredQueries({ cat, pendingWith }));
       
       // After API call, read updated data from localStorage
       setTimeout(() => {
-        const updatedData = getLocalStorageData("pendingQueries_v1");
+        const updatedData = getLocalStorageData("transferredQueries_v1");
         if (updatedData && updatedData[pendingWith]) {
           console.log("Data refreshed, updating local state:", updatedData[pendingWith]);
           setLocalData(updatedData[pendingWith]);
@@ -167,7 +167,7 @@ const IncomingQueries = ({
       }, 500); // Small delay to ensure localStorage is updated
       
     } catch (err) {
-      console.error("Refresh pending failed", err);
+      console.error("Refresh transferred failed", err);
       setError("Failed to refresh queries");
     } finally {
       setLoading(false);
@@ -176,7 +176,7 @@ const IncomingQueries = ({
 
   return (
     <>
-      <div className="incoming-queries">
+      <div className="transferred-queries">
         <div className="header">
           <h2>{tabTitle}</h2>
           <div className="header-controls">
@@ -203,7 +203,7 @@ const IncomingQueries = ({
               {/* Show count if data is available */}
               {(() => {
                 const roleKey = `${deptPrefix}${roleDigitForTab[role]}${personnelType}`;
-                const storageData = getLocalStorageData("pendingQueries_v1");
+                const storageData = getLocalStorageData("transferredQueries_v1");
                 const count = storageData?.[roleKey]?.length || 0;
                 return count > 0 ? ` (${count})` : '';
               })()}
@@ -241,4 +241,4 @@ const IncomingQueries = ({
   );
 };
 
-export default IncomingQueries;
+export default TransferredQueries;
