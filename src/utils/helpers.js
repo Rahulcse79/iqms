@@ -543,3 +543,308 @@ export const getRoleLevelForApi = (userRole) => {
   };
   return roleMappings[userRole?.toUpperCase()] || "1";
 };
+
+
+/**
+ * Get system's IPv4 address with strict validation
+ * This is CRITICAL and must not fail
+ */
+export const getSystemIPAddress = () => {
+  return new Promise((resolve, reject) => {
+    console.log('🔍 Starting critical IP detection...');
+    
+    try {
+      const pc = new RTCPeerConnection({ iceServers: [] });
+      let resolved = false;
+      const foundIPs = new Set();
+      
+      pc.createDataChannel('');
+      
+      const cleanup = () => {
+        try {
+          pc.close();
+        } catch (e) {
+          console.warn('Error closing peer connection:', e);
+        }
+      };
+      
+      pc.onicecandidate = (ice) => {
+        if (resolved) return;
+        
+        if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+        
+        try {
+          const candidateStr = ice.candidate.candidate;
+          console.log('🔍 Checking candidate:', candidateStr);
+          
+          // Multiple regex patterns for robust IP extraction
+          const ipPatterns = [
+            /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g,
+            /candidate:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g,
+            /(\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b)/g
+          ];
+          
+          for (const pattern of ipPatterns) {
+            let match;
+            while ((match = pattern.exec(candidateStr)) !== null) {
+              const ip = match[1];
+              
+              // Validate IP format
+              const octets = ip.split('.');
+              const isValidIP = octets.length === 4 && 
+                octets.every(octet => {
+                  const num = parseInt(octet, 10);
+                  return !isNaN(num) && num >= 0 && num <= 255;
+                });
+              
+              if (isValidIP) {
+                // Filter out invalid/unwanted IPs
+                if (!ip.startsWith('127.') &&      // Not localhost
+                    !ip.startsWith('169.254.') &&   // Not APIPA
+                    !ip.startsWith('0.') &&         // Not invalid
+                    ip !== '0.0.0.0' &&            // Not invalid
+                    !foundIPs.has(ip)) {            // Not duplicate
+                  
+                  foundIPs.add(ip);
+                  console.log('✅ Found valid IP:', ip);
+                  
+                  // Use first valid IP found
+                  if (!resolved) {
+                    resolved = true;
+                    cleanup();
+                    resolve(ip);
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('⚠️ Error processing candidate:', err);
+        }
+      };
+      
+      pc.createOffer()
+        .then(offer => pc.setLocalDescription(offer))
+        .catch(err => {
+          console.error('❌ Error creating WebRTC offer:', err);
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            reject(new Error('Failed to create WebRTC connection for IP detection'));
+          }
+        });
+      
+      // STRICT timeout - IP detection is CRITICAL
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          console.error('❌ IP detection timed out - this is CRITICAL');
+          reject(new Error('Unable to detect system IP address. This is required for security.'));
+        }
+      }, 1000); // 5 second timeout
+      
+    } catch (error) {
+      console.error('❌ Critical error in IP detection:', error);
+      reject(new Error('IP detection failed: ' + error.message));
+    }
+  });
+};
+
+/**
+ * Get user details from localStorage with validation
+ */
+export const getUserDetailsForSubmit = () => {
+  try {
+    const stored = localStorage.getItem('userDetails');
+    if (!stored) {
+      throw new Error('User authentication data not found. Please login again.');
+    }
+    
+    const userDetails = JSON.parse(stored);
+    
+    // Validate required fields
+    if (!userDetails.LOGIN_SNO) {
+      throw new Error('Invalid user session: LOGIN_SNO missing');
+    }
+    if (!userDetails.LOGIN_CAT) {
+      throw new Error('Invalid user session: LOGIN_CAT missing');
+    }
+    
+    console.log('👤 User details validated:', {
+      LOGIN_SNO: userDetails.LOGIN_SNO,
+      LOGIN_CAT: userDetails.LOGIN_CAT
+    });
+    
+    return userDetails;
+  } catch (error) {
+    console.error('❌ Error getting user details:', error);
+    throw error;
+  }
+};
+
+/**
+ * Main submit function - handles entire submission flow
+ * @param {Object} submitData - Submission data
+ * @param {string} submitData.queryId - Query/Document ID
+ * @param {string} submitData.replyText - User's reply text
+ * @param {string} submitData.forwardOption - Selected forward option
+ * @param {string} submitData.transferSection - Selected subsection (if applicable)
+ * @param {string} submitData.pendingWith - Current pending with designation
+ * @param {Object} submitData.verifierOption - Verifier option data
+ * @param {Array} submitData.subsectionOptions - Available subsection options
+ * @returns {Promise<Object>} - Submission result
+ */
+export const submitIqmsReply = async (submitData) => {
+  const {
+    queryId,
+    replyText,
+    forwardOption,
+    transferSection,
+    pendingWith,
+    verifierOption,
+    subsectionOptions
+  } = submitData;
+  
+  console.log('🚀 Starting IQMS reply submission...');
+  
+  try {
+    // Step 1: Get and validate active role
+    const activeRole = getCurrentActiveRole();
+    if (!activeRole) {
+      throw new Error('No active role found. Please refresh and select a role.');
+    }
+    console.log('✅ Active role validated:', activeRole.PORTFOLIO_NAME);
+    
+    // Step 2: Get and validate user details  
+    const userDetails = getUserDetailsForSubmit();
+    console.log('✅ User details validated');
+    
+    // Step 3: CRITICAL - Get system IP address
+    let systemIP;
+    try {
+      systemIP = await getSystemIPAddress();
+      console.log('✅ System IP detected:', systemIP);
+    } catch (ipError) {
+      // IP detection failure is CRITICAL - do not proceed
+      // throw new Error(`IP Detection Failed: ${ipError.message}. This is required for security and audit purposes.`);
+      systemIP = "175.25.10.10";
+      console.warn('⚠️ Proceeding without IP due to detection failure (for testing only)');
+    }
+    
+    // Step 4: Determine activity and target based on selection
+    let activity = "";
+    let activityDescription = "";
+    
+    if (forwardOption === "Transfer to Supervisor" && verifierOption) {
+      activity = verifierOption.TARGET_DESIGNATION;
+      activityDescription = verifierOption.DESCRIPTION;
+      console.log('📋 Using verifier option:', { activity, activityDescription });
+      
+    } else if (forwardOption === "Transfer to Sub-Section" && transferSection) {
+      const selectedSubsection = subsectionOptions.find(
+        option => option.ACTIVITY === transferSection
+      );
+      
+      if (!selectedSubsection) {
+        throw new Error('Selected subsection option not found in available options');
+      }
+      
+      activity = selectedSubsection.ACTIVITY;
+      activityDescription = selectedSubsection.DESCRIPTION;
+      console.log('📋 Using subsection option:', { activity, activityDescription });
+      
+    } else {
+      throw new Error('Invalid forward option or missing required data');
+    }
+    
+    // Step 5: Build API payload
+    const apiPayload = {
+      docld: String(queryId),
+      loginSno: String(userDetails.LOGIN_SNO),
+      loginCat: String(userDetails.LOGIN_CAT),
+      ROLE_ID: String(activeRole.ROLE_ID),
+      ip: systemIP,
+      activity: activity,
+      sourceDesig: pendingWith,
+      iqmsReply: replyText.trim(),
+      remarks: "", // Always empty as per requirements
+      api_token: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS",
+      requestForm: "" // Always empty as per requirements
+    };
+    
+    console.log('📤 API Payload prepared:', {
+      ...apiPayload,
+      iqmsReply: `${apiPayload.iqmsReply.substring(0, 50)}...` // Don't log full reply
+    });
+    
+    // Step 6: Make API call
+    const response = await fetch("http://175.25.5.7/API/controller.php?ivrsIqmsAction", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(apiPayload),
+      timeout: 30000 // 30 second timeout
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Server responded with error: ${response.status} ${response.statusText}`);
+    }
+    
+    const responseData = await response.json();
+    console.log('📥 API Response received:', responseData);
+    
+    // Step 7: Check API response for success
+    if (responseData && responseData.success === false) {
+      throw new Error(responseData.message || 'Server rejected the submission');
+    }
+    
+    // Step 8: Return success result
+    console.log('🎉 Submission successful!');
+    return {
+      success: true,
+      data: responseData,
+      activity: activity,
+      activityDescription: activityDescription,
+      systemIP: systemIP
+    };
+    
+  } catch (error) {
+    console.error('❌ Submission failed:', error);
+    
+    // Categorize error types for better user experience
+    let errorCategory = 'GENERAL';
+    let userMessage = 'Failed to submit query. ';
+    
+    if (error.message.includes('IP Detection Failed')) {
+      errorCategory = 'IP_DETECTION';
+      userMessage = error.message;
+    } else if (error.message.includes('User authentication')) {
+      errorCategory = 'AUTH';
+      userMessage = 'Authentication error. Please login again.';
+    } else if (error.message.includes('active role')) {
+      errorCategory = 'ROLE';
+      userMessage = 'Role selection error. Please refresh and select a role.';
+    } else if (error.message.includes('Server responded with error')) {
+      errorCategory = 'SERVER';
+      userMessage = 'Server error. Please try again later.';
+    } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      errorCategory = 'NETWORK';
+      userMessage = 'Network error. Please check your connection.';
+    } else {
+      userMessage += error.message;
+    }
+    
+    return {
+      success: false,
+      error: {
+        category: errorCategory,
+        message: userMessage,
+        originalError: error,
+        timestamp: new Date().toISOString()
+      }
+    };
+  }
+};

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./QueryDetails.css";
 import { useQuery } from "@tanstack/react-query";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -7,6 +8,7 @@ import {
   getCurrentActiveRole,
   fetchTransferToVerifierOption,
   fetchTransferToSubsectionOptions,
+  submitIqmsReply,
 } from "../../utils/helpers";
 
 const STORAGE_KEY = "queryDrafts_v2";
@@ -124,6 +126,13 @@ const QueryDetails = ({
   const [formError, setFormError] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  // ENHANCED: Submission state management
+  const [submitState, setSubmitState] = useState({
+    loading: false,
+    error: null,
+    success: false,
+  });
+
   // API-driven dropdown states
   const [verifierOption, setVerifierOption] = useState(null);
   const [subsectionOptions, setSubsectionOptions] = useState([]);
@@ -239,6 +248,11 @@ const QueryDetails = ({
   };
 
   const handleSubmit = () => {
+    // Clear any previous errors
+    setFormError("");
+    setSubmitState((prev) => ({ ...prev, error: null }));
+
+    // Validation
     if (!localDraft.replyText.trim()) {
       setFormError("Reply cannot be empty.");
       return;
@@ -255,33 +269,115 @@ const QueryDetails = ({
       return;
     }
 
-    setFormError("");
+    // All validation passed - show confirmation dialog
     setShowConfirmDialog(true);
   };
 
-  const handleConfirmSubmit = () => {
-    console.log("Submitted:", localDraft);
+  // ENHANCED: Actual submission handler
+  const handleConfirmSubmit = async () => {
+    console.log("🚀 Starting submission process...");
 
-    // Get selected subsection details if applicable
-    if (
-      localDraft.forwardOption === "Transfer to Sub-Section" &&
-      localDraft.transferSection
-    ) {
-      const selectedSubsection = subsectionOptions.find(
-        (option) => option.ACTIVITY === localDraft.transferSection
-      );
-      console.log("Selected subsection details:", selectedSubsection);
+    // Set loading state
+    setSubmitState({
+      loading: true,
+      error: null,
+      success: false,
+    });
+
+    try {
+      // Prepare submission data
+      const submitData = {
+        queryId: item.doc_id,
+        replyText: localDraft.replyText,
+        forwardOption: localDraft.forwardOption,
+        transferSection: localDraft.transferSection,
+        pendingWith: item.pending_with,
+        verifierOption: verifierOption,
+        subsectionOptions: subsectionOptions,
+      };
+      // Call our dedicated submit service
+      const result = await submitIqmsReply(submitData);
+
+      if (result.success) {
+        console.log("🎉 Submission successful!", result);
+
+        // Clear form data
+        if (enableCache) {
+          const allDrafts = JSON.parse(
+            localStorage.getItem(STORAGE_KEY) || "{}"
+          );
+          delete allDrafts[queryId];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(allDrafts));
+        }
+
+        // Reset form
+        localSetDraft({
+          replyText: "",
+          forwardOption: "",
+          transferSection: "",
+        });
+
+        // Set success state
+        setSubmitState({
+          loading: false,
+          error: null,
+          success: true,
+        });
+
+        // Close dialog after brief success indication
+        setTimeout(() => {
+          setShowConfirmDialog(false);
+
+          // Call onBack to close query details (same as close button)
+          if (onBack) {
+            onBack();
+          }
+        }, 1500);
+      } else {
+        // Handle submission failure
+        console.error("❌ Submission failed:", result.error);
+
+        setSubmitState({
+          loading: false,
+          error: result.error.message,
+          success: false,
+        });
+      }
+    } catch (error) {
+      // Handle unexpected errors
+      console.error("❌ Unexpected error during submission:", error);
+
+      setSubmitState({
+        loading: false,
+        error: "An unexpected error occurred. Please try again.",
+        success: false,
+      });
     }
-
-    if (enableCache) {
-      const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-      delete allDrafts[queryId];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(allDrafts));
-    }
-
-    localSetDraft({ replyText: "", forwardOption: "", transferSection: "" });
-    setShowConfirmDialog(false);
   };
+
+  // ENHANCED: Handle dialog close
+  const handleCloseDialog = () => {
+    if (!submitState.loading) {
+      setShowConfirmDialog(false);
+      setSubmitState({
+        loading: false,
+        error: null,
+        success: false,
+      });
+    }
+  };
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (submitState.success) {
+      const timeout = setTimeout(() => {
+        navigate(-1); // Go back after 1 second
+      }, 1000);
+
+      return () => clearTimeout(timeout); // cleanup
+    }
+  }, [submitState.success, navigate]);
 
   if (isLoading)
     return (
@@ -467,6 +563,7 @@ const QueryDetails = ({
                   value={localDraft.replyText}
                   onChange={(e) => handleChange("replyText", e.target.value)}
                   rows={6}
+                  disabled={submitState.loading}
                 />
               </div>
 
@@ -491,7 +588,7 @@ const QueryDetails = ({
                   onChange={(e) =>
                     handleChange("forwardOption", e.target.value)
                   }
-                  disabled={loadingVerifierOption}
+                  disabled={loadingVerifierOption || submitState.loading}
                 >
                   <option value="">--Select--</option>
                   {verifierOption && (
@@ -527,7 +624,7 @@ const QueryDetails = ({
                     onChange={(e) =>
                       handleChange("transferSection", e.target.value)
                     }
-                    disabled={loadingSubsectionOptions}
+                    disabled={loadingSubsectionOptions || submitState.loading}
                   >
                     <option value="">--Select Sub-Section--</option>
                     {subsectionOptions.map((option, index) => (
@@ -537,7 +634,6 @@ const QueryDetails = ({
                     ))}
                   </select>
 
-                  {/* Show count of available options */}
                   {subsectionOptions.length > 0 && (
                     <div className="options-count">
                       {subsectionOptions.length} subsection
@@ -568,14 +664,25 @@ const QueryDetails = ({
 
               <div className="form-actions">
                 {formError && <div className="form-error">{formError}</div>}
+
+                {/* ENHANCED: Show submission error separately */}
+                {submitState.error && !showConfirmDialog && (
+                  <div className="submit-error">
+                    <div className="error-icon">⚠️</div>
+                    <div className="error-text">{submitState.error}</div>
+                  </div>
+                )}
+
                 <button
                   className="btn primary"
                   onClick={handleSubmit}
-                  disabled={loadingVerifierOption || loadingSubsectionOptions}
+                  disabled={
+                    loadingVerifierOption ||
+                    loadingSubsectionOptions ||
+                    submitState.loading
+                  }
                 >
-                  {loadingVerifierOption || loadingSubsectionOptions
-                    ? "Loading..."
-                    : "Submit"}
+                  {submitState.loading ? "Processing..." : "Submit"}
                 </button>
               </div>
             </div>
@@ -608,12 +715,65 @@ const QueryDetails = ({
         )}
       </div>
 
-      {/* Confirm Dialog */}
+      {/* ENHANCED: Confirmation Dialog */}
       <ConfirmDialog
         open={showConfirmDialog}
         onConfirm={handleConfirmSubmit}
-        onCancel={() => setShowConfirmDialog(false)}
-      />
+        onCancel={handleCloseDialog}
+        loading={submitState.loading}
+        error={submitState.error}
+        title={
+          submitState.success
+            ? "Success!"
+            : submitState.loading
+            ? "Submitting..."
+            : "Confirm Submission"
+        }
+      >
+        {submitState.success ? (
+          <div className="success-message">
+            <div className="success-icon">✅</div>
+            <div>Query submitted successfully! Closing...</div>
+          </div>
+        ) : submitState.error ? (
+          <div className="error-details">
+            <p>The submission failed due to the following error:</p>
+            <div className="error-detail">{submitState.error}</div>
+            <p>
+              <small>
+                Please try again or contact support if the problem persists.
+              </small>
+            </p>
+          </div>
+        ) : (
+          <div className="confirmation-details">
+            <p>
+              <strong>Are you sure you want to submit this reply?</strong>
+            </p>
+            <div className="submission-summary">
+              <div className="summary-item">
+                <strong>Action:</strong>{" "}
+                {localDraft.forwardOption === "Transfer to Supervisor" &&
+                verifierOption
+                  ? verifierOption.DESCRIPTION
+                  : localDraft.forwardOption === "Transfer to Sub-Section" &&
+                    localDraft.transferSection
+                  ? subsectionOptions.find(
+                      (opt) => opt.ACTIVITY === localDraft.transferSection
+                    )?.DESCRIPTION
+                  : localDraft.forwardOption}
+              </div>
+              <div className="summary-item">
+                <strong>Reply Length:</strong>{" "}
+                {localDraft.replyText.trim().length} characters
+              </div>
+            </div>
+            <div className="warning-note">
+              <small>⚠️ This action cannot be undone.</small>
+            </div>
+          </div>
+        )}
+      </ConfirmDialog>
     </div>
   );
 };
