@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import "./PORDataTable.css";
@@ -6,20 +6,18 @@ import "./PORDataTable.css";
 const IRLA_API_TOKEN =
   process.env.REACT_APP_IRLA_API_TOKEN || "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
 
-/**
- * PORDataTable
- *
- * - Does NOT auto-fetch on mount or year change.
- * - User must click Search to fetch data.
- * - Unique classnames: prefix `por-dt-` to prevent clashes.
- */
 export default function PORDataTable({ sno, cat }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [porList, setPorList] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedRow, setSelectedRow] = useState(null);
   const [lastSearched, setLastSearched] = useState(null);
+
+  // Popup state
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupContent, setPopupContent] = useState("");
+  const [popupLoading, setPopupLoading] = useState(false);
+  const [popupError, setPopupError] = useState(null);
 
   // Input change handler (keep year numeric only)
   const handleYearChange = useCallback((e) => {
@@ -36,9 +34,8 @@ export default function PORDataTable({ sno, cat }) {
 
   // Search button handler — fetch only when user clicks Search
   const handleSearch = useCallback(async () => {
-    if (!isYearValid || !sno || cat === null) return;
+    if (!isYearValid || !sno || cat == null) return;
 
-    setSelectedRow(null);
     setLastSearched({ sno, cat, porYear: selectedYear });
     setLoading(true);
     setError(null);
@@ -57,15 +54,14 @@ export default function PORDataTable({ sno, cat }) {
       setPorList(response.data || []);
     } catch (err) {
       setError(
-        err?.response?.data?.message ||
-          err.message ||
-          "Failed to fetch POR data"
+        err?.response?.data?.message || err.message || "Failed to fetch POR data"
       );
     } finally {
       setLoading(false);
     }
   }, [sno, cat, selectedYear, isYearValid]);
 
+  // Records to display
   const records = useMemo(() => {
     if (!Array.isArray(porList)) return [];
     return porList.filter(
@@ -73,13 +69,40 @@ export default function PORDataTable({ sno, cat }) {
     );
   }, [porList]);
 
-  const handleBack = useCallback(() => setSelectedRow(null), []);
+  // Action: Fetch detailed HTML and open popup
+  const handleViewDetails = useCallback(
+    async (row) => {
+      if (!row?.OCC_ID) return;
 
-  const formatKey = (k) =>
-    (k || "")
-      .replace(/_/g, " ")
-      .toLowerCase()
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+      setPopupOpen(true);
+      setPopupLoading(true);
+      setPopupError(null);
+      setPopupContent("");
+
+      try {
+        const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
+
+        const url = `http://175.25.5.7/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
+
+        const response = await axios.post(url, body, {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          timeout: 10000,
+        });
+
+        // Response is HTML string
+        setPopupContent(
+          typeof response.data === "string" ? response.data : JSON.stringify(response.data)
+        );
+      } catch (err) {
+        setPopupError(
+          err?.response?.data?.message || err.message || "Failed to fetch POR details"
+        );
+      } finally {
+        setPopupLoading(false);
+      }
+    },
+    [sno, cat]
+  );
 
   return (
     <div className="por-dt-root" role="region" aria-label="POR Data Table">
@@ -124,8 +147,8 @@ export default function PORDataTable({ sno, cat }) {
             type="button"
             className="por-dt-btn por-dt-btn--primary"
             onClick={handleSearch}
-            disabled={!isYearValid || loading}
-            aria-disabled={!isYearValid || loading}
+            disabled={!isYearValid || loading || !sno || cat == null}
+            aria-disabled={!isYearValid || loading || !sno || cat == null}
           >
             {loading ? "Searching…" : "Search"}
           </button>
@@ -134,7 +157,6 @@ export default function PORDataTable({ sno, cat }) {
             className="por-dt-btn por-dt-btn--secondary"
             onClick={() => {
               setSelectedYear(new Date().getFullYear());
-              setSelectedRow(null);
               setPorList([]);
               setError(null);
               setLastSearched(null);
@@ -162,7 +184,7 @@ export default function PORDataTable({ sno, cat }) {
 
       {loading && <div className="por-dt-loading">Loading POR data…</div>}
 
-      {!selectedRow && records.length > 0 && (
+      {records.length > 0 && (
         <div className="por-dt-table-wrapper">
           <table className="por-dt-table" role="table" aria-label="POR records">
             <thead>
@@ -178,7 +200,7 @@ export default function PORDataTable({ sno, cat }) {
             </thead>
             <tbody>
               {records.map((row, index) => (
-                <tr key={`${row.SER_NO || row.OCC_ID || index}-${index}`}>
+                <tr key={row.SER_NO ?? row.PORNO ?? index}>
                   <td>{row.PORYEAR ?? "-"}</td>
                   <td>{row.PORNO ?? "-"}</td>
                   <td>{row.POROCC ?? "-"}</td>
@@ -189,7 +211,7 @@ export default function PORDataTable({ sno, cat }) {
                     <button
                       type="button"
                       className="por-dt-btn por-dt-btn--view"
-                      onClick={() => setSelectedRow(row)}
+                      onClick={() => handleViewDetails(row)}
                     >
                       View Details
                     </button>
@@ -201,31 +223,29 @@ export default function PORDataTable({ sno, cat }) {
         </div>
       )}
 
-      {selectedRow && (
-        <div className="por-dt-details" role="region" aria-label="POR Details">
-          <h2 className="por-dt-details__title">POR Details</h2>
-          <div className="por-dt-details__table-wrapper">
-            <table className="por-dt-details__table">
-              <tbody>
-                {Object.entries(selectedRow).map(([key, value]) => (
-                  <tr key={key}>
-                    <td className="por-dt-details__key">{formatKey(key)}</td>
-                    <td className="por-dt-details__value">
-                      {value !== null && value !== "" ? String(value) : "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="por-dt-details__actions">
-            <button
-              type="button"
-              className="por-dt-btn por-dt-btn--primary"
-              onClick={handleBack}
-            >
-              Back
-            </button>
+      {/* Popup Modal */}
+      {popupOpen && (
+        <div className="por-dt-popup-overlay" role="dialog" aria-modal="true">
+          <div className="por-dt-popup">
+            <div className="por-dt-popup-header">
+              <h2>POR Details</h2>
+              <button
+                className="por-dt-btn por-dt-btn--close"
+                onClick={() => setPopupOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="por-dt-popup-body">
+              {popupLoading && <div>Loading details…</div>}
+              {popupError && <div className="por-dt-error">{popupError}</div>}
+              {!popupLoading && !popupError && popupContent && (
+                <div
+                  className="por-dt-popup-content"
+                  dangerouslySetInnerHTML={{ __html: popupContent }}
+                />
+              )}
+            </div>
           </div>
         </div>
       )}

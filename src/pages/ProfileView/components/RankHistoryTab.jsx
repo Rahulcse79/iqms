@@ -54,14 +54,6 @@ const pickDateRaw = (row) => {
 const pickRankName = (row) => row?.rank_name ?? row?.rankName ?? row?.rank ?? '-';
 const pickRemarks = (row) => row?.irla_action ?? row?.irla ?? row?.remarks ?? '-';
 
-/* ---------------- Styles (theme-aware via CSS vars) ---------------- */
-/**
- * These inline style objects use CSS variables so the component follows
- * your .theme-light / .theme-dark tokens. Each var(...) has a fallback.
- *
- * If you prefer to move these to a separate CSS file, you can —
- * I kept them inline to make this file self-contained.
- */
 const styles = {
   container: {
     padding: '20px',
@@ -152,37 +144,23 @@ const styles = {
   },
 };
 
-/* ---------------- Component ---------------- */
-/**
- * Props:
- *  - items: [] (array of rank-history objects from reducer)
- *  - loading: boolean
- *  - error: any
- *
- * NOTE: Functional behavior is unchanged. Only styles switched to theme tokens and
- * some small responsive CSS added below.
- */
+
 export default function RankHistoryTab({ items = [], loading, error }) {
-  /* Hooks & state (always first) */
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
-  const [sortDir, setSortDir] = useState(null); // null | 'asc' | 'desc'
+  const [sortDir, setSortDir] = useState('desc');
 
-  // Quick prop-level log so you can see what's being passed from container/mapState
   devGroup('Props Snapshot', () => {
     devLog('loading:', loading);
     devLog('error:', error);
     devLog('items type:', Array.isArray(items) ? 'array' : typeof items);
     if (Array.isArray(items)) {
-      // only show first 10 in table to avoid huge logs
-      // eslint-disable-next-line no-console
       console.table(items.slice(0, 10));
     } else {
       devLog('items (non-array):', items);
     }
   });
 
-  /* Data cleaning */
   const cleanedRows = useMemo(() => {
     if (!Array.isArray(items)) return [];
     const mapped = items.map((row, idx) => {
@@ -191,7 +169,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
       return {
         _idx: idx,
         rank: pickRankName(row),
-        rankDateRaw: dateRaw, // Date object or null
+        rankDateRaw: dateRaw, 
         rankDateFormatted: dateRaw ? formatDate(dateRaw.toISOString()) : formatDate(row.wef ?? row.rankdt),
         remarks: pickRemarks(row),
         __raw: row,
@@ -199,7 +177,6 @@ export default function RankHistoryTab({ items = [], loading, error }) {
     });
 
     devGroup('cleanedRows sample', () => {
-      // eslint-disable-next-line no-console
       console.table(
         mapped.slice(0, 10).map((r) => ({
           _idx: r._idx,
@@ -213,7 +190,6 @@ export default function RankHistoryTab({ items = [], loading, error }) {
     return mapped;
   }, [items]);
 
-  /* Sorting (rankDate only) */
   const sortedRows = useMemo(() => {
     if (!sortDir) return cleanedRows;
     const arr = [...cleanedRows];
@@ -228,7 +204,6 @@ export default function RankHistoryTab({ items = [], loading, error }) {
     return arr;
   }, [cleanedRows, sortDir]);
 
-  /* Pagination */
   const total = sortedRows.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -236,7 +211,6 @@ export default function RankHistoryTab({ items = [], loading, error }) {
     if (page > totalPages) setPage(1);
   }, [totalPages, page]);
 
-  // reset page on major change
   useEffect(() => {
     setPage(1);
   }, [items, pageSize, sortDir]);
@@ -244,12 +218,10 @@ export default function RankHistoryTab({ items = [], loading, error }) {
   const startIndex = (page - 1) * pageSize;
   const pageRows = sortedRows.slice(startIndex, startIndex + pageSize);
 
-  // Log page-level rows when they change
   useEffect(() => {
     devGroup(`Page ${page} Rows`, () => {
       devLog('startIndex:', startIndex);
       devLog('pageRows length:', pageRows.length);
-      // eslint-disable-next-line no-console
       console.table(
         pageRows.map((r, i) => ({
           idx: startIndex + i + 1,
@@ -261,7 +233,6 @@ export default function RankHistoryTab({ items = [], loading, error }) {
     });
   }, [pageRows, page, startIndex]);
 
-  /* Handlers */
   const toggleSort = () => setSortDir((d) => (d === null ? 'asc' : d === 'asc' ? 'desc' : null));
   const onHeaderKey = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -270,7 +241,6 @@ export default function RankHistoryTab({ items = [], loading, error }) {
     }
   };
 
-  /* Conditional UI after hooks */
   devLog('Render check', { loading, error, itemsLength: Array.isArray(items) ? items.length : null, total });
 
   if (loading) return <p style={{ padding: 20 }}>Loading rank history...</p>;
@@ -281,7 +251,6 @@ export default function RankHistoryTab({ items = [], loading, error }) {
 
   return (
     <div style={styles.container} className="rank-history-container">
-      {/* Small responsive CSS & hover effects inserted inline so file is self-contained */}
       <style>{`
         .rank-history-table tbody tr:hover {
           background: color-mix(in srgb, var(--surface-accent, #f8fafc) 85%, transparent 15%);
@@ -303,7 +272,6 @@ export default function RankHistoryTab({ items = [], loading, error }) {
         }
       `}</style>
 
-      {/* Controls */}
       <div style={styles.controlsRow}>
         <div style={styles.leftControls}>
           <label style={{ fontSize: 14, color: 'var(--muted, #374151)', display: 'flex', gap: 8, alignItems: 'center' }}>

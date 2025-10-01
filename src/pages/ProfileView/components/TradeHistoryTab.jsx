@@ -143,7 +143,7 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
   /* ---------------- Hooks (always at top) ---------------- */
   const [pageSize, setPageSize] = useState(10); // 10, 20, 50
   const [page, setPage] = useState(1);
-  const [sortDir, setSortDir] = useState(null); // null | 'asc' | 'desc'
+  const [sortDir, setSortDir] = useState('desc'); // null | 'asc' | 'desc'
 
   /* ---------------- Data cleaning (stable via useMemo) ---------------- */
   const cleanedRows = useMemo(() => {
