@@ -599,7 +599,7 @@ export const getSystemIPAddress = () => {
               
               if (isValidIP) {
                 // Filter out invalid/unwanted IPs
-                if (!ip.startsWith('127.') &&      // Not localhost
+                if (!ip.startsWith('127.') &&      // Not 175.25.5.7
                     !ip.startsWith('169.254.') &&   // Not APIPA
                     !ip.startsWith('0.') &&         // Not invalid
                     ip !== '0.0.0.0' &&            // Not invalid
@@ -761,7 +761,7 @@ export const submitIqmsReply = async (submitData) => {
     
     // Step 5: Build API payload
     const apiPayload = {
-      docld: String(queryId),
+      docId: String(queryId),
       loginSno: String(userDetails.LOGIN_SNO),
       loginCat: String(userDetails.LOGIN_CAT),
       ROLE_ID: String(activeRole.ROLE_ID),

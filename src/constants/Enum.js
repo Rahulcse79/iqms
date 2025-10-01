@@ -39,6 +39,10 @@ export const DepartmentMapping = ModuleMapping;
 export const SubsectionMapping = Object.freeze({
   CQC: { prefix: "U", label: "Customer Query Cell" },
   IT: { prefix: "I", label: "Income Tax" },
+  "FUND GROUP": {prefix: "F", label: "Fund Group"},
+  "PAY GROUP": {prefix: "C", label: "Pay Group"},
+  IO: { prefix: "O", label: "Input Output" },
+  
   // Add more subsections here as needed
   // Example: HR: { prefix: "H", label: "Human Resources" },
   // Example: FIN: { prefix: "F", label: "Finance" },
