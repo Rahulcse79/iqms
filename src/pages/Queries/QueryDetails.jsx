@@ -431,6 +431,8 @@ const QueryDetails = ({
     item.voip ||
     "";
 
+  const pers = item.pers;
+  
   const rawQueryText =
     details["Query Details"] ||
     details["Query details"] ||
@@ -513,6 +515,9 @@ const QueryDetails = ({
               <div>
                 <strong>VoIP:</strong> {voip || "N/A"}
               </div>
+              <div>
+                <strong>Person:</strong> {pers || "N/A"}
+              </div>
             </div>
 
             {/* Query Body */}
@@ -522,7 +527,7 @@ const QueryDetails = ({
             </div>
 
             {/* Wings Reply */}
-            {details.wings_reply && (
+            {/* {details.wings_reply && (
               <div className="wings-card">
                 <h4>Wings Replies</h4>
                 {Object.keys(details.wings_reply).length === 0 ? (
@@ -552,7 +557,29 @@ const QueryDetails = ({
                     })
                 )}
               </div>
+            )} */}
+
+            <div className="query-history">
+            <h3>Previous Replies</h3>
+            {item.history && item.history.length > 0 ? (
+              item.history.map((h, i) => (
+                <div key={i} className="history-entry">
+                  <div className="history-meta">
+                    <strong>{h.by}</strong>
+                    {h.date && (
+                      <span className="small-muted">
+                        {formatDateFlexible(h.date)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="history-text">{renderMultiline(h.text)}</div>
+                  <hr className="separator" />
+                </div>
+              ))
+            ) : (
+              <div className="panel-empty">No history available</div>
             )}
+          </div>
 
             {/* Enhanced Reply Form with Dynamic Dropdowns */}
             <div className="form-section">
@@ -691,27 +718,9 @@ const QueryDetails = ({
 
         {/* History Tab */}
         {activeTab === "history" && (
-          <div className="query-history">
-            <h3>Previous Replies</h3>
-            {item.history && item.history.length > 0 ? (
-              item.history.map((h, i) => (
-                <div key={i} className="history-entry">
-                  <div className="history-meta">
-                    <strong>{h.by}</strong>
-                    {h.date && (
-                      <span className="small-muted">
-                        {formatDateFlexible(h.date)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="history-text">{renderMultiline(h.text)}</div>
-                  <hr className="separator" />
-                </div>
-              ))
-            ) : (
-              <div className="panel-empty">No history available</div>
-            )}
-          </div>
+          <>
+
+          </>
         )}
       </div>
 
