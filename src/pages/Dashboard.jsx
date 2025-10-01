@@ -3,6 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchRepliedQueries } from "../actions/repliedQueryAction";
 import Loader from "../components/Loader";
+// import {
+//   getPendingQueriesCountNew, // NEW
+//   getTransferredQueriesCountNew, // NEW
+// } from "../../utils/helpers";
+import { getAllRoleLevelCodes } from "../constants/Enum";
 
 // --- CSS Styles ---
 const styles = `
@@ -155,7 +160,7 @@ const parseJSON = (key) => {
 };
 
 const getPendingCounts = () => {
-  const data = parseJSON("pendingQueries_v1");
+  const data = parseJSON("pendingQueries_v2_new");
   if (!data) return { creator: 0, verifier: 0, approver: 0, total: 0 };
 
   let creator = 0,
@@ -179,7 +184,7 @@ const getPendingCounts = () => {
 };
 
 const getTransferredCounts = () => {
-  const data = parseJSON("transferredQueries_v1");
+  const data = parseJSON("transferredQueries_v2_new");
   if (!data) return { creator: 0, verifier: 0, approver: 0, total: 0 };
 
   let creator = 0,
@@ -203,7 +208,7 @@ const getTransferredCounts = () => {
 };
 
 const getRepliedCount = () => {
-  const data = parseJSON("repliedQueries_v1");
+  const data = parseJSON("repliedQueries_v2_new");
   return data ? data.length : 0;
 };
 
@@ -253,10 +258,37 @@ const Dashboard = () => {
   }, []);
 
   // useEffect(() => {
-  //   if (!items || items.length === 0) {
-  //     dispatch(fetchRepliedQueries());
-  //   }
-  // }, [dispatch, items]);
+  //   if (!activeRole) return;
+
+  //   const codes = getAllRoleLevelCodes(
+  //     activeRole.SUB_SECTION,
+  //     activeRole.MODULE
+  //   );
+  //   const apiCodes = codes.filter((c) => c.isValid).map((c) => c.apiCode);
+
+  //   let totalPending = 0;
+  //   let totalTransferred = 0;
+  //   let totalPendingNew = 0; // NEW
+  //   let totalTransferredNew = 0; // NEW
+
+  //   apiCodes.forEach((code) => {
+  //     // OLD API counts
+  //     totalPending += getPendingQueriesCount(code);
+  //     totalTransferred += getTransferredQueriesCount(code);
+
+  //     // NEW API counts
+  //     totalPendingNew += getPendingQueriesCountNew(code);
+  //     totalTransferredNew += getTransferredQueriesCountNew(code);
+  //   });
+
+  //   setCounts({
+  //     pending: totalPending,
+  //     transferred: totalTransferred,
+  //     pendingNew: totalPendingNew, // NEW
+  //     transferredNew: totalTransferredNew, // NEW
+  //     replied: 0, // Replied logic needs to be added
+  //   });
+  // }, [activeRole]);
 
   const pendingQueriesData = [
     { label: "Pending at Creator", value: counts.pending.creator },
@@ -307,6 +339,6 @@ const Dashboard = () => {
       </div>
     </>
   );
-}; 
+};
 
 export default Dashboard;

@@ -6,9 +6,9 @@ import { GrRefresh } from "react-icons/gr";
 import useTheme from "../hooks/useTheme";
 import { useActiveRole } from "../hooks/useActiveRole";
 import "./Topbar.css";
-import { useDataRefresher } from "../hooks/useDataRefresher";
+import { useDataRefresher } from "../hooks/useDataRefresherNew";
 import { getUserRoleLabel } from "../constants/Enum";
-import { fetchQueriesForRole } from "../utils/helpers";
+import { fetchQueriesForRoleNew } from "../utils/helpers";
 import { useDispatch } from "react-redux";
 
 /**
@@ -136,7 +136,7 @@ const Topbar = ({ toggleSidebar }) => {
       });
 
       // Fetch queries for the new role
-      const fetchResult = await fetchQueriesForRole(
+      const fetchResult = await fetchQueriesForRoleNew(
         dispatch,
         selected,
         (progress) => {
@@ -374,7 +374,7 @@ const Topbar = ({ toggleSidebar }) => {
         </div>
 
         {/* Refresh Button */}
-        <div className="refresh-container">
+        {/* <div className="refresh-container">
           <GrRefresh
             className={`refresh-button-api control ${
               refreshing || switchingRole ? "spinning" : ""
@@ -389,7 +389,7 @@ const Topbar = ({ toggleSidebar }) => {
               cursor: switchingRole ? "not-allowed" : "pointer",
             }}
           />
-        </div>
+        </div> */}
 
         {/* Center: Category + Search */}
         <div className="topbar-center controls-group">

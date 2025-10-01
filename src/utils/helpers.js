@@ -848,3 +848,419 @@ export const submitIqmsReply = async (submitData) => {
     };
   }
 };
+
+
+/**
+ * NEW API: Fetch queries using the updated ivrsIqmsListing API
+ * Uses the same subsection-based logic as existing methods
+ * @param {Function} dispatch - Redux dispatch function
+ * @param {Object} config - Configuration object (same as existing fetchAllUserQueries)
+ * @returns {Promise} - Promise resolving to fetch results
+ */
+export const fetchAllUserQueriesNew = async (dispatch, config) => {
+  const {
+    activeRole,
+    cat,
+    suffix,
+    deptPrefix,
+    roleDigits = ["1", "2", "3"],
+    onProgress,
+    onError,
+  } = config;
+
+  // Lazy import to avoid circular dependencies
+  const { fetchRepliedQueriesNew } = await import("../actions/repliedQueryActionNew");
+  const { fetchPendingQueriesNew } = await import("../actions/pendingQueryActionNew");
+  const { fetchTransferredQueriesNew } = await import("../actions/transferredQueryActionNew");
+
+  // Import enum functions (same as existing)
+  const {
+    generateApiCodeFromRole,
+    getAllRoleLevelCodes,
+    ModuleMapping,
+    SubsectionMapping,
+  } = await import("../constants/Enum");
+
+  try {
+    let finalCat, finalPrefix, finalSuffix, pendingTabs, subsection, cellAllotedString;
+
+    if (activeRole) {
+      // Use active role configuration (same logic as existing)
+      console.log("🔹 Using active role configuration (NEW API):", activeRole);
+
+      // Get category from active role's module
+      const moduleConfig = ModuleMapping[activeRole.MODULE];
+      if (!moduleConfig) {
+        throw new Error(`Unknown module in active role: ${activeRole.MODULE}`);
+      }
+
+      finalCat = moduleConfig.cat;
+      finalSuffix = moduleConfig.suffix;
+
+      // Get prefix from active role's subsection
+      const subsectionConfig = SubsectionMapping[activeRole.SUB_SECTION];
+      if (!subsectionConfig) {
+        throw new Error(`Unknown subsection in active role: ${activeRole.SUB_SECTION}`);
+      }
+
+      finalPrefix = subsectionConfig.prefix;
+      subsection = activeRole.SUB_SECTION;
+
+      // Format CELL_ALLOTED for API (comma-separated with single quotes)
+      cellAllotedString = activeRole.CELL_ALLOTED 
+        ? activeRole.CELL_ALLOTED
+            .split(',')
+            .map(cell => `'${cell.trim()}'`)
+            .join(',')
+        : "'ALL'";
+
+      // Generate all role level codes for the active role's subsection and module
+      const allRoleCodes = getAllRoleLevelCodes(
+        activeRole.SUB_SECTION,
+        activeRole.MODULE
+      );
+
+      pendingTabs = allRoleCodes
+        .filter((item) => item.isValid)
+        .map((item) => item.apiCode);
+
+      console.log(`📋 Generated API codes from active role (NEW):`, pendingTabs);
+    } else {
+      // Fallback to legacy configuration
+      console.log("🔹 Using legacy configuration (cat, suffix) (NEW API)");
+      if (!cat || !suffix) {
+        throw new Error("Either activeRole or (cat + suffix) must be provided");
+      }
+
+      finalCat = cat;
+      finalSuffix = suffix;
+      finalPrefix = deptPrefix || "U";
+      subsection = "CQC"; // Default subsection for legacy
+      cellAllotedString = "'ALL'"; // Default cell allocation
+
+      // Generate pending tabs the old way
+      pendingTabs = roleDigits.map((digit) => `${finalPrefix}${digit}${finalSuffix}`);
+    }
+
+    console.log(
+      `🚀 Fetching queries (NEW API) for category: ${finalCat}, subsection: ${subsection}, API codes: ${pendingTabs.join(", ")}`
+    );
+
+    if (onProgress) {
+      onProgress({
+        step: "starting",
+        total: pendingTabs.length * 2 + 1,
+        activeRole: activeRole?.PORTFOLIO_NAME || "Legacy",
+        apiCodes: pendingTabs,
+        apiVersion: "NEW"
+      });
+    }
+
+    // Create all fetch tasks for NEW API
+    const tasks = [
+      // Fetch replied queries (NEW API - uses subsection)
+      {
+        name: "replied-new",
+        task: dispatch(fetchRepliedQueriesNew({
+          moduleCat: String(finalCat),
+          subSection: subsection,
+          cell: cellAllotedString
+        })),
+      },
+      
+      // Fetch pending queries for each role (NEW API)
+      ...pendingTabs.map((pendingWith) => ({
+        name: `pending-new-${pendingWith}`,
+        task: dispatch(fetchPendingQueriesNew({
+          moduleCat: String(finalCat),
+          penWith: pendingWith,
+          subSection: subsection,
+          cell: cellAllotedString
+        })),
+      })),
+      
+      // Fetch transferred queries for each role (NEW API)
+      ...pendingTabs.map((pendingWith) => ({
+        name: `transferred-new-${pendingWith}`,
+        task: dispatch(fetchTransferredQueriesNew({
+          moduleCat: String(finalCat),
+          penWith: pendingWith,
+          cell: cellAllotedString
+        })),
+      })),
+    ];
+
+    // Execute all tasks with detailed progress tracking (same logic as existing)
+    const results = await Promise.allSettled(
+      tasks.map(async (taskObj, index) => {
+        try {
+          if (onProgress) {
+            onProgress({
+              step: "fetching",
+              current: index + 1,
+              total: tasks.length,
+              taskName: taskObj.name,
+              apiVersion: "NEW"
+            });
+          }
+
+          const result = await taskObj.task;
+          console.log(`✅ Successfully fetched ${taskObj.name} (NEW API)`);
+          return {
+            name: taskObj.name,
+            status: "fulfilled",
+            data: result,
+          };
+        } catch (error) {
+          console.error(`❌ Failed to fetch ${taskObj.name} (NEW API):`, error);
+          
+          if (onError) {
+            onError({
+              taskName: taskObj.name,
+              error: error,
+              index: index,
+              apiVersion: "NEW"
+            });
+          }
+
+          return {
+            name: taskObj.name,
+            status: "rejected",
+            error: error,
+          };
+        }
+      })
+    );
+
+    // Process results (same logic as existing)
+    const successful = results.filter((r) => r.value?.status === "fulfilled");
+    const failed = results.filter((r) => r.value?.status === "rejected");
+
+    console.log(
+      `📊 Query fetch completed (NEW API): ${successful.length} successful, ${failed.length} failed`
+    );
+
+    if (onProgress) {
+      onProgress({
+        step: "completed",
+        successful: successful.length,
+        failed: failed.length,
+        total: tasks.length,
+        apiVersion: "NEW"
+      });
+    }
+
+    // Return detailed results
+    return {
+      success: true,
+      total: tasks.length,
+      successful: successful.length,
+      failed: failed.length,
+      results: results.map((r) => r.value),
+      errors: failed.map((r) => r.value),
+      pendingTabs,
+      category: finalCat,
+      subsection: subsection,
+      cellAllocation: cellAllotedString,
+      activeRole: activeRole?.PORTFOLIO_NAME || "Legacy",
+      apiVersion: "NEW"
+    };
+
+  } catch (error) {
+    console.error("Critical error in fetchAllUserQueriesNew:", error);
+    if (onError) {
+      onError({
+        taskName: "fetchAllUserQueriesNew",
+        error: error,
+        critical: true,
+        apiVersion: "NEW"
+      });
+    }
+
+    return {
+      success: false,
+      error: error,
+      total: 0,
+      successful: 0,
+      failed: 0,
+      apiVersion: "NEW"
+    };
+  }
+};
+
+/**
+ * NEW API: Fetch queries specifically for active role change
+ * @param {Function} dispatch - Redux dispatch function
+ * @param {Object} newActiveRole - New active role object
+ * @param {Function} [onProgress] - Progress callback
+ * @param {Function} [onError] - Error callback
+ * @returns {Promise} - Fetch results
+ */
+export const fetchQueriesForRoleNew = async (
+  dispatch,
+  newActiveRole,
+  onProgress,
+  onError
+) => {
+  console.log(
+    "🔄 Fetching queries for role change (NEW API):",
+    newActiveRole.PORTFOLIO_NAME
+  );
+  
+  return fetchAllUserQueriesNew(dispatch, {
+    activeRole: newActiveRole,
+    onProgress: (progress) => {
+      if (onProgress) {
+        onProgress({
+          ...progress,
+          roleChange: true,
+          roleName: newActiveRole.PORTFOLIO_NAME,
+          apiVersion: "NEW"
+        });
+      }
+    },
+    onError,
+  });
+};
+
+/**
+ * NEW API: Base function to make API calls to the new ivrsIqmsListing endpoint
+ * @param {Object} requestBody - The request body for the API
+ * @returns {Promise} - API response
+ */
+export const callNewIqmsListingAPI = async (requestBody) => {
+  const API_URL = "http://175.25.5.7/API/controller.php?ivrsIqmsListing";
+  const API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
+
+  try {
+    console.log("🔄 Calling NEW IQMS Listing API:", requestBody);
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...requestBody,
+        api_token: API_TOKEN
+      }),
+      timeout: 30000 // 30 second timeout
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ NEW IQMS Listing API response received");
+    
+    return data;
+
+  } catch (error) {
+    console.error("❌ NEW IQMS Listing API call failed:", error);
+    throw error;
+  }
+};
+
+/**
+ * NEW API: Helper to format CELL_ALLOTED string for API
+ * @param {string} cellAllotedStr - Cell allocation string from active role
+ * @returns {string} - Formatted cell string for API
+ */
+export const formatCellAllocationForAPI = (cellAllotedStr) => {
+  if (!cellAllotedStr) return "'ALL'";
+  
+  return cellAllotedStr
+    .split(',')
+    .map(cell => `'${cell.trim()}'`)
+    .join(',');
+};
+
+/**
+ * NEW API: Get API parameters from active role for new API calls
+ * @param {Object} activeRole - Active role object
+ * @returns {Object} - API parameters
+ */
+export const getNewAPIParamsFromActiveRole = (activeRole) => {
+  if (!activeRole) {
+    throw new Error("Active role is required for NEW API calls");
+  }
+
+  // Import enum functions
+  const { ModuleMapping, SubsectionMapping } = require("../constants/Enum");
+
+  // Get module configuration
+  const moduleConfig = ModuleMapping[activeRole.MODULE];
+  if (!moduleConfig) {
+    throw new Error(`Unknown module in active role: ${activeRole.MODULE}`);
+  }
+
+  // Get subsection configuration
+  const subsectionConfig = SubsectionMapping[activeRole.SUB_SECTION];
+  if (!subsectionConfig) {
+    throw new Error(`Unknown subsection in active role: ${activeRole.SUB_SECTION}`);
+  }
+
+  // Format cell allocation
+  const cellAllotedString = formatCellAllocationForAPI(activeRole.CELL_ALLOTED);
+
+  return {
+    MODULE_CAT: String(moduleConfig.cat),
+    SUB_SECTION: activeRole.SUB_SECTION,
+    CELL: cellAllotedString,
+    // Additional helper properties
+    prefix: subsectionConfig.prefix,
+    suffix: moduleConfig.suffix,
+    roleId: activeRole.ROLE_ID,
+    portfolioName: activeRole.PORTFOLIO_NAME
+  };
+};
+
+
+/**
+ * Fetches and filters designation flags for a given role.
+ * - Ignores any flags that start with "U".
+ * @param {object} activeRole - The user's active role object.
+ * @returns {Promise<string[]>} - A promise that resolves to an array of valid designation flags.
+ */
+export const getDesignationFlags = async (activeRole) => {
+  if (!activeRole) {
+    throw new Error("Active role is required to get designation flags.");
+  }
+
+  const { ROLE_ID, PORTFOLIO_LEVEL, SUB_SECTION } = activeRole;
+  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/getDesignationFlagUser/${ROLE_ID}/${PORTFOLIO_LEVEL}/${SUB_SECTION}`;
+
+  console.log("🚀 Fetching designation flags from:", url);
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    if (!data.items || data.items.length === 0) {
+      console.warn("No designation flags found for this role.");
+      return [];
+    }
+
+    const flags = data.items.map(item => item.designation_flag);
+    console.log("Raw designation flags found:", flags);
+
+    // Filter out flags starting with "U"
+    const validFlags = flags.filter(flag => !flag.startsWith("U"));
+    
+    if (validFlags.length === 0) {
+        console.warn("No valid designation flags found after filtering.");
+    } else {
+        console.log("✅ Valid designation flags:", validFlags);
+    }
+    
+    return validFlags;
+
+  } catch (error) {
+    console.error("❌ Failed to fetch designation flags:", error);
+    throw error; // Re-throw to be caught by the calling function
+  }
+};

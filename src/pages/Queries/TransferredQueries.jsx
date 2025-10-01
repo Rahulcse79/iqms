@@ -3,7 +3,7 @@ import React, { useMemo, useState, useEffect, useCallback } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import { useSelector, useDispatch } from "react-redux";
 import "./IncomingQueries.css"; // Use the same CSS
-import { refreshTransferredQueries } from "../../actions/transferredQueryAction";
+import { refreshTransferredQueriesNew } from "../../actions/transferredQueryActionNew"; // NEW
 import { HiOutlineRefresh } from "react-icons/hi";
 import { useActiveRole } from "../../hooks/useActiveRole";
 import { getAllRoleLevelCodes } from "../../constants/Enum";
@@ -14,6 +14,8 @@ import { getAllRoleLevelCodes } from "../../constants/Enum";
  * - Live localStorage changes detection
  * - Background data updates without refresh
  */
+
+const STORAGE_KEY = "transferredQueries_v2_new";
 
 const roleDigitForTab = {
   creator: "1",
@@ -35,7 +37,7 @@ const getLocalStorageData = (key) => {
   try {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : null;
-  } catch (error) {
+  } catch (error) {STORAGE_KEY
     console.warn(`Failed to read from localStorage key: ${key}`, error);
     return null;
   }
@@ -59,8 +61,15 @@ const TransferredQueries = () => {
     if (!activeRole) return [];
 
     try {
-      console.log("🔍 [Transferred] Generating codes for:", activeRole.SUB_SECTION, activeRole.MODULE);
-      const codes = getAllRoleLevelCodes(activeRole.SUB_SECTION, activeRole.MODULE);
+      console.log(
+        "🔍 [Transferred] Generating codes for:",
+        activeRole.SUB_SECTION,
+        activeRole.MODULE
+      );
+      const codes = getAllRoleLevelCodes(
+        activeRole.SUB_SECTION,
+        activeRole.MODULE
+      );
       console.log("📋 [Transferred] Generated codes:", codes);
       return codes;
     } catch (error) {
@@ -80,7 +89,7 @@ const TransferredQueries = () => {
         activeTab,
         allRoleCodes: allRoleCodes.length,
         activeRole: activeRole.SUB_SECTION,
-        module: activeRole.MODULE
+        module: activeRole.MODULE,
       });
 
       // Find the code for current tab
@@ -88,7 +97,7 @@ const TransferredQueries = () => {
       const targetRoleLevel = roleDigitMapping[activeTab];
 
       // Map digits to role levels
-      const digitToRole = { "1": "CREATOR", "2": "VERIFIER", "3": "APPROVER" };
+      const digitToRole = { 1: "CREATOR", 2: "VERIFIER", 3: "APPROVER" };
       const targetRole = digitToRole[targetRoleLevel];
 
       const matchingCode = allRoleCodes.find(
@@ -109,21 +118,27 @@ const TransferredQueries = () => {
   }, [activeRole, activeTab, allRoleCodes, forceRefresh]);
 
   // Redux fallback data
-  const cachedEntry = useSelector(
-    (state) => state.transferred_queries?.byKey?.[pendingWith] || {}
-  ) || {};
+  const cachedEntry =
+    useSelector(
+      (state) => state.transferred_queries?.byKey?.[pendingWith] || {}
+    ) || {};
 
   // Function to load data from localStorage
   const loadDataFromStorage = useCallback(() => {
     try {
-      console.log(`🔍 [Transferred] Loading data for pendingWith: ${pendingWith}`);
+      console.log(
+        `🔍 [Transferred] Loading data for pendingWith: ${pendingWith}`
+      );
       setLoading(true);
       setError(null);
 
       // Read from localStorage first
-      const currentStorageData = getLocalStorageData("transferredQueries_v1");
-      console.log("📂 [Transferred] localStorage keys:", currentStorageData ? Object.keys(currentStorageData) : "no data");
-      
+      const currentStorageData = getLocalStorageData(STORAGE_KEY);
+      console.log(
+        "📂 [Transferred] localStorage keys:",
+        currentStorageData ? Object.keys(currentStorageData) : "no data"
+      );
+
       // Update storage data state for live updates
       setStorageData(currentStorageData);
 
@@ -162,8 +177,8 @@ const TransferredQueries = () => {
     let pollingInterval;
 
     const checkForStorageChanges = () => {
-      const currentStorage = getLocalStorageData("transferredQueries_v1");
-      
+      const currentStorage = getLocalStorageData(STORAGE_KEY);
+
       // Compare with previous storage data
       if (JSON.stringify(currentStorage) !== JSON.stringify(storageData)) {
         console.log("🔄 [Transferred] localStorage data changed, updating...");
@@ -181,7 +196,10 @@ const TransferredQueries = () => {
 
   // Load data when dependencies change
   useEffect(() => {
-    console.log("🔄 [Transferred] Dependencies changed, loading data...", { pendingWith, activeRole: !!activeRole });
+    console.log("🔄 [Transferred] Dependencies changed, loading data...", {
+      pendingWith,
+      activeRole: !!activeRole,
+    });
     if (pendingWith && activeRole) {
       loadDataFromStorage();
     }
@@ -190,14 +208,18 @@ const TransferredQueries = () => {
   // Listen for localStorage changes (cross-tab)
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === "transferredQueries_v1") {
-        console.log("📢 [Transferred] localStorage updated from another tab, reloading data...");
+      if (e.key === STORAGE_KEY) {
+        console.log(
+          "📢 [Transferred] localStorage updated from another tab, reloading data..."
+        );
         setTimeout(loadDataFromStorage, 100);
       }
     };
 
     const handleCustomUpdate = () => {
-      console.log("📢 [Transferred] Custom localStorage update event, reloading data...");
+      console.log(
+        "📢 [Transferred] Custom localStorage update event, reloading data..."
+      );
       setTimeout(loadDataFromStorage, 100);
     };
 
@@ -206,7 +228,10 @@ const TransferredQueries = () => {
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("transferredQueriesUpdated", handleCustomUpdate);
+      window.removeEventListener(
+        "transferredQueriesUpdated",
+        handleCustomUpdate
+      );
     };
   }, [loadDataFromStorage]);
 
@@ -215,11 +240,14 @@ const TransferredQueries = () => {
     const handleActiveRoleChange = (event) => {
       const newRole = event.detail?.newRole;
       if (newRole) {
-        console.log("🔄 [Transferred] Active role changed to:", newRole.PORTFOLIO_NAME);
+        console.log(
+          "🔄 [Transferred] Active role changed to:",
+          newRole.PORTFOLIO_NAME
+        );
         console.log("🔄 [Transferred] Forcing immediate UI refresh...");
 
         // Force complete refresh of all calculations IMMEDIATELY
-        setForceRefresh(prev => prev + 1);
+        setForceRefresh((prev) => prev + 1);
 
         // Reset current data to show loading state
         setLocalData([]);
@@ -227,24 +255,31 @@ const TransferredQueries = () => {
 
         // Multiple attempts with increasing delays
         setTimeout(() => {
-          console.log("📂 [Transferred] Attempt 1: Loading data for new role...");
+          console.log(
+            "📂 [Transferred] Attempt 1: Loading data for new role..."
+          );
           loadDataFromStorage();
         }, 50);
 
         setTimeout(() => {
-          console.log("📂 [Transferred] Attempt 2: Loading data for new role...");
+          console.log(
+            "📂 [Transferred] Attempt 2: Loading data for new role..."
+          );
           loadDataFromStorage();
         }, 300);
 
         setTimeout(() => {
-          console.log("📂 [Transferred] Attempt 3: Loading data for new role...");
+          console.log(
+            "📂 [Transferred] Attempt 3: Loading data for new role..."
+          );
           loadDataFromStorage();
         }, 800);
       }
     };
 
     window.addEventListener("activeRoleChanged", handleActiveRoleChange);
-    return () => window.removeEventListener("activeRoleChanged", handleActiveRoleChange);
+    return () =>
+      window.removeEventListener("activeRoleChanged", handleActiveRoleChange);
   }, [loadDataFromStorage]);
 
   // Use local data as primary source
@@ -278,21 +313,31 @@ const TransferredQueries = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log(`🔄 [Transferred] Refreshing queries for ${pendingWith}...`);
+      console.log(
+        `🔄 Refreshing transferred queries (NEW API) for ${pendingWith}...`
+      );
 
-      await dispatch(refreshTransferredQueries({ cat, pendingWith }));
+      // Get params needed for new refresh action
+      const { MODULE_CAT, CELL } = getNewAPIParamsFromActiveRole(activeRole);
+
+      await dispatch(
+        refreshTransferredQueriesNew({
+          moduleCat: MODULE_CAT,
+          penWith: pendingWith,
+          cell: CELL,
+        })
+      );
 
       setTimeout(() => {
         loadDataFromStorage();
       }, 500);
     } catch (err) {
-      console.error("❌ [Transferred] Refresh failed", err);
+      console.error("❌ Refresh transferred failed (NEW API)", err);
       setError("Failed to refresh queries");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="transferred-queries">
       <div className="header">
@@ -300,8 +345,12 @@ const TransferredQueries = () => {
         <div className="header-controls">
           {/* FIXED: Live updating role info */}
           {activeRole && (
-            <small style={{ marginRight: "1rem", color: "var(--muted)" }} key={`${activeRole.SUB_SECTION}-${activeRole.MODULE}-${pendingWith}`}>
-              {activeRole.SUB_SECTION} | {activeRole.MODULE} | Code: {pendingWith} | Items: {items.length}
+            <small
+              style={{ marginRight: "1rem", color: "var(--muted)" }}
+              key={`${activeRole.SUB_SECTION}-${activeRole.MODULE}-${pendingWith}`}
+            >
+              {activeRole.SUB_SECTION} | {activeRole.MODULE} | Code:{" "}
+              {pendingWith} | Items: {items.length}
             </small>
           )}
           <button
@@ -319,7 +368,7 @@ const TransferredQueries = () => {
       <div className="tabs">
         {Object.keys(roleDigitForTab).map((role) => {
           const roleDigit = roleDigitForTab[role];
-          const digitToRole = { "1": "CREATOR", "2": "VERIFIER", "3": "APPROVER" };
+          const digitToRole = { 1: "CREATOR", 2: "VERIFIER", 3: "APPROVER" };
           const roleLevel = digitToRole[roleDigit];
 
           // FIXED: Find role code using current active role (not stale data)
@@ -328,7 +377,8 @@ const TransferredQueries = () => {
           );
 
           // FIXED: Get count from current storage data state (live updates)
-          const currentStorageData = storageData || getLocalStorageData("transferredQueries_v1");
+          const currentStorageData =
+            storageData || getLocalStorageData(STORAGE_KEY);
           const count = currentStorageData?.[roleCode?.apiCode]?.length || 0;
 
           return (

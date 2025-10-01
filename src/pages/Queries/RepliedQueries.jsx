@@ -1,47 +1,50 @@
-import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import QueriesTable from "../../components/QueriesTable";
-import { fetchRepliedQueries } from "../../actions/repliedQueryAction";
-import Loader from "../../components/Loader";
+// src/pages/RepliedQueries/RepliedQueries.jsx (NEW FILE)
+
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useActiveRole } from '../../hooks/useActiveRole';
+import { refreshRepliedQueriesNew } from '../../actions/repliedQueryActionNew';
+import QueriesTable from '../../components/QueriesTable';
+import { getNewAPIParamsFromActiveRole } from '../../utils/helpers';
+
+const STORAGE_KEY = "repliedQueries_v2_new";
 
 const RepliedQueries = () => {
+  const { activeRole } = useActiveRole();
   const dispatch = useDispatch();
-  const { loading, items, error } = useSelector(
-    (state) => state.replied_queries
-  );
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Get data from Redux store (or localStorage directly)
+  const repliedData = useSelector(state => state.replied_queries.byKey[activeRole?.SUB_SECTION] || {});
 
   useEffect(() => {
-    // Fetch only if data not present
-    if (!items || items.length === 0) {
-      dispatch(fetchRepliedQueries());
+    if (repliedData.items) {
+      setItems(repliedData.items);
     }
-  }, [dispatch, items]);
+  }, [repliedData]);
 
-  if (loading) return <Loader text="Loading Replied Queries..." />;
+  const handleRefresh = async () => {
+    if (!activeRole) return;
+    setLoading(true);
+    const { MODULE_CAT, SUB_SECTION, CELL } = getNewAPIParamsFromActiveRole(activeRole);
+    await dispatch(refreshRepliedQueriesNew({
+      moduleCat: MODULE_CAT,
+      subSection: SUB_SECTION,
+      cell: CELL
+    }));
+    setLoading(false);
+  };
 
-  if (error) {
-    return <p style={{ color: "red" }}>Error fetching queries: {error}</p>;
-  }
-
-  const safeItems = Array.isArray(items) ? items : [];
-  const data = safeItems.map((q, index) => {
-    return {
-      id: index + 1,
-      serviceNo: q?.sno ? String(q.sno) : "",
-      type: "Replied",
-      queryId: q?.doc_id ?? "",
-      cat: q?.cat !== undefined && q?.cat !== null ? q.cat : null,
-      date: q?.action_dt ? new Date(q.action_dt).toLocaleDateString() : "N/A",
-      subject: q?.subject ?? "",
-      pers: q?.pers ?? "",
-      queryType: q?.querytype ?? "",
-      pendingWith: q?.pending_with ?? "",
-      cell: q?.cell ?? "",
-      docStatus: q?.doc_status ?? "",
-    };
-  });
-
-  return <QueriesTable title="Replied Queries" data={data} />;
+  return (
+    <div>
+      <h2>Replied Queries</h2>
+      <button onClick={handleRefresh} disabled={loading}>
+        {loading ? 'Refreshing...' : 'Refresh'}
+      </button>
+      <QueriesTable data={items} loading={loading} />
+    </div>
+  );
 };
 
 export default RepliedQueries;
