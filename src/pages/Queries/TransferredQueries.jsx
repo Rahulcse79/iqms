@@ -3,10 +3,13 @@ import React, { useMemo, useState, useEffect, useCallback } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import { useSelector, useDispatch } from "react-redux";
 import "./IncomingQueries.css"; // Use the same CSS
-import { refreshTransferredQueriesNew } from "../../actions/transferredQueryActionNew"; // NEW
+import {
+  refreshTransferredQueriesNew,
+} from "../../actions/transferredQueryActionNew"; // NEW
 import { HiOutlineRefresh } from "react-icons/hi";
 import { useActiveRole } from "../../hooks/useActiveRole";
 import { getAllRoleLevelCodes } from "../../constants/Enum";
+import { getDesignationFlags, getNewAPIParamsFromActiveRole1, getNewAPIParamsFromActiveRole } from "../../utils/helpers";
 
 /**
  * TransferredQueries with FULL Live Updates - COMPLETELY FIXED VERSION
@@ -37,7 +40,7 @@ const getLocalStorageData = (key) => {
   try {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : null;
-  } catch (error) {STORAGE_KEY
+  } catch (error) {
     console.warn(`Failed to read from localStorage key: ${key}`, error);
     return null;
   }
@@ -317,14 +320,22 @@ const TransferredQueries = () => {
         `🔄 Refreshing transferred queries (NEW API) for ${pendingWith}...`
       );
 
+      const flags = await getDesignationFlags(activeRole);
+      if (flags.length === 0) {
+        console.warn("No valid designation flags for refresh. Clearing data.");
+        setLocalData([]);
+        setLoading(false);
+        return;
+      }
+
       // Get params needed for new refresh action
       const { MODULE_CAT, CELL } = getNewAPIParamsFromActiveRole(activeRole);
 
       await dispatch(
         refreshTransferredQueriesNew({
           moduleCat: MODULE_CAT,
-          penWith: pendingWith,
           cell: CELL,
+          designationFlags: flags
         })
       );
 

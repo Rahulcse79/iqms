@@ -861,6 +861,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
   const {
     activeRole,
     cat,
+    designationFlags,
     suffix,
     deptPrefix,
     roleDigits = ["1", "2", "3"],
@@ -949,7 +950,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
     if (onProgress) {
       onProgress({
         step: "starting",
-        total: pendingTabs.length * 2 + 1,
+        total: pendingTabs.length + 2,
         activeRole: activeRole?.PORTFOLIO_NAME || "Legacy",
         apiCodes: pendingTabs,
         apiVersion: "NEW"
@@ -980,14 +981,14 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
       })),
       
       // Fetch transferred queries for each role (NEW API)
-      ...pendingTabs.map((pendingWith) => ({
-        name: `transferred-new-${pendingWith}`,
+      {
+        name: "transferred-new",
         task: dispatch(fetchTransferredQueriesNew({
-          moduleCat: String(finalCat),
-          penWith: pendingWith,
-          cell: cellAllotedString
+            moduleCat: String(finalCat),
+            cell: cellAllotedString,
+            designationFlags: designationFlags, // Pass the flags to the action
         })),
-      })),
+      }
     ];
 
     // Execute all tasks with detailed progress tracking (same logic as existing)
@@ -1263,4 +1264,34 @@ export const getDesignationFlags = async (activeRole) => {
     console.error("❌ Failed to fetch designation flags:", error);
     throw error; // Re-throw to be caught by the calling function
   }
+};
+
+
+export const fetchQueriesForRoleNew1 = async (
+  dispatch,
+  newActiveRole,
+  designationFlags, // ADD THIS
+  onProgress,
+  onError
+) => {
+  console.log(
+    "🔄 Fetching queries for role change (NEW API):",
+    newActiveRole.PORTFOLIO_NAME
+  );
+  
+  return fetchAllUserQueriesNew(dispatch, {
+    activeRole: newActiveRole,
+    designationFlags: designationFlags, // PASS IT HERE
+    onProgress: (progress) => {
+      if (onProgress) {
+        onProgress({
+          ...progress,
+          roleChange: true,
+          roleName: newActiveRole.PORTFOLIO_NAME,
+          apiVersion: "NEW"
+        });
+      }
+    },
+    onError,
+  });
 };

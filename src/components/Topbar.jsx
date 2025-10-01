@@ -8,7 +8,11 @@ import { useActiveRole } from "../hooks/useActiveRole";
 import "./Topbar.css";
 import { useDataRefresher } from "../hooks/useDataRefresherNew";
 import { getUserRoleLabel } from "../constants/Enum";
-import { fetchQueriesForRoleNew } from "../utils/helpers";
+import {
+  fetchQueriesForRoleNew,
+  getDesignationFlags,
+  fetchQueriesForRoleNew1,
+} from "../utils/helpers";
 import { useDispatch } from "react-redux";
 
 /**
@@ -135,10 +139,14 @@ const Topbar = ({ toggleSidebar }) => {
         roleName: selected.PORTFOLIO_NAME,
       });
 
+      console.log("Fetching designation flags for new role...");
+      const flags = await getDesignationFlags(selected);
+
       // Fetch queries for the new role
-      const fetchResult = await fetchQueriesForRoleNew(
+      const fetchResult = await fetchQueriesForRoleNew1(
         dispatch,
         selected,
+        flags,
         (progress) => {
           setSwitchProgress({
             step: "fetching",

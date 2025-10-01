@@ -209,7 +209,13 @@ const getTransferredCounts = () => {
 
 const getRepliedCount = () => {
   const data = parseJSON("repliedQueries_v2_new");
-  return data ? data.length : 0;
+  if (!data) return 0;
+
+  // Sum the length of each array within the localStorage object
+  return Object.values(data).reduce(
+    (total, queries) => total + (Array.isArray(queries) ? queries.length : 0),
+    0
+  );
 };
 
 // --- Card Component ---
