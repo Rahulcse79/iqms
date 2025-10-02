@@ -233,6 +233,10 @@ const Dashboard = () => {
   });
 
   const updateAllCounts = useCallback(() => {
+    if (!activeRole) {
+      console.log("Dashboard: Waiting for active role...");
+      return;
+    }
     console.log(
       "🔄 Updating dashboard counts for role:",
       activeRole?.PORTFOLIO_NAME
@@ -260,17 +264,17 @@ const Dashboard = () => {
     };
 
     // Listen to the custom event from pendingQueryActionNew.js
-    window.addEventListener('pendingQueriesUpdated', handleStorageChange);
+    window.addEventListener("pendingQueriesUpdated", handleStorageChange);
     // Listen to the generic storage event for other tabs
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
     // Listen for role changes
-    window.addEventListener('activeRoleChanged', handleStorageChange);
+    window.addEventListener("activeRoleChanged", handleStorageChange);
 
     // Cleanup listeners on component unmount
     return () => {
-      window.removeEventListener('pendingQueriesUpdated', handleStorageChange);
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('activeRoleChanged', handleStorageChange);
+      window.removeEventListener("pendingQueriesUpdated", handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("activeRoleChanged", handleStorageChange);
     };
   }, [updateAllCounts]);
   //   if (!activeRole) return;
