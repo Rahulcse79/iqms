@@ -435,3 +435,31 @@ export const clearTransferredQueriesStorageNew = () => {
     );
   }
 };
+
+export const refreshAllTransferredQueriesForRole =
+  (activeRole, designationFlags) => async (dispatch) => {
+    console.log(
+      `🔄 Refreshing ALL transferred queries for role: ${activeRole.PORTFOLIO_NAME}`
+    );
+
+    if (!designationFlags || designationFlags.length === 0) {
+      console.warn("⚠️ No designation flags provided for refresh");
+      return { success: false, error: "No designation flags" };
+    }
+
+    try {
+      // Clear all existing data first
+      localStorage.removeItem(TRANSFERRED_STORAGE_KEY_NEW);
+
+      // Call the existing fetchAllTransferredQueriesForRole
+      const result = await dispatch(
+        fetchAllTransferredQueriesForRole(activeRole, designationFlags)
+      );
+
+      console.log("✅ Refresh all transferred queries completed:", result);
+      return result;
+    } catch (error) {
+      console.error("❌ Failed to refresh all transferred queries:", error);
+      throw error;
+    }
+  };
