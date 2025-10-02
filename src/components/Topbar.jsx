@@ -6,9 +6,13 @@ import { GrRefresh } from "react-icons/gr";
 import useTheme from "../hooks/useTheme";
 import { useActiveRole } from "../hooks/useActiveRole";
 import "./Topbar.css";
-import { useDataRefresher } from "../hooks/useDataRefresher";
+import { useDataRefresher } from "../hooks/useDataRefresherNew";
 import { getUserRoleLabel } from "../constants/Enum";
-import { fetchQueriesForRole } from "../utils/helpers";
+import {
+  fetchQueriesForRoleNew,
+  getDesignationFlags,
+  fetchQueriesForRoleNew1,
+} from "../utils/helpers";
 import { useDispatch } from "react-redux";
 
 /**
@@ -135,10 +139,14 @@ const Topbar = ({ toggleSidebar }) => {
         roleName: selected.PORTFOLIO_NAME,
       });
 
+      console.log("Fetching designation flags for new role...");
+      const flags = await getDesignationFlags(selected);
+
       // Fetch queries for the new role
-      const fetchResult = await fetchQueriesForRole(
+      const fetchResult = await fetchQueriesForRoleNew1(
         dispatch,
         selected,
+        flags,
         (progress) => {
           setSwitchProgress({
             step: "fetching",
@@ -168,6 +176,12 @@ const Topbar = ({ toggleSidebar }) => {
           successful: fetchResult.successful,
           total: fetchResult.total,
         });
+
+        window.dispatchEvent(
+          new CustomEvent("activeRoleChanged", {
+            detail: { newRole: selected },
+          })
+        );
       } else {
         console.warn(
           `⚠️ Some queries failed for ${selected.PORTFOLIO_NAME}, but role switched successfully`
@@ -179,6 +193,12 @@ const Topbar = ({ toggleSidebar }) => {
         setSwitchingRole(false);
         setSwitchProgress({});
       }, 1000);
+
+      window.dispatchEvent(
+        new CustomEvent("activeRoleChanged", {
+          detail: { newRole: selected },
+        })
+      );
     } catch (error) {
       console.error("❌ Error during role switch:", error);
       setSwitchProgress({ step: "error", error: error.message });
@@ -188,6 +208,12 @@ const Topbar = ({ toggleSidebar }) => {
         setSwitchingRole(false);
         setSwitchProgress({});
       }, 3000);
+
+      window.dispatchEvent(
+        new CustomEvent("activeRoleChanged", {
+          detail: { newRole: selected },
+        })
+      );
     }
   };
 
@@ -374,7 +400,7 @@ const Topbar = ({ toggleSidebar }) => {
         </div>
 
         {/* Refresh Button */}
-        <div className="refresh-container">
+        {/* <div className="refresh-container">
           <GrRefresh
             className={`refresh-button-api control ${
               refreshing || switchingRole ? "spinning" : ""
@@ -389,7 +415,7 @@ const Topbar = ({ toggleSidebar }) => {
               cursor: switchingRole ? "not-allowed" : "pointer",
             }}
           />
-        </div>
+        </div> */}
 
         {/* Center: Category + Search */}
         <div className="topbar-center controls-group">

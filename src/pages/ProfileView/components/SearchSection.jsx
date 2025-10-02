@@ -28,6 +28,7 @@ export default function SearchSection({
         >
           <option value="1">Airmen</option>
           <option value="0">Officer</option>
+          <option value="2">Civilian</option>
         </select>
       </div>
 

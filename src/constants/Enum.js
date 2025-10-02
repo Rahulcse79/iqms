@@ -42,7 +42,7 @@ export const SubsectionMapping = Object.freeze({
   "FUND GROUP": {prefix: "F", label: "Fund Group"},
   "PAY GROUP": {prefix: "C", label: "Pay Group"},
   IO: { prefix: "O", label: "Input Output" },
-  
+
   // Add more subsections here as needed
   // Example: HR: { prefix: "H", label: "Human Resources" },
   // Example: FIN: { prefix: "F", label: "Finance" },
@@ -237,6 +237,33 @@ export function getAllRoleLevelCodes(subsection, module) {
       return {
         roleLevel,
         apiCode: generateApiCode(subsection, roleLevel, module),
+        isValid: true,
+      };
+    } catch (error) {
+      return {
+        roleLevel,
+        apiCode: null,
+        isValid: false,
+        error: error.message,
+      };
+    }
+  });
+}
+
+
+/**
+ * Get all API codes for different role levels within same subsection and module
+ * @param {string} subsection - Subsection name
+ * @param {string} module - Module name
+ * @returns {Array} Array of API codes for all role levels
+ */
+export function getAllRoleLevelCodesForPending(subsection, module) {
+  const roleLevels = Object.keys(RoleLevelMapping);
+  return roleLevels.map(roleLevel => {
+    try {
+      return {
+        roleLevel,
+        apiCode: generateApiCode("U", roleLevel, module),
         isValid: true,
       };
     } catch (error) {

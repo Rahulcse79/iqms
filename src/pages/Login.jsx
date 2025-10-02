@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/Loader";
 import { UserRole, DepartmentMapping } from "../constants/Enum";
 import users from "../utils/users.json";
-import { fetchAllUserQueries } from "../utils/helpers";
+import { fetchAllUserQueriesNew, getDesignationFlags } from "../utils/helpers";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -124,6 +124,18 @@ const Login = () => {
         }
       }
 
+      setInitProgress({ step: "fetching-designation", current: 3, total: 5 });
+      let designationFlags = [];
+      try {
+        designationFlags = await getDesignationFlags(firstRole);
+      } catch (flagError) {
+        console.warn(
+          "Could not fetch designation flags, transferred queries might be missing.",
+          flagError
+        );
+        // Don't block login if this fails, just log it
+      }
+
       setInitProgress({ step: "fetching-queries", current: 3, total: 4 });
 
       // Fetch queries using the first (default) active role
@@ -133,8 +145,9 @@ const Login = () => {
           firstRole.PORTFOLIO_NAME
         );
 
-        const fetchResult = await fetchAllUserQueries(dispatch, {
-          activeRole: firstRole, // Use the active role instead of cat/suffix
+        const fetchResult = await fetchAllUserQueriesNew(dispatch, {
+          activeRole: firstRole,
+          designationFlags: designationFlags, // Use the active role instead of cat/suffix
           onProgress: (progress) => {
             setInitProgress({
               step: "fetching-queries",
@@ -188,6 +201,8 @@ const Login = () => {
         return "Fetching user permissions...";
       case "setting-active-role":
         return "Setting up user roles...";
+      case "fetching-designation":
+        return "Checking user designations...";
       case "fetching-queries":
         return initProgress.roleName
           ? `Loading data for ${initProgress.roleName} (${initProgress.current}/${initProgress.total})`

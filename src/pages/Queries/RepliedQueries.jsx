@@ -1,47 +1,92 @@
-import React, { useEffect } from "react";
+// src/pages/RepliedQueries/RepliedQueries.jsx (NEW FILE)
+
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useActiveRole } from "../../hooks/useActiveRole";
+import { refreshRepliedQueriesNew } from "../../actions/repliedQueryActionNew";
 import QueriesTable from "../../components/QueriesTable";
-import { fetchRepliedQueries } from "../../actions/repliedQueryAction";
-import Loader from "../../components/Loader";
+import { getNewAPIParamsFromActiveRole } from "../../utils/helpers";
+
+const STORAGE_KEY = "repliedQueries_v2_new";
+
+const formatIso = (iso) => {
+  if (!iso) return "N/A";
+  try {
+    return new Date(iso).toLocaleString();
+  } catch {
+    return iso;
+  }
+};
 
 const RepliedQueries = () => {
+  const { activeRole } = useActiveRole();
   const dispatch = useDispatch();
-  const { loading, items, error } = useSelector(
-    (state) => state.replied_queries
+  const [items, setItems] = useState([]); // Keep the state for items
+  const [loading, setLoading] = useState(false);
+
+  // Get data from Redux store (or localStorage directly)
+  const repliedData = useSelector(
+    (state) => state.replied_queries?.byKey?.[activeRole?.SUB_SECTION] || {}
   );
 
-  useEffect(() => {
-    // Fetch only if data not present
-    if (!items || items.length === 0) {
-      dispatch(fetchRepliedQueries());
+  const loadFromStorage = useCallback(() => {
+    if (!activeRole?.SUB_SECTION) {
+      setItems([]); // Corrected to setItems
+      return;
     }
-  }, [dispatch, items]);
+    const storageData = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    const dataForRole = storageData[activeRole.SUB_SECTION] || [];
+    setItems(dataForRole); // Corrected to setItems
+  }, [activeRole]);
 
-  if (loading) return <Loader text="Loading Replied Queries..." />;
+  useEffect(() => {
+    loadFromStorage();
+  }, [loadFromStorage]);
 
-  if (error) {
-    return <p style={{ color: "red" }}>Error fetching queries: {error}</p>;
-  }
+  useEffect(() => {
+    if (repliedData.items && repliedData.items.length > items.length) {
+      setItems(repliedData.items); // Corrected to setItems
+    }
+  }, [repliedData, items.length]);
 
-  const safeItems = Array.isArray(items) ? items : [];
-  const data = safeItems.map((q, index) => {
-    return {
-      id: index + 1,
-      serviceNo: q?.sno ? String(q.sno) : "",
-      type: "Replied",
-      queryId: q?.doc_id ?? "",
-      cat: q?.cat !== undefined && q?.cat !== null ? q.cat : null,
-      date: q?.action_dt ? new Date(q.action_dt).toLocaleDateString() : "N/A",
-      subject: q?.subject ?? "",
-      pers: q?.pers ?? "",
-      queryType: q?.querytype ?? "",
-      pendingWith: q?.pending_with ?? "",
-      cell: q?.cell ?? "",
-      docStatus: q?.doc_status ?? "",
-    };
-  });
+  const handleRefresh = async () => {
+    if (!activeRole) return;
+    setLoading(true);
+    const { MODULE_CAT, SUB_SECTION, CELL } =
+      getNewAPIParamsFromActiveRole(activeRole);
+    await dispatch(
+      refreshRepliedQueriesNew({
+        moduleCat: MODULE_CAT,
+        subSection: SUB_SECTION,
+        cell: CELL,
+      })
+    );
+    setLoading(false);
+  };
 
-  return <QueriesTable title="Replied Queries" data={data} />;
+  const tableData = useMemo(() => {
+    return items.map((item, index) => ({ // Corrected to use items
+      id: item.doc_id || `${item.sno}-${index}`,
+      serviceNo: item.sno || "N/A",
+      type: item.querytype?.replace(/_/g, " ") || item.doc_type || "N/A",
+      queryId: String(item.doc_id || item.imprno || index),
+      date: formatIso(item.submit_date || item.action_dt),
+      subject: item.subject || "No Subject", // Add subject
+      personnel: item.pers || "N/A", // Add personnel info
+      raw: item,
+    }));
+  }, [items]); // Corrected to use items
+
+  return (
+    <div>
+      <h2>Replied Queries</h2>
+      <button onClick={handleRefresh} disabled={loading} className="refresh-btn">
+        {loading ? "Refreshing..." : "Refresh"}
+      </button>
+      {/* Pass the mapped 'tableData' to the component */}
+      <QueriesTable data={tableData} loading={loading} />
+    </div>
+  );
 };
 
 export default RepliedQueries;

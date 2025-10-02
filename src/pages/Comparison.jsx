@@ -374,7 +374,7 @@ const Comparison = () => {
             value={selectCategory}
             onChange={(e) => setSelectCategory(e.target.value)}
           >
-            <option value="Airmen">Airmen / NCs(E)</option>
+            <option value="Airmen">Airmen</option>
             <option value="Officer">Officer</option>
           </select>
         </label>

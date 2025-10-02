@@ -24,7 +24,8 @@ export default function SearchSection({
           onChange={(e) => setCategory(e.target.value)}
         >
           <option value="1">Airmen</option>
-          <option value="2">Officer</option>
+          <option value="0">Officer</option>
+          <option value="2">Civilian</option>
         </select>
       </div>
       <div className="form-group">
