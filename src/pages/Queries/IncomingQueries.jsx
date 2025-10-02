@@ -3,7 +3,11 @@ import React, { useMemo, useState, useEffect, useCallback } from "react";
 import QueriesTable from "../../components/QueriesTable";
 import { useSelector, useDispatch } from "react-redux";
 import "./IncomingQueries.css";
-import { refreshPendingQueriesNew } from "../../actions/pendingQueryActionNew";
+import {
+  refreshPendingQueriesNew,
+  generatePenWithCode,
+  getAllPendingCountsForRole,
+} from "../../actions/pendingQueryActionNew";
 import { HiOutlineRefresh } from "react-icons/hi";
 import { useActiveRole } from "../../hooks/useActiveRole";
 import { getAllRoleLevelCodesForPending } from "../../constants/Enum";
@@ -56,6 +60,30 @@ const IncomingQueries = () => {
 
   // Use active role hook
   const { activeRole } = useActiveRole();
+
+  // Generate PEN_WITH code for current tab and active role
+  const currentPenWith = useMemo(() => {
+    if (!activeRole) return "U1A"; // fallback
+
+    const levelMapping = {
+      creator: "1",
+      verifier: "2",
+      approver: "3",
+    };
+
+    const level = levelMapping[activeTab] || "1";
+    const penWith = generatePenWithCode(activeRole, level);
+
+    console.log(`🎯 Current PEN_WITH for tab ${activeTab}: ${penWith}`);
+    return penWith;
+  }, [activeRole, activeTab]);
+
+  // Get pending counts for all tabs
+  const pendingCounts = useMemo(() => {
+    if (!activeRole) return { creator: 0, verifier: 0, approver: 0, total: 0 };
+
+    return getAllPendingCountsForRole(activeRole);
+  }, [activeRole, forceRefresh, storageData]);
 
   // Generate all role codes for active role (for tab display)
   const allRoleCodes = useMemo(() => {
@@ -120,17 +148,16 @@ const IncomingQueries = () => {
 
   // Redux fallback data
   const cachedEntry = useSelector(
-    (state) => state.pending_queries?.byKey?.[pendingWith] || {}
+    (state) => state.pending_queries?.byKey?.[currentPenWith] || {}
   );
 
   // Function to load data from localStorage
   const loadDataFromStorage = useCallback(() => {
     try {
-      console.log(`🔍 Loading data for pendingWith: ${pendingWith}`);
+      console.log(`🔍 Loading data for PEN_WITH: ${currentPenWith}`);
       setLoading(true);
       setError(null);
 
-      // Read from localStorage first
       const currentStorageData = getLocalStorageData(STORAGE_KEY);
       console.log(
         "📂 localStorage keys:",
@@ -140,17 +167,18 @@ const IncomingQueries = () => {
       // Update storage data state for live updates
       setStorageData(currentStorageData);
 
-      if (currentStorageData && currentStorageData[pendingWith]) {
+      if (currentStorageData && currentStorageData[currentPenWith]) {
         console.log(
-          `✅ Found data for ${pendingWith}:`,
-          currentStorageData[pendingWith].length,
+          `✅ Found data for ${currentPenWith}:`,
+          currentStorageData[currentPenWith].length,
           "items"
         );
-        setLocalData(currentStorageData[pendingWith]);
+        setLocalData(currentStorageData[currentPenWith]);
       } else {
         console.log(
-          `❌ No data found in localStorage for ${pendingWith}, checking Redux...`
+          `❌ No data found in localStorage for ${currentPenWith}, checking Redux...`
         );
+
         // Fallback to Redux if localStorage is empty
         const reduxItems = Array.isArray(cachedEntry.items)
           ? cachedEntry.items
@@ -168,7 +196,7 @@ const IncomingQueries = () => {
     } finally {
       setLoading(false);
     }
-  }, [pendingWith, cachedEntry.items]);
+  }, [currentPenWith, cachedEntry.items]);
 
   // ENHANCED: Polling mechanism for live localStorage updates
   useEffect(() => {
@@ -177,7 +205,6 @@ const IncomingQueries = () => {
     const checkForStorageChanges = () => {
       const currentStorage = getLocalStorageData(STORAGE_KEY);
 
-      // Compare with previous storage data
       if (JSON.stringify(currentStorage) !== JSON.stringify(storageData)) {
         console.log("🔄 localStorage data changed, updating...");
         loadDataFromStorage();
@@ -195,13 +222,14 @@ const IncomingQueries = () => {
   // Load data when dependencies change
   useEffect(() => {
     console.log("🔄 Dependencies changed, loading data...", {
-      pendingWith,
+      currentPenWith,
       activeRole: !!activeRole,
     });
-    if (pendingWith && activeRole) {
+
+    if (currentPenWith && activeRole) {
       loadDataFromStorage();
     }
-  }, [loadDataFromStorage, pendingWith, activeRole]);
+  }, [loadDataFromStorage, currentPenWith, activeRole]);
 
   // Listen for localStorage changes (cross-tab)
   useEffect(() => {
@@ -268,7 +296,6 @@ const IncomingQueries = () => {
 
   // Use local data as primary source
   const items = Array.isArray(localData) ? localData : [];
-
   const tabTitle = `Pending Queries - ${
     activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
   }`;
@@ -297,20 +324,23 @@ const IncomingQueries = () => {
     try {
       setLoading(true);
       setError(null);
+
       console.log(
-        `🔄 Refreshing pending queries (NEW API) for ${pendingWith}...`
+        `🔄 Refreshing pending queries (NEW API) for ${currentPenWith}...`
       );
 
-      // Get params needed for new refresh action
-      const { MODULE_CAT, SUB_SECTION, CELL } =
-        getNewAPIParamsFromActiveRole(activeRole);
+      const levelMapping = {
+        creator: "1",
+        verifier: "2",
+        approver: "3",
+      };
+
+      const level = levelMapping[activeTab] || "1";
 
       await dispatch(
         refreshPendingQueriesNew({
-          moduleCat: MODULE_CAT,
-          penWith: pendingWith,
-          subSection: SUB_SECTION,
-          cell: CELL,
+          activeRole,
+          level,
         })
       );
 
@@ -403,7 +433,7 @@ const IncomingQueries = () => {
 
       <div className="footer-info">
         <p>
-          Total queries: {items.length} | Active tab: {pendingWith} | Data
+          Total queries: {items.length} | Active tab: {currentPenWith} | Data
           source: {items.length > 0 ? "localStorage" : "empty"}
           {activeRole && ` | Role: ${activeRole.PORTFOLIO_NAME}`}
         </p>

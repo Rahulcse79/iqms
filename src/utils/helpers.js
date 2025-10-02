@@ -544,70 +544,73 @@ export const getRoleLevelForApi = (userRole) => {
   return roleMappings[userRole?.toUpperCase()] || "1";
 };
 
-
 /**
  * Get system's IPv4 address with strict validation
  * This is CRITICAL and must not fail
  */
 export const getSystemIPAddress = () => {
   return new Promise((resolve, reject) => {
-    console.log('🔍 Starting critical IP detection...');
-    
+    console.log("🔍 Starting critical IP detection...");
+
     try {
       const pc = new RTCPeerConnection({ iceServers: [] });
       let resolved = false;
       const foundIPs = new Set();
-      
-      pc.createDataChannel('');
-      
+
+      pc.createDataChannel("");
+
       const cleanup = () => {
         try {
           pc.close();
         } catch (e) {
-          console.warn('Error closing peer connection:', e);
+          console.warn("Error closing peer connection:", e);
         }
       };
-      
+
       pc.onicecandidate = (ice) => {
         if (resolved) return;
-        
+
         if (!ice || !ice.candidate || !ice.candidate.candidate) return;
-        
+
         try {
           const candidateStr = ice.candidate.candidate;
-          console.log('🔍 Checking candidate:', candidateStr);
-          
+          console.log("🔍 Checking candidate:", candidateStr);
+
           // Multiple regex patterns for robust IP extraction
           const ipPatterns = [
             /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g,
             /candidate:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g,
-            /(\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b)/g
+            /(\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b)/g,
           ];
-          
+
           for (const pattern of ipPatterns) {
             let match;
             while ((match = pattern.exec(candidateStr)) !== null) {
               const ip = match[1];
-              
+
               // Validate IP format
-              const octets = ip.split('.');
-              const isValidIP = octets.length === 4 && 
-                octets.every(octet => {
+              const octets = ip.split(".");
+              const isValidIP =
+                octets.length === 4 &&
+                octets.every((octet) => {
                   const num = parseInt(octet, 10);
                   return !isNaN(num) && num >= 0 && num <= 255;
                 });
-              
+
               if (isValidIP) {
                 // Filter out invalid/unwanted IPs
-                if (!ip.startsWith('127.') &&      // Not 175.25.5.7
-                    !ip.startsWith('169.254.') &&   // Not APIPA
-                    !ip.startsWith('0.') &&         // Not invalid
-                    ip !== '0.0.0.0' &&            // Not invalid
-                    !foundIPs.has(ip)) {            // Not duplicate
-                  
+                if (
+                  !ip.startsWith("127.") && // Not 175.25.5.7
+                  !ip.startsWith("169.254.") && // Not APIPA
+                  !ip.startsWith("0.") && // Not invalid
+                  ip !== "0.0.0.0" && // Not invalid
+                  !foundIPs.has(ip)
+                ) {
+                  // Not duplicate
+
                   foundIPs.add(ip);
-                  console.log('✅ Found valid IP:', ip);
-                  
+                  console.log("✅ Found valid IP:", ip);
+
                   // Use first valid IP found
                   if (!resolved) {
                     resolved = true;
@@ -620,34 +623,39 @@ export const getSystemIPAddress = () => {
             }
           }
         } catch (err) {
-          console.warn('⚠️ Error processing candidate:', err);
+          console.warn("⚠️ Error processing candidate:", err);
         }
       };
-      
+
       pc.createOffer()
-        .then(offer => pc.setLocalDescription(offer))
-        .catch(err => {
-          console.error('❌ Error creating WebRTC offer:', err);
+        .then((offer) => pc.setLocalDescription(offer))
+        .catch((err) => {
+          console.error("❌ Error creating WebRTC offer:", err);
           if (!resolved) {
             resolved = true;
             cleanup();
-            reject(new Error('Failed to create WebRTC connection for IP detection'));
+            reject(
+              new Error("Failed to create WebRTC connection for IP detection")
+            );
           }
         });
-      
+
       // STRICT timeout - IP detection is CRITICAL
       setTimeout(() => {
         if (!resolved) {
           resolved = true;
           cleanup();
-          console.error('❌ IP detection timed out - this is CRITICAL');
-          reject(new Error('Unable to detect system IP address. This is required for security.'));
+          console.error("❌ IP detection timed out - this is CRITICAL");
+          reject(
+            new Error(
+              "Unable to detect system IP address. This is required for security."
+            )
+          );
         }
       }, 1000); // 5 second timeout
-      
     } catch (error) {
-      console.error('❌ Critical error in IP detection:', error);
-      reject(new Error('IP detection failed: ' + error.message));
+      console.error("❌ Critical error in IP detection:", error);
+      reject(new Error("IP detection failed: " + error.message));
     }
   });
 };
@@ -657,29 +665,31 @@ export const getSystemIPAddress = () => {
  */
 export const getUserDetailsForSubmit = () => {
   try {
-    const stored = localStorage.getItem('userDetails');
+    const stored = localStorage.getItem("userDetails");
     if (!stored) {
-      throw new Error('User authentication data not found. Please login again.');
+      throw new Error(
+        "User authentication data not found. Please login again."
+      );
     }
-    
+
     const userDetails = JSON.parse(stored);
-    
+
     // Validate required fields
     if (!userDetails.LOGIN_SNO) {
-      throw new Error('Invalid user session: LOGIN_SNO missing');
+      throw new Error("Invalid user session: LOGIN_SNO missing");
     }
     if (!userDetails.LOGIN_CAT) {
-      throw new Error('Invalid user session: LOGIN_CAT missing');
+      throw new Error("Invalid user session: LOGIN_CAT missing");
     }
-    
-    console.log('👤 User details validated:', {
+
+    console.log("👤 User details validated:", {
       LOGIN_SNO: userDetails.LOGIN_SNO,
-      LOGIN_CAT: userDetails.LOGIN_CAT
+      LOGIN_CAT: userDetails.LOGIN_CAT,
     });
-    
+
     return userDetails;
   } catch (error) {
-    console.error('❌ Error getting user details:', error);
+    console.error("❌ Error getting user details:", error);
     throw error;
   }
 };
@@ -704,61 +714,71 @@ export const submitIqmsReply = async (submitData) => {
     transferSection,
     pendingWith,
     verifierOption,
-    subsectionOptions
+    subsectionOptions,
   } = submitData;
-  
-  console.log('🚀 Starting IQMS reply submission...');
-  
+
+  console.log("🚀 Starting IQMS reply submission...");
+
   try {
     // Step 1: Get and validate active role
     const activeRole = getCurrentActiveRole();
     if (!activeRole) {
-      throw new Error('No active role found. Please refresh and select a role.');
+      throw new Error(
+        "No active role found. Please refresh and select a role."
+      );
     }
-    console.log('✅ Active role validated:', activeRole.PORTFOLIO_NAME);
-    
-    // Step 2: Get and validate user details  
+    console.log("✅ Active role validated:", activeRole.PORTFOLIO_NAME);
+
+    // Step 2: Get and validate user details
     const userDetails = getUserDetailsForSubmit();
-    console.log('✅ User details validated');
-    
+    console.log("✅ User details validated");
+
     // Step 3: CRITICAL - Get system IP address
     let systemIP;
     try {
       systemIP = await getSystemIPAddress();
-      console.log('✅ System IP detected:', systemIP);
+      console.log("✅ System IP detected:", systemIP);
     } catch (ipError) {
       // IP detection failure is CRITICAL - do not proceed
       // throw new Error(`IP Detection Failed: ${ipError.message}. This is required for security and audit purposes.`);
       systemIP = "175.25.10.10";
-      console.warn('⚠️ Proceeding without IP due to detection failure (for testing only)');
+      console.warn(
+        "⚠️ Proceeding without IP due to detection failure (for testing only)"
+      );
     }
-    
+
     // Step 4: Determine activity and target based on selection
     let activity = "";
     let activityDescription = "";
-    
+
     if (forwardOption === "Transfer to Supervisor" && verifierOption) {
       activity = verifierOption.TARGET_DESIGNATION;
       activityDescription = verifierOption.DESCRIPTION;
-      console.log('📋 Using verifier option:', { activity, activityDescription });
-      
+      console.log("📋 Using verifier option:", {
+        activity,
+        activityDescription,
+      });
     } else if (forwardOption === "Transfer to Sub-Section" && transferSection) {
       const selectedSubsection = subsectionOptions.find(
-        option => option.ACTIVITY === transferSection
+        (option) => option.ACTIVITY === transferSection
       );
-      
+
       if (!selectedSubsection) {
-        throw new Error('Selected subsection option not found in available options');
+        throw new Error(
+          "Selected subsection option not found in available options"
+        );
       }
-      
+
       activity = selectedSubsection.ACTIVITY;
       activityDescription = selectedSubsection.DESCRIPTION;
-      console.log('📋 Using subsection option:', { activity, activityDescription });
-      
+      console.log("📋 Using subsection option:", {
+        activity,
+        activityDescription,
+      });
     } else {
-      throw new Error('Invalid forward option or missing required data');
+      throw new Error("Invalid forward option or missing required data");
     }
-    
+
     // Step 5: Build API payload
     const apiPayload = {
       docId: String(queryId),
@@ -771,227 +791,172 @@ export const submitIqmsReply = async (submitData) => {
       iqmsReply: replyText.trim(),
       remarks: "", // Always empty as per requirements
       api_token: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS",
-      requestForm: "" // Always empty as per requirements
+      requestForm: "", // Always empty as per requirements
     };
-    
-    console.log('📤 API Payload prepared:', {
+
+    console.log("📤 API Payload prepared:", {
       ...apiPayload,
-      iqmsReply: `${apiPayload.iqmsReply.substring(0, 50)}...` // Don't log full reply
+      iqmsReply: `${apiPayload.iqmsReply.substring(0, 50)}...`, // Don't log full reply
     });
-    
+
     // Step 6: Make API call
-    const response = await fetch("http://175.25.5.7/API/controller.php?ivrsIqmsAction", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(apiPayload),
-      timeout: 30000 // 30 second timeout
-    });
-    
+    const response = await fetch(
+      "http://175.25.5.7/API/controller.php?ivrsIqmsAction",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(apiPayload),
+        timeout: 30000, // 30 second timeout
+      }
+    );
+
     if (!response.ok) {
-      throw new Error(`Server responded with error: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Server responded with error: ${response.status} ${response.statusText}`
+      );
     }
-    
+
     const responseData = await response.json();
-    console.log('📥 API Response received:', responseData);
-    
+    console.log("📥 API Response received:", responseData);
+
     // Step 7: Check API response for success
     if (responseData && responseData.success === false) {
-      throw new Error(responseData.message || 'Server rejected the submission');
+      throw new Error(responseData.message || "Server rejected the submission");
     }
-    
+
     // Step 8: Return success result
-    console.log('🎉 Submission successful!');
+    console.log("🎉 Submission successful!");
     return {
       success: true,
       data: responseData,
       activity: activity,
       activityDescription: activityDescription,
-      systemIP: systemIP
+      systemIP: systemIP,
     };
-    
   } catch (error) {
-    console.error('❌ Submission failed:', error);
-    
+    console.error("❌ Submission failed:", error);
+
     // Categorize error types for better user experience
-    let errorCategory = 'GENERAL';
-    let userMessage = 'Failed to submit query. ';
-    
-    if (error.message.includes('IP Detection Failed')) {
-      errorCategory = 'IP_DETECTION';
+    let errorCategory = "GENERAL";
+    let userMessage = "Failed to submit query. ";
+
+    if (error.message.includes("IP Detection Failed")) {
+      errorCategory = "IP_DETECTION";
       userMessage = error.message;
-    } else if (error.message.includes('User authentication')) {
-      errorCategory = 'AUTH';
-      userMessage = 'Authentication error. Please login again.';
-    } else if (error.message.includes('active role')) {
-      errorCategory = 'ROLE';
-      userMessage = 'Role selection error. Please refresh and select a role.';
-    } else if (error.message.includes('Server responded with error')) {
-      errorCategory = 'SERVER';
-      userMessage = 'Server error. Please try again later.';
-    } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      errorCategory = 'NETWORK';
-      userMessage = 'Network error. Please check your connection.';
+    } else if (error.message.includes("User authentication")) {
+      errorCategory = "AUTH";
+      userMessage = "Authentication error. Please login again.";
+    } else if (error.message.includes("active role")) {
+      errorCategory = "ROLE";
+      userMessage = "Role selection error. Please refresh and select a role.";
+    } else if (error.message.includes("Server responded with error")) {
+      errorCategory = "SERVER";
+      userMessage = "Server error. Please try again later.";
+    } else if (error.name === "TypeError" && error.message.includes("fetch")) {
+      errorCategory = "NETWORK";
+      userMessage = "Network error. Please check your connection.";
     } else {
       userMessage += error.message;
     }
-    
+
     return {
       success: false,
       error: {
         category: errorCategory,
         message: userMessage,
         originalError: error,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 };
 
-
 /**
- * NEW API: Fetch queries using the updated ivrsIqmsListing API
- * Uses the same subsection-based logic as existing methods
+ * NEW API VERSION: Fetches all queries based on active role configuration
+ * Uses the new API endpoint for PENDING queries only
+ * Keeps transferred and replied queries with old logic
  * @param {Function} dispatch - Redux dispatch function
- * @param {Object} config - Configuration object (same as existing fetchAllUserQueries)
+ * @param {Object} config - Configuration object
+ * @param {Object} config.activeRole - Active role object with SUB_SECTION, MODULE, etc.
+ * @param {Function} [config.onProgress] - Progress callback function
+ * @param {Function} [config.onError] - Error callback function
  * @returns {Promise} - Promise resolving to fetch results
  */
 export const fetchAllUserQueriesNew = async (dispatch, config) => {
-  const {
-    activeRole,
-    cat,
-    designationFlags,
-    suffix,
-    deptPrefix,
-    roleDigits = ["1", "2", "3"],
-    onProgress,
-    onError,
-  } = config;
+  const { activeRole, onProgress, onError } = config;
 
   // Lazy import to avoid circular dependencies
-  const { fetchRepliedQueriesNew } = await import("../actions/repliedQueryActionNew");
-  const { fetchPendingQueriesNew } = await import("../actions/pendingQueryActionNew");
-  const { fetchTransferredQueriesNew } = await import("../actions/transferredQueryActionNew");
-
-  // Import enum functions (same as existing)
-  const {
-    generateApiCodeFromRole,
-    getAllRoleLevelCodes,
-    ModuleMapping,
-    SubsectionMapping,
-  } = await import("../constants/Enum");
+  const { fetchRepliedQueriesNew } = await import(
+    "../actions/repliedQueryActionNew"
+  );
+  const { fetchAllPendingQueriesForRole } = await import(
+    "../actions/pendingQueryActionNew"
+  );
+  const { fetchTransferredQueriesNew } = await import(
+    "../actions/transferredQueryActionNew"
+  );
 
   try {
-    let finalCat, finalPrefix, finalSuffix, pendingTabs, subsection, cellAllotedString;
-
-    if (activeRole) {
-      // Use active role configuration (same logic as existing)
-      console.log("🔹 Using active role configuration (NEW API):", activeRole);
-
-      // Get category from active role's module
-      const moduleConfig = ModuleMapping[activeRole.MODULE];
-      if (!moduleConfig) {
-        throw new Error(`Unknown module in active role: ${activeRole.MODULE}`);
-      }
-
-      finalCat = moduleConfig.cat;
-      finalSuffix = moduleConfig.suffix;
-
-      // Get prefix from active role's subsection
-      const subsectionConfig = SubsectionMapping[activeRole.SUB_SECTION];
-      if (!subsectionConfig) {
-        throw new Error(`Unknown subsection in active role: ${activeRole.SUB_SECTION}`);
-      }
-
-      finalPrefix = subsectionConfig.prefix;
-      subsection = activeRole.SUB_SECTION;
-
-      // Format CELL_ALLOTED for API (comma-separated with single quotes)
-      cellAllotedString = activeRole.CELL_ALLOTED 
-        ? activeRole.CELL_ALLOTED
-            .split(',')
-            .map(cell => `'${cell.trim()}'`)
-            .join(',')
-        : "'ALL'";
-
-      // Generate all role level codes for the active role's subsection and module
-      const allRoleCodes = getAllRoleLevelCodes(
-        activeRole.SUB_SECTION,
-        activeRole.MODULE
-      );
-
-      pendingTabs = allRoleCodes
-        .filter((item) => item.isValid)
-        .map((item) => item.apiCode);
-
-      console.log(`📋 Generated API codes from active role (NEW):`, pendingTabs);
-    } else {
-      // Fallback to legacy configuration
-      console.log("🔹 Using legacy configuration (cat, suffix) (NEW API)");
-      if (!cat || !suffix) {
-        throw new Error("Either activeRole or (cat + suffix) must be provided");
-      }
-
-      finalCat = cat;
-      finalSuffix = suffix;
-      finalPrefix = deptPrefix || "U";
-      subsection = "CQC"; // Default subsection for legacy
-      cellAllotedString = "'ALL'"; // Default cell allocation
-
-      // Generate pending tabs the old way
-      pendingTabs = roleDigits.map((digit) => `${finalPrefix}${digit}${finalSuffix}`);
+    if (!activeRole) {
+      throw new Error("Active role is required for fetching queries");
     }
 
+    console.log("🔹 Using active role configuration for NEW API:", activeRole);
+
+    // Format cell allocation for API calls
+    const cellAllotedString = activeRole.CELL_ALLOTED
+      ? activeRole.CELL_ALLOTED.split(",")
+          .map((cell) => `'${cell.trim()}'`)
+          .join(",")
+      : "'ALL'";
+
     console.log(
-      `🚀 Fetching queries (NEW API) for category: ${finalCat}, subsection: ${subsection}, API codes: ${pendingTabs.join(", ")}`
+      `🚀 Fetching queries (NEW API) for role: ${activeRole.PORTFOLIO_NAME}`
     );
 
     if (onProgress) {
       onProgress({
         step: "starting",
-        total: pendingTabs.length + 2,
-        activeRole: activeRole?.PORTFOLIO_NAME || "Legacy",
-        apiCodes: pendingTabs,
-        apiVersion: "NEW"
+        total: 3, // pending, replied, transferred
+        activeRole: activeRole.PORTFOLIO_NAME,
+        apiVersion: "NEW",
       });
     }
 
-    // Create all fetch tasks for NEW API
+    // Create all fetch tasks
     const tasks = [
-      // Fetch replied queries (NEW API - uses subsection)
+      {
+        name: "pending-all-levels",
+        task: dispatch(fetchAllPendingQueriesForRole(activeRole)),
+        description:
+          "Fetch pending queries for creator, verifier, and approver",
+      },
       {
         name: "replied-new",
-        task: dispatch(fetchRepliedQueriesNew({
-          moduleCat: String(finalCat),
-          subSection: subsection,
-          cell: cellAllotedString
-        })),
+        task: dispatch(
+          fetchRepliedQueriesNew({
+            moduleCat: String(activeRole.MODULE_CAT),
+            subSection: activeRole.SUB_SECTION,
+            cell: cellAllotedString,
+          })
+        ),
+        description: "Fetch replied queries",
       },
-      
-      // Fetch pending queries for each role (NEW API)
-      ...pendingTabs.map((pendingWith) => ({
-        name: `pending-new-${pendingWith}`,
-        task: dispatch(fetchPendingQueriesNew({
-          moduleCat: String(finalCat),
-          penWith: pendingWith,
-          subSection: subsection,
-          cell: cellAllotedString
-        })),
-      })),
-      
-      // Fetch transferred queries for each role (NEW API)
       {
         name: "transferred-new",
-        task: dispatch(fetchTransferredQueriesNew({
-            moduleCat: String(finalCat),
+        task: dispatch(
+          fetchTransferredQueriesNew({
+            moduleCat: String(activeRole.MODULE_CAT),
             cell: cellAllotedString,
-            designationFlags: designationFlags, // Pass the flags to the action
-        })),
-      }
+          })
+        ),
+        description: "Fetch transferred queries",
+      },
     ];
 
-    // Execute all tasks with detailed progress tracking (same logic as existing)
+    // Execute all tasks with detailed progress tracking
     const results = await Promise.allSettled(
       tasks.map(async (taskObj, index) => {
         try {
@@ -1001,12 +966,14 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
               current: index + 1,
               total: tasks.length,
               taskName: taskObj.name,
-              apiVersion: "NEW"
+              description: taskObj.description,
+              apiVersion: "NEW",
             });
           }
 
           const result = await taskObj.task;
           console.log(`✅ Successfully fetched ${taskObj.name} (NEW API)`);
+
           return {
             name: taskObj.name,
             status: "fulfilled",
@@ -1014,13 +981,13 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
           };
         } catch (error) {
           console.error(`❌ Failed to fetch ${taskObj.name} (NEW API):`, error);
-          
+
           if (onError) {
             onError({
               taskName: taskObj.name,
               error: error,
               index: index,
-              apiVersion: "NEW"
+              apiVersion: "NEW",
             });
           }
 
@@ -1033,7 +1000,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
       })
     );
 
-    // Process results (same logic as existing)
+    // Process results
     const successful = results.filter((r) => r.value?.status === "fulfilled");
     const failed = results.filter((r) => r.value?.status === "rejected");
 
@@ -1047,7 +1014,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
         successful: successful.length,
         failed: failed.length,
         total: tasks.length,
-        apiVersion: "NEW"
+        apiVersion: "NEW",
       });
     }
 
@@ -1059,22 +1026,21 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
       failed: failed.length,
       results: results.map((r) => r.value),
       errors: failed.map((r) => r.value),
-      pendingTabs,
-      category: finalCat,
-      subsection: subsection,
+      category: activeRole.MODULE_CAT,
+      subsection: activeRole.SUB_SECTION,
       cellAllocation: cellAllotedString,
-      activeRole: activeRole?.PORTFOLIO_NAME || "Legacy",
-      apiVersion: "NEW"
+      activeRole: activeRole.PORTFOLIO_NAME,
+      apiVersion: "NEW",
     };
-
   } catch (error) {
     console.error("Critical error in fetchAllUserQueriesNew:", error);
+
     if (onError) {
       onError({
         taskName: "fetchAllUserQueriesNew",
         error: error,
         critical: true,
-        apiVersion: "NEW"
+        apiVersion: "NEW",
       });
     }
 
@@ -1084,7 +1050,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
       total: 0,
       successful: 0,
       failed: 0,
-      apiVersion: "NEW"
+      apiVersion: "NEW",
     };
   }
 };
@@ -1107,7 +1073,7 @@ export const fetchQueriesForRoleNew = async (
     "🔄 Fetching queries for role change (NEW API):",
     newActiveRole.PORTFOLIO_NAME
   );
-  
+
   return fetchAllUserQueriesNew(dispatch, {
     activeRole: newActiveRole,
     onProgress: (progress) => {
@@ -1116,12 +1082,40 @@ export const fetchQueriesForRoleNew = async (
           ...progress,
           roleChange: true,
           roleName: newActiveRole.PORTFOLIO_NAME,
-          apiVersion: "NEW"
+          apiVersion: "NEW",
         });
       }
     },
     onError,
   });
+};
+
+/**
+ * Helper function to get NEW API parameters from active role
+ * @param {Object} activeRole - Active role object
+ * @returns {Object} - API parameters
+ */
+export const getNewAPIParamsFromActiveRole = (activeRole) => {
+  if (!activeRole) {
+    console.warn("No active role provided for API params");
+    return {
+      MODULE_CAT: "1",
+      SUB_SECTION: "CQC",
+      CELL: "'ALL'",
+    };
+  }
+
+  const cellFormatted = activeRole.CELL_ALLOTED
+    ? activeRole.CELL_ALLOTED.split(",")
+        .map((cell) => `'${cell.trim()}'`)
+        .join(",")
+    : "'ALL'";
+
+  return {
+    MODULE_CAT: String(activeRole.MODULE_CAT),
+    SUB_SECTION: activeRole.SUB_SECTION,
+    CELL: cellFormatted,
+  };
 };
 
 /**
@@ -1143,9 +1137,9 @@ export const callNewIqmsListingAPI = async (requestBody) => {
       },
       body: JSON.stringify({
         ...requestBody,
-        api_token: API_TOKEN
+        api_token: API_TOKEN,
       }),
-      timeout: 30000 // 30 second timeout
+      timeout: 30000, // 30 second timeout
     });
 
     if (!response.ok) {
@@ -1154,9 +1148,8 @@ export const callNewIqmsListingAPI = async (requestBody) => {
 
     const data = await response.json();
     console.log("✅ NEW IQMS Listing API response received");
-    
-    return data;
 
+    return data;
   } catch (error) {
     console.error("❌ NEW IQMS Listing API call failed:", error);
     throw error;
@@ -1170,53 +1163,12 @@ export const callNewIqmsListingAPI = async (requestBody) => {
  */
 export const formatCellAllocationForAPI = (cellAllotedStr) => {
   if (!cellAllotedStr) return "'ALL'";
-  
+
   return cellAllotedStr
-    .split(',')
-    .map(cell => `'${cell.trim()}'`)
-    .join(',');
+    .split(",")
+    .map((cell) => `'${cell.trim()}'`)
+    .join(",");
 };
-
-/**
- * NEW API: Get API parameters from active role for new API calls
- * @param {Object} activeRole - Active role object
- * @returns {Object} - API parameters
- */
-export const getNewAPIParamsFromActiveRole = (activeRole) => {
-  if (!activeRole) {
-    throw new Error("Active role is required for NEW API calls");
-  }
-
-  // Import enum functions
-  const { ModuleMapping, SubsectionMapping } = require("../constants/Enum");
-
-  // Get module configuration
-  const moduleConfig = ModuleMapping[activeRole.MODULE];
-  if (!moduleConfig) {
-    throw new Error(`Unknown module in active role: ${activeRole.MODULE}`);
-  }
-
-  // Get subsection configuration
-  const subsectionConfig = SubsectionMapping[activeRole.SUB_SECTION];
-  if (!subsectionConfig) {
-    throw new Error(`Unknown subsection in active role: ${activeRole.SUB_SECTION}`);
-  }
-
-  // Format cell allocation
-  const cellAllotedString = formatCellAllocationForAPI(activeRole.CELL_ALLOTED);
-
-  return {
-    MODULE_CAT: String(moduleConfig.cat),
-    SUB_SECTION: activeRole.SUB_SECTION,
-    CELL: cellAllotedString,
-    // Additional helper properties
-    prefix: subsectionConfig.prefix,
-    suffix: moduleConfig.suffix,
-    roleId: activeRole.ROLE_ID,
-    portfolioName: activeRole.PORTFOLIO_NAME
-  };
-};
-
 
 /**
  * Fetches and filters designation flags for a given role.
@@ -1246,26 +1198,24 @@ export const getDesignationFlags = async (activeRole) => {
       return [];
     }
 
-    const flags = data.items.map(item => item.designation_flag);
+    const flags = data.items.map((item) => item.designation_flag);
     console.log("Raw designation flags found:", flags);
 
     // Filter out flags starting with "U"
-    const validFlags = flags.filter(flag => !flag.startsWith("U"));
-    
-    if (validFlags.length === 0) {
-        console.warn("No valid designation flags found after filtering.");
-    } else {
-        console.log("✅ Valid designation flags:", validFlags);
-    }
-    
-    return validFlags;
+    const validFlags = flags.filter((flag) => !flag.startsWith("U"));
 
+    if (validFlags.length === 0) {
+      console.warn("No valid designation flags found after filtering.");
+    } else {
+      console.log("✅ Valid designation flags:", validFlags);
+    }
+
+    return validFlags;
   } catch (error) {
     console.error("❌ Failed to fetch designation flags:", error);
     throw error; // Re-throw to be caught by the calling function
   }
 };
-
 
 export const fetchQueriesForRoleNew1 = async (
   dispatch,
@@ -1278,7 +1228,7 @@ export const fetchQueriesForRoleNew1 = async (
     "🔄 Fetching queries for role change (NEW API):",
     newActiveRole.PORTFOLIO_NAME
   );
-  
+
   return fetchAllUserQueriesNew(dispatch, {
     activeRole: newActiveRole,
     designationFlags: designationFlags, // PASS IT HERE
@@ -1288,7 +1238,7 @@ export const fetchQueriesForRoleNew1 = async (
           ...progress,
           roleChange: true,
           roleName: newActiveRole.PORTFOLIO_NAME,
-          apiVersion: "NEW"
+          apiVersion: "NEW",
         });
       }
     },

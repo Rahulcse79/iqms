@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchRepliedQueries } from "../actions/repliedQueryAction";
 import Loader from "../components/Loader";
-// import {
-//   getPendingQueriesCountNew, // NEW
-//   getTransferredQueriesCountNew, // NEW
-// } from "../../utils/helpers";
-import { getAllRoleLevelCodes } from "../constants/Enum";
+import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
+import { useActiveRole } from "../hooks/useActiveRole";
 
 // --- CSS Styles ---
 const styles = `
@@ -159,28 +155,9 @@ const parseJSON = (key) => {
   }
 };
 
-const getPendingCounts = () => {
-  const data = parseJSON("pendingQueries_v2_new");
-  if (!data) return { creator: 0, verifier: 0, approver: 0, total: 0 };
-
-  let creator = 0,
-    verifier = 0,
-    approver = 0;
-
-  Object.keys(data).forEach((unit) => {
-    const num = parseInt(unit.replace(/\D/g, ""), 10);
-    const count = data[unit].length;
-    if (num === 1) creator += count;
-    else if (num === 2) verifier += count;
-    else if (num === 3) approver += count;
-  });
-
-  return {
-    creator,
-    verifier,
-    approver,
-    total: creator + verifier + approver,
-  };
+const getPendingCountsFromStorage = (activeRole) => {
+  if (!activeRole) return { creator: 0, verifier: 0, approver: 0, total: 0 };
+  return getAllPendingCountsForRole(activeRole);
 };
 
 const getTransferredCounts = () => {
@@ -240,30 +217,62 @@ const QueryCard = ({ title, data, className, link }) => {
 // --- Main Dashboard Component ---
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const { loading, items, error } = useSelector(
+
+  const { activeRole } = useActiveRole();
+
+  const { loading1, items, error } = useSelector(
     (state) => state.replied_queries
   );
 
+  const [loading, setLoading] = useState(true);
+
   const [counts, setCounts] = useState({
-    pending: getPendingCounts(),
-    transferred: getTransferredCounts(),
-    replied: getRepliedCount(),
+    pending: { creator: 0, verifier: 0, approver: 0, total: 0 },
+    transferred: { creator: 0, verifier: 0, approver: 0, total: 0 },
+    replied: 0,
   });
+
+  const updateAllCounts = useCallback(() => {
+    console.log(
+      "🔄 Updating dashboard counts for role:",
+      activeRole?.PORTFOLIO_NAME
+    );
+    setLoading(true);
+    setCounts({
+      pending: getPendingCountsFromStorage(activeRole), // Pass activeRole here
+      transferred: getTransferredCounts(),
+      replied: getRepliedCount(),
+    });
+    setLoading(false);
+  }, [activeRole]);
+
+  useEffect(() => {
+    if (activeRole) {
+      updateAllCounts();
+    }
+  }, [activeRole, updateAllCounts]);
 
   // Refresh counts when localStorage changes (polling for simplicity)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCounts({
-        pending: getPendingCounts(),
-        transferred: getTransferredCounts(),
-        replied: getRepliedCount(),
-      });
-    }, 2000); // check every 2s
+    const handleStorageChange = () => {
+      console.log("📢 Storage change detected, refreshing dashboard counts...");
+      updateAllCounts();
+    };
 
-    return () => clearInterval(interval);
-  }, []);
+    // Listen to the custom event from pendingQueryActionNew.js
+    window.addEventListener('pendingQueriesUpdated', handleStorageChange);
+    // Listen to the generic storage event for other tabs
+    window.addEventListener('storage', handleStorageChange);
+    // Listen for role changes
+    window.addEventListener('activeRoleChanged', handleStorageChange);
 
-  // useEffect(() => {
+    // Cleanup listeners on component unmount
+    return () => {
+      window.removeEventListener('pendingQueriesUpdated', handleStorageChange);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('activeRoleChanged', handleStorageChange);
+    };
+  }, [updateAllCounts]);
   //   if (!activeRole) return;
 
   //   const codes = getAllRoleLevelCodes(
@@ -320,7 +329,7 @@ const Dashboard = () => {
   return (
     <>
       <style>{styles}</style>
-      {loading && <Loader text="Fetching Replied Queries..." />}
+      {loading1 && <Loader text="Fetching Replied Queries..." />}
       <div className="dashboard-section">
         <div className="dashboard-grid">
           <QueryCard
