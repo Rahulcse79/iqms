@@ -4,14 +4,11 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import "./DashboardLayout.css";
 import useTheme from "../hooks/useTheme";
-import { useDataRefresher } from "../hooks/useDataRefresher";
 
 const DashboardLayout = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
 
-  // Background data refresher
-  useDataRefresher();
 
   // theme hook
   const { theme, toggleTheme } = useTheme();
