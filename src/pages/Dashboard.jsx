@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { useActiveRole } from "../hooks/useActiveRole";
+import { debounce } from "../utils/helpers";
 
 // --- CSS Styles ---
 const styles = `
@@ -13,13 +14,11 @@ const styles = `
       font-family: var(--font-family, sans-serif);
       color: var(--text);
     }
-
     .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 1.5rem;
     }
-
     .query-card {
       background-color: var(--surface);
       border-radius: 0.75rem;
@@ -29,34 +28,29 @@ const styles = `
       border: 1px solid var(--border);
       border-top: 4px solid transparent;
       transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      cursor: pointer;
     }
-
     .query-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow);
     }
-
     /* Status border colors */
     .query-card.pending { border-top-color: var(--red); }
     .query-card.transferred { border-top-color: var(--blue); }
     .query-card.replied { border-top-color: var(--green); }
-
     .card-header {
       font-size: 1.125rem;
       font-weight: 600;
       margin-bottom: 1.5rem;
     }
-
     .pending .card-header { color: var(--red); }
     .transferred .card-header { color: var(--blue); }
     .replied .card-header { color: var(--green); }
-
     .card-body {
       display: flex;
       flex-direction: column;
       gap: 1rem;
     }
-
     .card-row {
       display: flex;
       justify-content: space-between;
@@ -65,11 +59,9 @@ const styles = `
       flex-wrap: wrap;
       gap: 6px;
     }
-
     .card-label {
       color: var(--muted);
     }
-
     .card-value-link {
       font-weight: 700;
       text-decoration: none;
@@ -77,10 +69,8 @@ const styles = `
       border-radius: 9999px;
       transition: background-color 0.2s ease-in-out;
       display: inline-block;
-      cursor: pointer;
-      font-size: 0.9rem;
+      color: inherit;
     }
-
     .pending .card-value-link {
       background-color: var(--red-bg);
       color: var(--red-text);
@@ -93,12 +83,9 @@ const styles = `
       background-color: var(--green-bg);
       color: var(--green-text);
     }
-
     .pending .card-value-link:hover { background-color: var(--red-hover); }
     .transferred .card-value-link:hover { background-color: var(--blue-hover); }
     .replied .card-value-link:hover { background-color: var(--green-hover); }
-
-    /* Responsive Queries */
     @media (max-width: 1024px) {
       .dashboard-section {
         padding: 1.5rem;
@@ -107,13 +94,12 @@ const styles = `
         gap: 1.25rem;
       }
     }
-
     @media (max-width: 768px) {
       .dashboard-section {
         padding: 1rem;
       }
       .dashboard-grid {
-        grid-template-columns: 1fr; /* stack cards vertically */
+        grid-template-columns: 1fr;
       }
       .query-card {
         padding: 1.25rem;
@@ -122,7 +108,6 @@ const styles = `
         font-size: 1rem;
       }
     }
-
     @media (max-width: 480px) {
       .dashboard-section {
         padding: 0.75rem;
@@ -143,9 +128,9 @@ const styles = `
         padding: 0.2rem 0.6rem;
       }
     }
-  `;
+`;
 
-// --- Helpers to calculate counts ---
+// Helper to parse JSON from localStorage safely
 const parseJSON = (key) => {
   try {
     const val = localStorage.getItem(key);
@@ -155,56 +140,47 @@ const parseJSON = (key) => {
   }
 };
 
+// Get pending counts filtered by active role
 const getPendingCountsFromStorage = (activeRole) => {
   if (!activeRole) return { creator: 0, verifier: 0, approver: 0, total: 0 };
   return getAllPendingCountsForRole(activeRole);
 };
 
+// Get transferred counts from localStorage
 const getTransferredCounts = () => {
   const data = parseJSON("transferredQueries_v2_new");
   if (!data) return { creator: 0, verifier: 0, approver: 0, total: 0 };
-
   let creator = 0,
     verifier = 0,
     approver = 0;
-
   Object.keys(data).forEach((unit) => {
     const num = parseInt(unit.replace(/\D/g, ""), 10);
-    const count = data[unit].length;
+    const count = data[unit]?.length || 0;
     if (num === 1) creator += count;
     else if (num === 2) verifier += count;
     else if (num === 3) approver += count;
   });
-
-  return {
-    creator,
-    verifier,
-    approver,
-    total: creator + verifier + approver,
-  };
+  return { creator, verifier, approver, total: creator + verifier + approver };
 };
 
-const getRepliedCount = () => {
+// Get replied count filtered by active role subsection
+const getRepliedCount = (activeRole) => {
   const data = parseJSON("repliedQueries_v2_new");
-  if (!data) return 0;
-
-  // Sum the length of each array within the localStorage object
-  return Object.values(data).reduce(
-    (total, queries) => total + (Array.isArray(queries) ? queries.length : 0),
-    0
-  );
+  if (!data || !activeRole) return 0;
+  const subSection = activeRole.SUB_SECTION || "DEFAULT";
+  const items = data[subSection] || [];
+  return Array.isArray(items) ? items.length : 0;
 };
 
-// --- Card Component ---
+// Query card component
 const QueryCard = ({ title, data, className, link }) => {
   const navigate = useNavigate();
-
   return (
     <div className={`query-card ${className}`} onClick={() => navigate(link)}>
       <h3 className="card-header">{title}</h3>
       <div className="card-body">
         {data.map((item, index) => (
-          <div className="card-row" key={index}>
+          <div className="card-row" key={`${title}-${item.label}-${index}`}>
             <span className="card-label">{item.label}</span>
             <span className="card-value-link">{item.value}</span>
           </div>
@@ -214,18 +190,11 @@ const QueryCard = ({ title, data, className, link }) => {
   );
 };
 
-// --- Main Dashboard Component ---
+// Main Dashboard component
 const Dashboard = () => {
-  const dispatch = useDispatch();
-
   const { activeRole } = useActiveRole();
-
-  const { loading1, items, error } = useSelector(
-    (state) => state.replied_queries
-  );
-
+  const { error: repliedError } = useSelector((state) => state.replied_queries);
   const [loading, setLoading] = useState(true);
-
   const [counts, setCounts] = useState({
     pending: { creator: 0, verifier: 0, approver: 0, total: 0 },
     transferred: { creator: 0, verifier: 0, approver: 0, total: 0 },
@@ -235,6 +204,7 @@ const Dashboard = () => {
   const updateAllCounts = useCallback(() => {
     if (!activeRole) {
       console.log("Dashboard: Waiting for active role...");
+      setLoading(false);
       return;
     }
     console.log(
@@ -243,12 +213,33 @@ const Dashboard = () => {
     );
     setLoading(true);
     setCounts({
-      pending: getPendingCountsFromStorage(activeRole), // Pass activeRole here
+      pending: getPendingCountsFromStorage(activeRole),
       transferred: getTransferredCounts(),
-      replied: getRepliedCount(),
+      replied: getRepliedCount(activeRole),
     });
-    setLoading(false);
   }, [activeRole]);
+
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [counts, loading]);
+
+  useEffect(() => {
+    const debouncedUpdate = debounce(() => updateAllCounts(), 300);
+    // Listen to storage updates
+    const onStorageChange = () => debouncedUpdate();
+    window.addEventListener("pendingQueriesUpdated", onStorageChange);
+    window.addEventListener("storage", onStorageChange);
+
+    return () => {
+      window.removeEventListener("pendingQueriesUpdated", onStorageChange);
+      window.removeEventListener("storage", onStorageChange);
+    };
+  }, [updateAllCounts]);
 
   useEffect(() => {
     if (activeRole) {
@@ -256,58 +247,38 @@ const Dashboard = () => {
     }
   }, [activeRole, updateAllCounts]);
 
-  // Refresh counts when localStorage changes (polling for simplicity)
   useEffect(() => {
-    const handleStorageChange = () => {
-      console.log("📢 Storage change detected, refreshing dashboard counts...");
+    const onActiveRoleChanged = (e) => {
+      if (e.detail?.newRole) {
+        console.log("Active role changed event received:", e.detail.newRole);
+        updateAllCounts();
+      }
+    };
+
+    window.addEventListener("activeRoleChanged", onActiveRoleChanged);
+
+    return () => {
+      window.removeEventListener("activeRoleChanged", onActiveRoleChanged);
+    };
+  }, [updateAllCounts]);
+
+  useEffect(() => {
+    // Initial update
+    updateAllCounts();
+
+    const handleDataChange = () => {
+      console.log("📢 Data change detected, refreshing dashboard...");
       updateAllCounts();
     };
 
-    // Listen to the custom event from pendingQueryActionNew.js
-    window.addEventListener("pendingQueriesUpdated", handleStorageChange);
-    // Listen to the generic storage event for other tabs
-    window.addEventListener("storage", handleStorageChange);
-    // Listen for role changes
-    window.addEventListener("activeRoleChanged", handleStorageChange);
+    window.addEventListener("pendingQueriesUpdated", handleDataChange);
+    window.addEventListener("storage", handleDataChange);
 
-    // Cleanup listeners on component unmount
     return () => {
-      window.removeEventListener("pendingQueriesUpdated", handleStorageChange);
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("activeRoleChanged", handleStorageChange);
+      window.removeEventListener("pendingQueriesUpdated", handleDataChange);
+      window.removeEventListener("storage", handleDataChange);
     };
   }, [updateAllCounts]);
-  //   if (!activeRole) return;
-
-  //   const codes = getAllRoleLevelCodes(
-  //     activeRole.SUB_SECTION,
-  //     activeRole.MODULE
-  //   );
-  //   const apiCodes = codes.filter((c) => c.isValid).map((c) => c.apiCode);
-
-  //   let totalPending = 0;
-  //   let totalTransferred = 0;
-  //   let totalPendingNew = 0; // NEW
-  //   let totalTransferredNew = 0; // NEW
-
-  //   apiCodes.forEach((code) => {
-  //     // OLD API counts
-  //     totalPending += getPendingQueriesCount(code);
-  //     totalTransferred += getTransferredQueriesCount(code);
-
-  //     // NEW API counts
-  //     totalPendingNew += getPendingQueriesCountNew(code);
-  //     totalTransferredNew += getTransferredQueriesCountNew(code);
-  //   });
-
-  //   setCounts({
-  //     pending: totalPending,
-  //     transferred: totalTransferred,
-  //     pendingNew: totalPendingNew, // NEW
-  //     transferredNew: totalTransferredNew, // NEW
-  //     replied: 0, // Replied logic needs to be added
-  //   });
-  // }, [activeRole]);
 
   const pendingQueriesData = [
     { label: "Pending at Creator", value: counts.pending.creator },
@@ -324,16 +295,16 @@ const Dashboard = () => {
   ];
 
   const repliedQueriesData = [
-    {
-      label: "Replied Queries",
-      value: loading ? "..." : error ? "ERR" : counts.replied,
-    },
+    { label: "Replied Queries", value: repliedError ? "ERR" : counts.replied },
   ];
+
+  if (loading) {
+    return <Loader text="Loading Dashboard..." />;
+  }
 
   return (
     <>
       <style>{styles}</style>
-      {loading1 && <Loader text="Fetching Replied Queries..." />}
       <div className="dashboard-section">
         <div className="dashboard-grid">
           <QueryCard

@@ -176,6 +176,12 @@ const Topbar = ({ toggleSidebar }) => {
           successful: fetchResult.successful,
           total: fetchResult.total,
         });
+
+        window.dispatchEvent(
+          new CustomEvent("activeRoleChanged", {
+            detail: { newRole: selected },
+          })
+        );
       } else {
         console.warn(
           `⚠️ Some queries failed for ${selected.PORTFOLIO_NAME}, but role switched successfully`
@@ -187,6 +193,12 @@ const Topbar = ({ toggleSidebar }) => {
         setSwitchingRole(false);
         setSwitchProgress({});
       }, 1000);
+
+      window.dispatchEvent(
+        new CustomEvent("activeRoleChanged", {
+          detail: { newRole: selected },
+        })
+      );
     } catch (error) {
       console.error("❌ Error during role switch:", error);
       setSwitchProgress({ step: "error", error: error.message });
@@ -196,6 +208,12 @@ const Topbar = ({ toggleSidebar }) => {
         setSwitchingRole(false);
         setSwitchProgress({});
       }, 3000);
+
+      window.dispatchEvent(
+        new CustomEvent("activeRoleChanged", {
+          detail: { newRole: selected },
+        })
+      );
     }
   };
 
