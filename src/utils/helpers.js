@@ -885,7 +885,7 @@ export const submitIqmsReply = async (submitData) => {
  * @returns {Promise} - Promise resolving to fetch results
  */
 export const fetchAllUserQueriesNew = async (dispatch, config) => {
-  const { activeRole, onProgress, onError } = config;
+  const { activeRole, designationFlags, onProgress, onError } = config;
 
   // Lazy import to avoid circular dependencies
   const { fetchRepliedQueriesNew } = await import(
@@ -894,7 +894,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
   const { fetchAllPendingQueriesForRole } = await import(
     "../actions/pendingQueryActionNew"
   );
-  const { fetchTransferredQueriesNew } = await import(
+  const { fetchAllTransferredQueriesForRole } = await import(
     "../actions/transferredQueryActionNew"
   );
 
@@ -925,13 +925,14 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
       });
     }
 
-    // Create all fetch tasks
+    // Create all fetch tasks - all run in parallel and independently
     const tasks = [
       {
         name: "pending-all-levels",
         task: dispatch(fetchAllPendingQueriesForRole(activeRole)),
         description:
           "Fetch pending queries for creator, verifier, and approver",
+        critical: false,
       },
       {
         name: "replied-new",
@@ -943,16 +944,15 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
           })
         ),
         description: "Fetch replied queries",
+        critical: false,
       },
       {
         name: "transferred-new",
         task: dispatch(
-          fetchTransferredQueriesNew({
-            moduleCat: String(activeRole.MODULE_CAT),
-            cell: cellAllotedString,
-          })
+          fetchAllTransferredQueriesForRole(activeRole, designationFlags)
         ),
-        description: "Fetch transferred queries",
+        description: "Fetch transferred queries (depends on designation flags)",
+        critical: false,
       },
     ];
 
@@ -988,6 +988,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
               error: error,
               index: index,
               apiVersion: "NEW",
+              critical: taskObj.critical,
             });
           }
 
@@ -1031,6 +1032,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
       cellAllocation: cellAllotedString,
       activeRole: activeRole.PORTFOLIO_NAME,
       apiVersion: "NEW",
+      designationFlags: designationFlags || [],
     };
   } catch (error) {
     console.error("Critical error in fetchAllUserQueriesNew:", error);

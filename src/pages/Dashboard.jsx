@@ -1,12 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { useActiveRole } from "../hooks/useActiveRole";
-import { debounce } from "../utils/helpers";
 
-// --- CSS Styles ---
+// --- CSS Styles (keep the same) ---
 const styles = `
     .dashboard-section {
       padding: 2rem;
@@ -34,7 +33,6 @@ const styles = `
       transform: translateY(-4px);
       box-shadow: var(--shadow);
     }
-    /* Status border colors */
     .query-card.pending { border-top-color: var(--red); }
     .query-card.transferred { border-top-color: var(--blue); }
     .query-card.replied { border-top-color: var(--green); }
@@ -59,9 +57,7 @@ const styles = `
       flex-wrap: wrap;
       gap: 6px;
     }
-    .card-label {
-      color: var(--muted);
-    }
+    .card-label { color: var(--muted); }
     .card-value-link {
       font-weight: 700;
       text-decoration: none;
@@ -87,50 +83,25 @@ const styles = `
     .transferred .card-value-link:hover { background-color: var(--blue-hover); }
     .replied .card-value-link:hover { background-color: var(--green-hover); }
     @media (max-width: 1024px) {
-      .dashboard-section {
-        padding: 1.5rem;
-      }
-      .dashboard-grid {
-        gap: 1.25rem;
-      }
+      .dashboard-section { padding: 1.5rem; }
+      .dashboard-grid { gap: 1.25rem; }
     }
     @media (max-width: 768px) {
-      .dashboard-section {
-        padding: 1rem;
-      }
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-      .query-card {
-        padding: 1.25rem;
-      }
-      .card-header {
-        font-size: 1rem;
-      }
+      .dashboard-section { padding: 1rem; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .query-card { padding: 1.25rem; }
+      .card-header { font-size: 1rem; }
     }
     @media (max-width: 480px) {
-      .dashboard-section {
-        padding: 0.75rem;
-      }
-      .query-card {
-        padding: 1rem;
-      }
-      .card-header {
-        font-size: 0.95rem;
-      }
-      .card-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-      }
-      .card-value-link {
-        font-size: 0.85rem;
-        padding: 0.2rem 0.6rem;
-      }
+      .dashboard-section { padding: 0.75rem; }
+      .query-card { padding: 1rem; }
+      .card-header { font-size: 0.95rem; }
+      .card-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .card-value-link { font-size: 0.85rem; padding: 0.2rem 0.6rem; }
     }
 `;
 
-// Helper to parse JSON from localStorage safely
+// Helper functions
 const parseJSON = (key) => {
   try {
     const val = localStorage.getItem(key);
@@ -140,19 +111,16 @@ const parseJSON = (key) => {
   }
 };
 
-// Get pending counts filtered by active role
 const getPendingCountsFromStorage = (activeRole) => {
   if (!activeRole) return { creator: 0, verifier: 0, approver: 0, total: 0 };
   return getAllPendingCountsForRole(activeRole);
 };
 
-// Get transferred counts from localStorage
 const getTransferredCounts = () => {
   const data = parseJSON("transferredQueries_v2_new");
   if (!data) return { creator: 0, verifier: 0, approver: 0, total: 0 };
-  let creator = 0,
-    verifier = 0,
-    approver = 0;
+
+  let creator = 0, verifier = 0, approver = 0;
   Object.keys(data).forEach((unit) => {
     const num = parseInt(unit.replace(/\D/g, ""), 10);
     const count = data[unit]?.length || 0;
@@ -160,16 +128,25 @@ const getTransferredCounts = () => {
     else if (num === 2) verifier += count;
     else if (num === 3) approver += count;
   });
+
   return { creator, verifier, approver, total: creator + verifier + approver };
 };
 
-// Get replied count filtered by active role subsection
 const getRepliedCount = (activeRole) => {
   const data = parseJSON("repliedQueries_v2_new");
   if (!data || !activeRole) return 0;
   const subSection = activeRole.SUB_SECTION || "DEFAULT";
   const items = data[subSection] || [];
   return Array.isArray(items) ? items.length : 0;
+};
+
+// Debounce utility
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
 };
 
 // Query card component
@@ -190,7 +167,7 @@ const QueryCard = ({ title, data, className, link }) => {
   );
 };
 
-// Main Dashboard component
+// ✅ FIXED Dashboard component - Single useEffect pattern
 const Dashboard = () => {
   const { activeRole } = useActiveRole();
   const { error: repliedError } = useSelector((state) => state.replied_queries);
@@ -201,84 +178,76 @@ const Dashboard = () => {
     replied: 0,
   });
 
-  const updateAllCounts = useCallback(() => {
-    if (!activeRole) {
-      console.log("Dashboard: Waiting for active role...");
-      setLoading(false);
-      return;
-    }
-    console.log(
-      "🔄 Updating dashboard counts for role:",
-      activeRole?.PORTFOLIO_NAME
-    );
-    setLoading(true);
-    setCounts({
-      pending: getPendingCountsFromStorage(activeRole),
-      transferred: getTransferredCounts(),
-      replied: getRepliedCount(activeRole),
-    });
-  }, [activeRole]);
+  // Use ref to track if component is mounted
+  const mountedRef = useRef(true);
 
+  // ✅ Single debounced update function
+  const debouncedUpdateCounts = useCallback(
+    debounce(() => {
+      if (!mountedRef.current || !activeRole) {
+        console.log("Dashboard: Component unmounted or no active role");
+        return;
+      }
+
+      console.log("🔄 Updating dashboard counts for role:", activeRole.PORTFOLIO_NAME);
+
+      // Use functional state update to avoid stale closure issues
+      setCounts((prevCounts) => ({
+        pending: getPendingCountsFromStorage(activeRole),
+        transferred: getTransferredCounts(),
+        replied: getRepliedCount(activeRole),
+      }));
+
+      // Handle loading state
+      setLoading(true);
+      setTimeout(() => {
+        if (mountedRef.current) {
+          setLoading(false);
+        }
+      }, 250);
+    }, 300),
+    [activeRole]
+  );
+
+  // ✅ Single consolidated useEffect for all event handling
   useEffect(() => {
-    if (loading) {
-      const timer = setTimeout(() => {
-        setLoading(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [counts, loading]);
+    // Set mounted flag
+    mountedRef.current = true;
 
-  useEffect(() => {
-    const debouncedUpdate = debounce(() => updateAllCounts(), 300);
-    // Listen to storage updates
-    const onStorageChange = () => debouncedUpdate();
-    window.addEventListener("pendingQueriesUpdated", onStorageChange);
-    window.addEventListener("storage", onStorageChange);
-
-    return () => {
-      window.removeEventListener("pendingQueriesUpdated", onStorageChange);
-      window.removeEventListener("storage", onStorageChange);
-    };
-  }, [updateAllCounts]);
-
-  useEffect(() => {
+    // Initial update
     if (activeRole) {
-      updateAllCounts();
+      debouncedUpdateCounts();
     }
-  }, [activeRole, updateAllCounts]);
 
-  useEffect(() => {
-    const onActiveRoleChanged = (e) => {
-      if (e.detail?.newRole) {
-        console.log("Active role changed event received:", e.detail.newRole);
-        updateAllCounts();
+    // ✅ Single event handler function
+    const handleAllUpdates = () => {
+      if (mountedRef.current && activeRole) {
+        debouncedUpdateCounts();
       }
     };
 
-    window.addEventListener("activeRoleChanged", onActiveRoleChanged);
+    // ✅ Listen to all events with same handler
+    window.addEventListener("pendingQueriesUpdated", handleAllUpdates);
+    window.addEventListener("transferredQueriesUpdated", handleAllUpdates);
+    window.addEventListener("storage", handleAllUpdates);
+    window.addEventListener("activeRoleChanged", handleAllUpdates);
 
+    // ✅ Cleanup function
     return () => {
-      window.removeEventListener("activeRoleChanged", onActiveRoleChanged);
+      mountedRef.current = false;
+      window.removeEventListener("pendingQueriesUpdated", handleAllUpdates);
+      window.removeEventListener("transferredQueriesUpdated", handleAllUpdates);
+      window.removeEventListener("storage", handleAllUpdates);
+      window.removeEventListener("activeRoleChanged", handleAllUpdates);
     };
-  }, [updateAllCounts]);
+  }, [activeRole, debouncedUpdateCounts]);
 
+  // ✅ Handle component unmount
   useEffect(() => {
-    // Initial update
-    updateAllCounts();
-
-    const handleDataChange = () => {
-      console.log("📢 Data change detected, refreshing dashboard...");
-      updateAllCounts();
-    };
-
-    window.addEventListener("pendingQueriesUpdated", handleDataChange);
-    window.addEventListener("storage", handleDataChange);
-
     return () => {
-      window.removeEventListener("pendingQueriesUpdated", handleDataChange);
-      window.removeEventListener("storage", handleDataChange);
+      mountedRef.current = false;
     };
-  }, [updateAllCounts]);
+  }, []);
 
   const pendingQueriesData = [
     { label: "Pending at Creator", value: counts.pending.creator },
@@ -298,7 +267,8 @@ const Dashboard = () => {
     { label: "Replied Queries", value: repliedError ? "ERR" : counts.replied },
   ];
 
-  if (loading) {
+  // ✅ Show loader only briefly to prevent DOM conflicts
+  if (loading && !activeRole) {
     return <Loader text="Loading Dashboard..." />;
   }
 
