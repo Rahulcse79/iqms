@@ -1,13 +1,23 @@
-// src/pages/RepliedQueries/RepliedQueries.jsx (NEW FILE)
+// src/pages/RepliedQueries/RepliedQueries.jsx (FINAL, ROBUST VERSION)
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useActiveRole } from "../../hooks/useActiveRole";
+import { useDispatch } from "react-redux";
 import { refreshRepliedQueriesNew } from "../../actions/repliedQueryActionNew";
 import QueriesTable from "../../components/QueriesTable";
-import { getNewAPIParamsFromActiveRole } from "../../utils/helpers";
+import { HiOutlineRefresh } from "react-icons/hi";
 
 const STORAGE_KEY = "repliedQueries_v2_new";
+const ACTIVE_ROLE_KEY = "activeRole_v1";
+
+const getLocalStorageData = (key) => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn(`Failed to read from localStorage key: ${key}`, error);
+    return null;
+  }
+};
 
 const formatIso = (iso) => {
   if (!iso) return "N/A";
@@ -19,72 +29,79 @@ const formatIso = (iso) => {
 };
 
 const RepliedQueries = () => {
-  const { activeRole } = useActiveRole();
-  const dispatch = useDispatch();
-  const [items, setItems] = useState([]); // Keep the state for items
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // Get data from Redux store (or localStorage directly)
-  const repliedData = useSelector(
-    (state) => state.replied_queries?.byKey?.[activeRole?.SUB_SECTION] || {}
-  );
+  const dispatch = useDispatch();
+  const activeRole = useMemo(() => getLocalStorageData(ACTIVE_ROLE_KEY), []);
 
   const loadFromStorage = useCallback(() => {
     if (!activeRole?.SUB_SECTION) {
-      setItems([]); // Corrected to setItems
+      setItems([]);
       return;
     }
-    const storageData = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    const dataForRole = storageData[activeRole.SUB_SECTION] || [];
-    setItems(dataForRole); // Corrected to setItems
+    const storageData = getLocalStorageData(STORAGE_KEY);
+    const dataForRole = storageData?.[activeRole.SUB_SECTION] || [];
+    setItems(dataForRole);
   }, [activeRole]);
 
   useEffect(() => {
     loadFromStorage();
+    window.addEventListener("storage", loadFromStorage);
+    window.addEventListener("repliedQueriesUpdated", loadFromStorage);
+    return () => {
+      window.removeEventListener("storage", loadFromStorage);
+      window.removeEventListener("repliedQueriesUpdated", loadFromStorage);
+    };
   }, [loadFromStorage]);
-
-  useEffect(() => {
-    if (repliedData.items && repliedData.items.length > items.length) {
-      setItems(repliedData.items); // Corrected to setItems
-    }
-  }, [repliedData, items.length]);
 
   const handleRefresh = async () => {
     if (!activeRole) return;
     setLoading(true);
-    const { MODULE_CAT, SUB_SECTION, CELL } =
-      getNewAPIParamsFromActiveRole(activeRole);
-    await dispatch(
-      refreshRepliedQueriesNew({
-        moduleCat: MODULE_CAT,
-        subSection: SUB_SECTION,
-        cell: CELL,
-        activeRole: activeRole
-      })
-    );
-    setLoading(false);
+    try {
+      await dispatch(
+        refreshRepliedQueriesNew({
+          moduleCat: activeRole?.MODULE_CAT,
+          subSection: activeRole?.SUB_SECTION,
+          cell: activeRole?.CELL_ALLOTED,
+          activeRole: activeRole,
+        })
+      );
+    } catch (error) {
+      console.error("Failed to refresh replied queries", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const tableData = useMemo(() => {
-    return items.map((item, index) => ({ // Corrected to use items
-      id: item.doc_id || `${item.sno}-${index}`,
-      serviceNo: item.sno || "N/A",
-      type: item.querytype?.replace(/_/g, " ") || item.doc_type || "N/A",
-      queryId: String(item.doc_id || item.imprno || index),
-      date: formatIso(item.submit_date || item.action_dt),
-      subject: item.subject || "No Subject", // Add subject
-      personnel: item.pers || "N/A", // Add personnel info
-      raw: item,
+    return (items || []).map((it, idx) => ({
+      id: it.DOC_ID ?? `${it.SNO ?? "no-sno"}-${idx}`,
+      serviceNo: it.SNO ?? it.PERS ?? "",
+      type:
+        (it.QUERYTYPE && String(it.QUERYTYPE).replace(/_/g, " ")) ||
+        it.DOC_TYPE ||
+        "N/A",
+      queryId: String(it.DOC_ID || it.IMPRNO || idx),
+      date: formatIso(it.SUBMIT_DATE || it.ACTION_DT),
+      subject: it.SUBJECT || "No Subject",
+      personnel: it.PERS || "N/A",
+      raw: it,
     }));
-  }, [items]); // Corrected to use items
+  }, [items]);
 
   return (
     <div>
-      <h2>Replied Queries</h2>
-      <button onClick={handleRefresh} disabled={loading} className="refresh-btn">
-        {loading ? "Refreshing..." : "Refresh"}
-      </button>
-      {/* Pass the mapped 'tableData' to the component */}
+      <div className="header">
+        <h2>Replied Queries</h2>
+        <button
+          onClick={handleRefresh}
+          disabled={loading}
+          className="refresh-btn"
+        >
+          <HiOutlineRefresh className={loading ? "spinning" : ""} />
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
+      </div>
       <QueriesTable data={tableData} loading={loading} />
     </div>
   );

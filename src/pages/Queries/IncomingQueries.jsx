@@ -109,20 +109,20 @@ const IncomingQueries = () => {
 
   const tableData = useMemo(() => {
     return (localData || []).map((it, idx) => ({
-      id: it.doc_id ?? `${it.sno ?? "no-sno"}-${idx}`,
-      serviceNo: it.sno ?? it.pers ?? "",
+      id: it.DOC_ID ?? `${it.SNO ?? "no-sno"}-${idx}`,
+      serviceNo: it.SNO ?? it.PERS ?? "",
       type:
-        (it.querytype && String(it.querytype).replace(/_/g, " ")) ||
-        it.doc_type ||
-        it.subject ||
+        (it.QUERYTYPE && String(it.QUERYTYPE).replace(/_/g, " ")) ||
+        it.DOC_TYPE ||
+        it.SUBJECT ||
         "",
-      queryId: it.doc_id
-        ? String(it.doc_id)
-        : it.imprno
-        ? String(it.imprno)
-        : `${it.sno}-${idx}`,
-      date: formatIso(it.submit_date ?? it.action_dt ?? it.last_action_dt),
-      cat: it?.cat ?? null,
+      queryId: it.DOC_ID
+        ? String(it.DOC_ID)
+        : it.IMPRNO
+        ? String(it.IMPRNO)
+        : `${it.SNO}-${idx}`,
+      date: formatIso(it.SUBMIT_DATE ?? it.ACTION_DT),
+      cat: it.CAT ?? null,
       raw: it,
     }));
   }, [localData]);

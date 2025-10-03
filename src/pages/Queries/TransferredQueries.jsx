@@ -100,7 +100,10 @@ const TransferredQueries = () => {
 
     return () => {
       window.removeEventListener("storage", handleStorageUpdate);
-      window.removeEventListener("transferredQueriesUpdated", handleStorageUpdate);
+      window.removeEventListener(
+        "transferredQueriesUpdated",
+        handleStorageUpdate
+      );
     };
   }, [loadDataFromStorage]);
 
@@ -109,7 +112,9 @@ const TransferredQueries = () => {
     setLoading(true);
     setError(null);
     try {
-      await dispatch(refreshAllTransferredQueriesForRole(activeRole, [designationFlag]));
+      await dispatch(
+        refreshAllTransferredQueriesForRole(activeRole, [designationFlag])
+      );
     } catch (err) {
       setError("Failed to refresh queries.");
     } finally {
@@ -119,17 +124,27 @@ const TransferredQueries = () => {
 
   const tableData = useMemo(() => {
     return (localData || []).map((it, idx) => ({
-        id: it.doc_id ?? `${it.sno ?? "no-sno"}-${idx}`,
-        serviceNo: it.sno ?? it.pers ?? "",
-        type: (it.querytype && String(it.querytype).replace(/_/g, " ")) || it.doc_type || it.subject || "",
-        queryId: it.doc_id ? String(it.doc_id) : it.imprno ? String(it.imprno) : `${it.sno}-${idx}`,
-        date: formatIso(it.submit_date ?? it.action_dt ?? it.last_action_dt),
-        cat: it?.cat ?? null,
-        raw: it,
+      id: it.DOC_ID ?? `${it.SNO ?? "no-sno"}-${idx}`,
+      serviceNo: it.SNO ?? it.PERS ?? "",
+      type:
+        (it.QUERYTYPE && String(it.QUERYTYPE).replace(/_/g, " ")) ||
+        it.DOC_TYPE ||
+        it.SUBJECT ||
+        "",
+      queryId: it.DOC_ID
+        ? String(it.DOC_ID)
+        : it.IMPRNO
+        ? String(it.IMPRNO)
+        : `${it.SNO}-${idx}`,
+      date: formatIso(it.SUBMIT_DATE ?? it.ACTION_DT),
+      cat: it.CAT ?? null,
+      raw: it,
     }));
   }, [localData]);
 
-  const tabTitle = `Transferred Queries - ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`;
+  const tabTitle = `Transferred Queries - ${
+    activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+  }`;
 
   return (
     <div className="transferred-queries">
@@ -141,7 +156,11 @@ const TransferredQueries = () => {
               Role: {activeRole.PORTFOLIO_NAME} | Code: {pendingWith || "N/A"}
             </small>
           )}
-          <button onClick={handleRefresh} disabled={loading} className="refresh-btn">
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="refresh-btn"
+          >
             <HiOutlineRefresh className={loading ? "spinning" : ""} />
             {loading ? "Refreshing..." : "Refresh"}
           </button>
@@ -151,12 +170,18 @@ const TransferredQueries = () => {
       <div className="tabs">
         {["creator", "verifier", "approver"].map((role) => {
           const roleMap = { creator: "1", verifier: "2", approver: "3" };
-          const code = designationFlag ? generateTransferredPenWithCode(designationFlag, roleMap[role]) : null;
+          const code = designationFlag
+            ? generateTransferredPenWithCode(designationFlag, roleMap[role])
+            : null;
           const allData = getLocalStorageData(STORAGE_KEY);
           const count = code ? allData?.[code]?.length || 0 : 0;
 
           return (
-            <button key={role} className={`tab ${activeTab === role ? "active" : ""}`} onClick={() => setActiveTab(role)}>
+            <button
+              key={role}
+              className={`tab ${activeTab === role ? "active" : ""}`}
+              onClick={() => setActiveTab(role)}
+            >
               {role.charAt(0).toUpperCase() + role.slice(1)}
               {code && <span className="tab-code">({code})</span>}
               {count > 0 && <span className="tab-count"> • {count}</span>}
@@ -165,7 +190,11 @@ const TransferredQueries = () => {
         })}
       </div>
 
-      {error && <div className="error-message"><p>{error}</p></div>}
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+        </div>
+      )}
 
       <div className="table-container">
         <QueriesTable data={tableData} loading={loading} />
