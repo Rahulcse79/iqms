@@ -941,6 +941,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
             moduleCat: String(activeRole.MODULE_CAT),
             subSection: activeRole.SUB_SECTION,
             cell: cellAllotedString,
+            activeRole: activeRole
           })
         ),
         description: "Fetch replied queries",

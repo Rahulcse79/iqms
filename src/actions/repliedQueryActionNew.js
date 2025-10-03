@@ -19,6 +19,25 @@ function safeLoadRepliedStorageNew() {
   }
 }
 
+/**
+ * Format cell allocation for API
+ * @param {string} cellAlloted - Cell allocation string from activeRole
+ * @returns {string} - Formatted cell string for API
+ */
+export const formatCellAllocation = (cellAlloted) => {
+  if (!cellAlloted) return "";
+
+  // If already formatted with quotes, return as is
+  if (cellAlloted.includes("'")) return cellAlloted;
+
+  // Split by comma and wrap each in quotes
+  const cells = cellAlloted.split(",").map((cell) => cell.trim());
+  const formatted = cells.map((cell) => `'${cell}'`).join(",");
+
+  console.log(`📝 Formatted cells: ${cellAlloted} -> ${formatted}`);
+  return formatted;
+};
+
 function safeSaveRepliedToStorageNew(subSection, items) {
   try {
     const store = safeLoadRepliedStorageNew();
@@ -37,7 +56,7 @@ function safeSaveRepliedToStorageNew(subSection, items) {
  * @param {string} params.cell - Cell allocation string (e.g., "'501','502','503'")
  */
 export const fetchRepliedQueriesNew =
-  ({ moduleCat, subSection, cell }) =>
+  ({ moduleCat, subSection, cell, activeRole }) =>
   async (dispatch) => {
     const storageKey = subSection || "DEFAULT";
     dispatch({
@@ -49,14 +68,13 @@ export const fetchRepliedQueriesNew =
       console.log("🔄 Fetching replied queries (NEW API):", {
         moduleCat,
         subSection,
-        cell: cell.substring(0, 50) + "...", // Truncate for logging
       });
 
       const requestBody = {
         queryType: "REPLIED_QUERY",
         MODULE_CAT: moduleCat,
         SUB_SECTION: subSection,
-        CELL: cell,
+        CELL: formatCellAllocation(activeRole.CELL_ALLOTED),
         api_token: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS",
       };
 
@@ -118,7 +136,7 @@ export const fetchRepliedQueriesNew =
  * Used by Refresh button / Topbar manual refresh
  */
 export const refreshRepliedQueriesNew =
-  ({ moduleCat, subSection, cell }) =>
+  ({ moduleCat, subSection, cell, activeRole }) =>
   async (dispatch) => {
     const storageKey = subSection || "DEFAULT";
     console.log("🔄 Refreshing replied queries (NEW API) for:", subSection);
@@ -127,7 +145,9 @@ export const refreshRepliedQueriesNew =
     safeSaveRepliedToStorageNew(storageKey, []);
 
     // Fetch fresh data
-    return dispatch(fetchRepliedQueriesNew({ moduleCat, subSection, cell }));
+    return dispatch(
+      fetchRepliedQueriesNew({ moduleCat, subSection, cell, activeRole })
+    );
   };
 
 /**

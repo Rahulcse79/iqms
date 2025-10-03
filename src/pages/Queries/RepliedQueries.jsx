@@ -59,6 +59,7 @@ const RepliedQueries = () => {
         moduleCat: MODULE_CAT,
         subSection: SUB_SECTION,
         cell: CELL,
+        activeRole: activeRole
       })
     );
     setLoading(false);

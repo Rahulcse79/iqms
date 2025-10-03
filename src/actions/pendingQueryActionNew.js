@@ -71,7 +71,7 @@ export const generatePenWithCode = (activeRole, level) => {
  * @returns {string} - Formatted cell string for API
  */
 export const formatCellAllocation = (cellAlloted) => {
-  if (!cellAlloted) return "'ALL'";
+  if (!cellAlloted) return "";
 
   // If already formatted with quotes, return as is
   if (cellAlloted.includes("'")) return cellAlloted;
