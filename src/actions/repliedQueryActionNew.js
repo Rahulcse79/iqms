@@ -95,14 +95,22 @@ export const fetchRepliedQueriesNew =
       }
 
       const data = await response.json();
-      console.log(
-        `✅ Replied queries (NEW API) fetched for ${subSection}:`,
-        data?.data?.length || 0,
-        "items"
-      );
 
-      // Ensure we have an items array
-      const items = data?.data || [];
+      let items = [];
+
+      if (data.success && Array.isArray(data.data)) {
+        // ✅ Success and data is valid array
+        items = data.data;
+        console.log(
+          `✅ Fetched ${items.length} replied queries (NEW API) for ${subSection}`
+        );
+      } else {
+        // ❌ Failure or unexpected data format
+        console.warn("⚠️ API responded with no data or error:", data);
+
+        // Optional: you could show a notification, or handle empty display
+        items = []; // Set to empty array to clear previous entries
+      }
 
       // Save to storage and dispatch success
       safeSaveRepliedToStorageNew(storageKey, items);
