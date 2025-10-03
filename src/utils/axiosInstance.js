@@ -1,30 +1,25 @@
 // src/utils/axiosInstance.js
 import axios from "axios";
-import { getTenantConfig } from "../tenants";
 
-const createAxiosInstance = (tenantId) => {
-  const tenantConfig = getTenantConfig(tenantId);
-  const baseURL = tenantConfig ? tenantConfig.api.baseUrl : "";
+const api = axios.create({
+  baseURL: "http://sampoorna.cao.local/afcao/ipas/ivrs",
+});
 
-  const instance = axios.create({
-    baseURL,
-  });
-
-  // Add a request interceptor
-  instance.interceptors.request.use(
-    (config) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
+// Optional: intercept requests/responses
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response) {
+      return Promise.reject({
+        status: err.response.status,
+        message: err.response.data?.message || "Server Error",
+      });
+    } else if (err.request) {
+      return Promise.reject({ message: "No response from server" });
+    } else {
+      return Promise.reject({ message: err.message });
     }
-  );
+  }
+);
 
-  return instance;
-};
-
-export default createAxiosInstance;
+export default api;

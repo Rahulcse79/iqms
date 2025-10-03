@@ -149,7 +149,7 @@ export const fetchTransferredQueriesNew =
         // ✅ Success and data is valid array
         items = data.data;
         console.log(
-          `✅ Fetched ${items.length} replied queries (NEW API) for ${activeRole.SUB_SECTION}`
+          `✅ Fetched ${items.length} replied queries (NEW API) for ${subSection}`
         );
       } else {
         // ❌ Failure or unexpected data format
