@@ -159,7 +159,7 @@ export default function GCIHistoryTab() {
 
             <div style={{ overflowX: "auto", border: "1px solid #e6eaea", borderRadius: 8 }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead style={{ background: "#f8fafc" }}>
+                <thead style={{ background: "var(--surface)", color:"var(--text)" }}>
                   <tr>
                     {tableColumns.map((col) => (
                       <th key={col} style={{ padding: "8px 12px", borderBottom: "1px solid #e6eaea", textAlign: "left" }}>

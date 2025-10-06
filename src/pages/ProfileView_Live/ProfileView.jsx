@@ -5,29 +5,31 @@ import React, {
   useCallback,
   useMemo,
   useLayoutEffect,
-} from 'react';
-import './ProfileView.css';
-import GCIHistoryTab from './components/GCIHistoryTab';
-import RankHistoryTab from './components/RankHistoryTab';
-import TradeHistoryTab from './components/TradeHistoryTab';
-import PostingHistoryTab from './components/PostingHistoryTab';
-import PORDataBankTab from './components/PORDataBankTab';
-import MVRHistoryTab from './components/MVRHistoryTab';
-import IRLAHistoryTab from './components/IRLAHistoryTab';
-import IQMSDetailsTab from './components/IQMSdetailsTab';
-import { useDispatch, useSelector } from 'react-redux';
+} from "react";
+import "./ProfileView.css";
+import GCIHistoryTab from "./components/GCIHistoryTab";
+import RankHistoryTab from "./components/RankHistoryTab";
+import TradeHistoryTab from "./components/TradeHistoryTab";
+import PostingHistoryTab from "./components/PostingHistoryTab";
+import PORDataBankTab from "./components/PORDataBankTab";
+import MVRHistoryTab from "./components/MVRHistoryTab";
+import IRLAHistoryTab from "./components/IRLAHistoryTab";
+import IQMSDetailsTab from "./components/IQMSdetailsTab";
+import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPersonalData,
   getRankHistory,
   getTradeHistory,
   getPostingHistory,
-} from '../../actions/ProfileAction';
-import PersonalDetails from './components/PersonalDetails';
+} from "../../actions/ProfileAction";
+import PersonalDetails from "./components/PersonalDetails";
+import Form16B from "./components/Form16";
 
 const log = {
   debug: (...args) =>
-    process.env.NODE_ENV !== 'production' && console.debug('[ProfileView]', ...args),
-  error: (...args) => console.error('[ProfileView]', ...args),
+    process.env.NODE_ENV !== "production" &&
+    console.debug("[ProfileView]", ...args),
+  error: (...args) => console.error("[ProfileView]", ...args),
 };
 
 const LazyComponent = ({ renderFn }) => {
@@ -51,21 +53,58 @@ const LazyComponent = ({ renderFn }) => {
       {visible ? (
         renderFn()
       ) : (
-        <div style={{ padding: 20, textAlign: 'center' }}>Loading...</div>
+        <div style={{ padding: 20, textAlign: "center" }}>Loading...</div>
       )}
     </div>
   );
 };
 
 const SECTIONS = [
-  { id: 'pd', label: 'Personal Details', Component: PersonalDetails, icon: 'user' },
-  { id: 'rank', label: 'Rank History', Component: RankHistoryTab, icon: 'rank' },
-  { id: 'trade', label: 'Trade History', Component: TradeHistoryTab, icon: 'trade' },
-  { id: 'gci', label: 'GCI History', Component: GCIHistoryTab, icon: 'history' },
-  { id: 'posting', label: 'Posting History', Component: PostingHistoryTab, icon: 'posting' },
-  { id: 'por', label: 'POR Data Bank', Component: PORDataBankTab, icon: 'folder' },
-  { id: 'irla', label: 'IRLA History', Component: IRLAHistoryTab, icon: 'doc' },
-  { id: 'iqms', label: 'IQMS details', Component: IQMSDetailsTab, icon: 'chart' },
+  {
+    id: "pd",
+    label: "Personal Details",
+    Component: PersonalDetails,
+    icon: "user",
+  },
+  {
+    id: "rank",
+    label: "Rank History",
+    Component: RankHistoryTab,
+    icon: "rank",
+  },
+  {
+    id: "trade",
+    label: "Trade History",
+    Component: TradeHistoryTab,
+    icon: "trade",
+  },
+  {
+    id: "gci",
+    label: "GCI History",
+    Component: GCIHistoryTab,
+    icon: "history",
+  },
+  {
+    id: "posting",
+    label: "Posting History",
+    Component: PostingHistoryTab,
+    icon: "posting",
+  },
+  { id: "mvr", label: "MVR History", Component: MVRHistoryTab, icon: "chart" },
+  {
+    id: "por",
+    label: "POR Data Bank",
+    Component: PORDataBankTab,
+    icon: "folder",
+  },
+  { id: "irla", label: "IRLA History", Component: IRLAHistoryTab, icon: "doc" },
+  {
+    id: "iqms",
+    label: "IQMS details",
+    Component: IQMSDetailsTab,
+    icon: "chart",
+  },
+  { id: "form", label: "Form 16", Component: Form16B, icon: "chart" },
 ];
 
 function SectionPicker({
@@ -73,15 +112,15 @@ function SectionPicker({
   value,
   onChange,
   dropdownRef,
-  placeholder = 'Jump to section (Ctrl+K)',
+  placeholder = "Jump to section (Ctrl+K)",
 }) {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [highlight, setHighlight] = useState(0);
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
-  const listId = 'section-picker-listbox';
-  const inputId = 'section-picker-input';
+  const listId = "section-picker-listbox";
+  const inputId = "section-picker-input";
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -90,14 +129,14 @@ function SectionPicker({
 
   useEffect(() => {
     const onKey = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen(true);
         setTimeout(() => inputRef.current?.focus(), 0);
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   useEffect(() => {
@@ -107,31 +146,31 @@ function SectionPicker({
         setOpen(false);
       }
     };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
   useEffect(() => setHighlight(0), [query]);
 
   const onKeyDown = (e) => {
-    if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       setOpen(true);
       return;
     }
     if (!open) return;
-    if (e.key === 'ArrowDown') {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlight((h) => Math.min(h + 1, filtered.length - 1));
       scrollHighlightedIntoView();
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlight((h) => Math.max(h - 1, 0));
       scrollHighlightedIntoView();
-    } else if (e.key === 'Enter') {
+    } else if (e.key === "Enter") {
       e.preventDefault();
       const pick = filtered[highlight];
       if (pick) handleSelect(pick.id);
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       e.preventDefault();
       setOpen(false);
       inputRef.current?.blur();
@@ -140,13 +179,13 @@ function SectionPicker({
 
   const scrollHighlightedIntoView = () => {
     const el = document.getElementById(`${listId}-option-${highlight}`);
-    if (el) el.scrollIntoView({ block: 'nearest' });
+    if (el) el.scrollIntoView({ block: "nearest" });
   };
 
   const handleSelect = (id) => {
     onChange(id);
     setOpen(false);
-    setQuery('');
+    setQuery("");
   };
 
   return (
@@ -154,12 +193,12 @@ function SectionPicker({
       className="section-picker-wrapper"
       ref={(el) => {
         wrapperRef.current = el;
-        if (typeof dropdownRef === 'function') dropdownRef(el);
+        if (typeof dropdownRef === "function") dropdownRef(el);
         else if (dropdownRef) dropdownRef.current = el;
       }}
     >
       <div
-        className={`combobox ${open ? 'combobox--open' : ''}`}
+        className={`combobox ${open ? "combobox--open" : ""}`}
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -171,25 +210,41 @@ function SectionPicker({
             ref={inputRef}
             className="combobox-input"
             placeholder={placeholder}
-            value={open ? query : (options.find((s) => s.id === value)?.label ?? '')}
+            value={
+              open ? query : options.find((s) => s.id === value)?.label ?? ""
+            }
             onFocus={() => setOpen(true)}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             aria-autocomplete="list"
             aria-controls={listId}
-            aria-activedescendant={open ? `${listId}-option-${highlight}` : undefined}
+            aria-activedescendant={
+              open ? `${listId}-option-${highlight}` : undefined
+            }
           />
           <button
             type="button"
             className="combobox-toggle"
-            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => {
               setOpen((v) => !v);
               if (!open) setTimeout(() => inputRef.current?.focus(), 0);
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M6 9l6 6 6-6"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </button>
         </div>
@@ -213,7 +268,9 @@ function SectionPicker({
                 id={`${listId}-option-${idx}`}
                 role="option"
                 aria-selected={value === opt.id}
-                className={`combobox-option ${highlight === idx ? 'combobox-option--highlighted' : ''} ${value === opt.id ? 'combobox-option--selected' : ''}`}
+                className={`combobox-option ${
+                  highlight === idx ? "combobox-option--highlighted" : ""
+                } ${value === opt.id ? "combobox-option--selected" : ""}`}
                 onMouseEnter={() => setHighlight(idx)}
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -221,34 +278,57 @@ function SectionPicker({
                 }}
               >
                 <span className="option-icon" aria-hidden>
-                  {opt.icon === 'user' && (
+                  {opt.icon === "user" && (
                     <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" />
+                      <path
+                        fill="currentColor"
+                        d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"
+                      />
                     </svg>
                   )}
-                  {opt.icon === 'rank' && (
+                  {opt.icon === "rank" && (
                     <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M12 2l3 6 6 .5-4.5 3.9L18 21 12 17.8 6 21l1.5-8.6L3 8.5 9 8z" />
+                      <path
+                        fill="currentColor"
+                        d="M12 2l3 6 6 .5-4.5 3.9L18 21 12 17.8 6 21l1.5-8.6L3 8.5 9 8z"
+                      />
                     </svg>
                   )}
-                  {opt.icon === 'trade' && (
+                  {opt.icon === "trade" && (
                     <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h12v2H3v-2zm0 5h18v2H3v-2z" />
+                      <path
+                        fill="currentColor"
+                        d="M3 6h18v2H3V6zm0 5h12v2H3v-2zm0 5h18v2H3v-2z"
+                      />
                     </svg>
                   )}
-                  {opt.icon === 'posting' && (
+                  {opt.icon === "posting" && (
                     <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M21 3H3v18h18V3zm-2 16H5V5h14v14z" />
+                      <path
+                        fill="currentColor"
+                        d="M21 3H3v18h18V3zm-2 16H5V5h14v14z"
+                      />
                     </svg>
                   )}
-                  {(opt.icon === 'history' || opt.icon === 'folder' || opt.icon === 'drive' || opt.icon === 'doc' || opt.icon === 'chart') && (
+                  {(opt.icon === "history" ||
+                    opt.icon === "folder" ||
+                    opt.icon === "drive" ||
+                    opt.icon === "doc" ||
+                    opt.icon === "chart") && (
                     <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M3 4h18v2H3V4zm0 4h18v12H3V8zm4 3v6l5-3-5-3z" />
+                      <path
+                        fill="currentColor"
+                        d="M3 4h18v2H3V4zm0 4h18v12H3V8zm4 3v6l5-3-5-3z"
+                      />
                     </svg>
                   )}
                 </span>
                 <span className="option-label">{opt.label}</span>
-                {value === opt.id && <span className="option-selected-check" aria-hidden>✓</span>}
+                {value === opt.id && (
+                  <span className="option-selected-check" aria-hidden>
+                    ✓
+                  </span>
+                )}
               </li>
             ))}
           </ul>
@@ -261,18 +341,18 @@ function SectionPicker({
   );
 }
 
-export default function ProfileView({ queryValue = '', category = '' }) {
+export default function ProfileView({ queryValue = "", category = "" }) {
   const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeSection, setActiveSection] = useState(SECTIONS[0]?.id || '');
+  const [activeSection, setActiveSection] = useState(SECTIONS[0]?.id || "");
   const sectionRefs = useRef({});
   const dropdownRef = useRef(null);
   const placeholderRef = useRef(null);
   const observerRef = useRef(null);
 
   const [isPinned, setIsPinned] = useState(false);
-  const [pinStyle, setPinStyle] = useState({ left: 0, width: 'auto' });
+  const [pinStyle, setPinStyle] = useState({ left: 0, width: "auto" });
   const [pinThreshold, setPinThreshold] = useState(null);
 
   const dispatch = useDispatch();
@@ -284,22 +364,6 @@ export default function ProfileView({ queryValue = '', category = '' }) {
   const rankHistory = profileViewSlice.rankHistory || {};
   const tradeHistory = profileViewSlice.tradeHistory || {};
   const postingHistory = profileViewSlice.postingHistory || {};
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') {
-      try {
-        console.groupCollapsed('[ProfileView] Redux slices snapshot');
-        console.log('profileView keys:', Object.keys(profileViewSlice || {}));
-        console.log('rankHistory present:', !!profileViewSlice?.rankHistory);
-        console.log('rankHistory.items length:', Array.isArray(profileViewSlice?.rankHistory?.items) ? profileViewSlice.rankHistory.items.length : typeof profileViewSlice?.rankHistory?.items);
-        console.log('tradeHistory.items length:', Array.isArray(profileViewSlice?.tradeHistory?.items) ? profileViewSlice.tradeHistory.items.length : typeof profileViewSlice?.tradeHistory?.items);
-        console.log('postingHistory.items length:', Array.isArray(profileViewSlice?.postingHistory?.items) ? profileViewSlice.postingHistory.items.length : typeof profileViewSlice?.postingHistory?.items);
-        console.groupEnd();
-      } catch (e) {
-        // no-op
-      }
-    }
-  }, [profileViewSlice]);
 
   const fetchAllData = useCallback(async () => {
     if (!queryValue || !queryValue.toString().trim()) return;
@@ -315,18 +379,19 @@ export default function ProfileView({ queryValue = '', category = '' }) {
 
       const results = await Promise.allSettled(promises);
       results.forEach((r, idx) => {
-        if (r.status === 'rejected') {
-          log.error('API failed:', idx, r.reason);
+        if (r.status === "rejected") {
+          log.error("API failed:", idx, r.reason);
         }
       });
 
       setShowProfile(true);
     } catch (err) {
-      setError('Something went wrong while fetching data.');
-      log.error('Search Error', err);
+      setError("Something went wrong while fetching data.");
+      log.error("Search Error", err);
     } finally {
       setLoading(false);
     }
+    console.log("queryvalue:", queryValue);
   }, [dispatch, queryValue, category]);
 
   // If parent passes queryValue/category, auto-fetch when they change.
@@ -374,18 +439,18 @@ export default function ProfileView({ queryValue = '', category = '' }) {
 
     measureDropdown();
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', measureDropdown);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", measureDropdown);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', measureDropdown);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", measureDropdown);
     };
   }, [showProfile, pinThreshold, isPinned, measureDropdown]);
 
   useLayoutEffect(() => {
     if (!showProfile) return;
     const el = dropdownRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') {
+    if (!el || typeof ResizeObserver === "undefined") {
       measureDropdown();
       return;
     }
@@ -397,18 +462,28 @@ export default function ProfileView({ queryValue = '', category = '' }) {
     return () => ro.disconnect();
   }, [showProfile, measureDropdown]);
 
-  const scrollToSectionWithOffset = useCallback((id) => {
-    const el = sectionRefs.current[id];
-    if (!el) return;
-    const stickyHeight = isPinned ? (pinStyle.height || 0) : (dropdownRef.current?.getBoundingClientRect?.().height || 0);
-    const extraSpacing = 12;
-    const targetY = el.getBoundingClientRect().top + window.scrollY - stickyHeight - extraSpacing;
-    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-  }, [isPinned, pinStyle.height]);
+  const scrollToSectionWithOffset = useCallback(
+    (id) => {
+      const el = sectionRefs.current[id];
+      if (!el) return;
+      const stickyHeight = isPinned
+        ? pinStyle.height || 0
+        : dropdownRef.current?.getBoundingClientRect?.().height || 0;
+      const extraSpacing = 12;
+      const targetY =
+        el.getBoundingClientRect().top +
+        window.scrollY -
+        stickyHeight -
+        extraSpacing;
+      window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+    },
+    [isPinned, pinStyle.height]
+  );
 
   useEffect(() => {
     if (!showProfile) return;
-    if (SECTIONS && SECTIONS.length) setActiveSection((prev) => (prev ? prev : SECTIONS[0].id));
+    if (SECTIONS && SECTIONS.length)
+      setActiveSection((prev) => (prev ? prev : SECTIONS[0].id));
   }, [showProfile]);
 
   useEffect(() => {
@@ -419,9 +494,11 @@ export default function ProfileView({ queryValue = '', category = '' }) {
       observerRef.current = null;
     }
 
-    const headerOffset = isPinned ? (pinStyle.height || 0) : (dropdownRef.current?.getBoundingClientRect?.().height || 0);
+    const headerOffset = isPinned
+      ? pinStyle.height || 0
+      : dropdownRef.current?.getBoundingClientRect?.().height || 0;
     const topMarginPx = -Math.round(headerOffset + 8);
-    const bottomMargin = '-40%';
+    const bottomMargin = "-40%";
 
     const options = {
       root: null,
@@ -461,28 +538,36 @@ export default function ProfileView({ queryValue = '', category = '' }) {
 
   return (
     <div className="live-profile-view-container">
-      {loading && <div className="live-loading-overlay">Loading profile...</div>}
-  
+      {loading && (
+        <div className="live-loading-overlay">Loading profile...</div>
+      )}
+
       {error && (
         <div className="live-error-banner" role="alert">
           <span>{error}</span>
-          <button onClick={handleRetry} className="live-retry-btn" aria-label="Retry">
+          <button
+            onClick={handleRetry}
+            className="live-retry-btn"
+            aria-label="Retry"
+          >
             Retry
           </button>
         </div>
       )}
-  
+
       {!loading && showProfile && !error && (
-        <div className="live-result-section" style={{ overflow: 'visible' }}>
+        <div className="live-result-section" style={{ overflow: "visible" }}>
           <div
             ref={placeholderRef}
             className="live-dropdown-placeholder"
-            style={{ height: isPinned ? `${pinStyle.height || 0}px` : '0px' }}
+            style={{ height: isPinned ? `${pinStyle.height || 0}px` : "0px" }}
             aria-hidden
           />
-  
+
           <div
-            className={`live-dropdown-sticky live-dropdown-sticky--pinable ${isPinned ? 'live-dropdown-sticky--pinned' : ''}`}
+            className={`live-dropdown-sticky live-dropdown-sticky--pinable ${
+              isPinned ? "live-dropdown-sticky--pinned" : ""
+            }`}
             ref={dropdownRef}
           >
             <SectionPicker
@@ -492,37 +577,53 @@ export default function ProfileView({ queryValue = '', category = '' }) {
               dropdownRef={dropdownRef}
             />
           </div>
-  
+
           <div className="live-sections-container">
             {SECTIONS.map(({ id, Component, label }) => {
               let tabProps = {};
-              if (id === 'rank') tabProps = rankHistory;
-              if (id === 'trade') tabProps = tradeHistory;
-              if (id === 'posting') tabProps = postingHistory;
-  
-              if (process.env.NODE_ENV !== 'production') {
+              if (id === "rank") tabProps = rankHistory;
+              if (id === "trade") tabProps = tradeHistory;              
+              if (id === "posting") {tabProps = { queryValue, category };}
+              if (id === "mvr") {
+                tabProps = { queryValue, category };
+              }
+              if (id === "form") {
+                tabProps = { queryValue, category };
+              }
+
+              if (process.env.NODE_ENV !== "production") {
                 try {
                   console.groupCollapsed(`[ProfileView] render section ${id}`);
-                  console.log('tabProps keys:', Object.keys(tabProps || {}));
-                  console.log('items type:', Array.isArray(tabProps?.items) ? 'array' : typeof tabProps?.items);
-                  if (Array.isArray(tabProps?.items)) console.table(tabProps.items.slice(0, 5));
-                  else console.log('tabProps (non-array items):', tabProps);
+                  console.log("tabProps keys:", Object.keys(tabProps || {}));
+                  console.log(
+                    "items type:",
+                    Array.isArray(tabProps?.items)
+                      ? "array"
+                      : typeof tabProps?.items
+                  );
+                  if (Array.isArray(tabProps?.items))
+                    console.table(tabProps.items.slice(0, 5));
+                  else console.log("tabProps (non-array items):", tabProps);
                   console.groupEnd();
                 } catch (e) {
                   // noop
                 }
               }
-  
+
               return (
                 <div
                   key={id}
                   id={id}
                   ref={(el) => (sectionRefs.current[id] = el)}
-                  className={`live-profile-section ${activeSection === id ? 'active-section' : ''}`}
+                  className={`live-profile-section ${
+                    activeSection === id ? "active-section" : ""
+                  }`}
                 >
                   <h2 className="live-section-title">{label}</h2>
                   <div className="live-section-content">
-                    <LazyComponent renderFn={() => <Component {...tabProps} />} />
+                    <LazyComponent
+                      renderFn={() => <Component {...tabProps} />}
+                    />
                   </div>
                 </div>
               );
@@ -532,5 +633,4 @@ export default function ProfileView({ queryValue = '', category = '' }) {
       )}
     </div>
   );
-  
 }

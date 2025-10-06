@@ -427,8 +427,8 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
                                       {it.pers || it.persDetails}
                                     </td>
                                     <td>{it.cell}</td>
-                                    <td>{formatDate(it.submit_date)}</td>
-                                    <td>{formatDate(it.action_date)}</td>
+                                    <td>{(it.submit_date)}</td>
+                                    <td>{(it.action_date)}</td>
                                     <td>{it.querytype}</td>
                                     <td>
                                       {it.pending_with_cap || it.pending_with}
@@ -473,7 +473,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
         <div className="highlight-list">
           {highlightedMatches.map((it) => (
             <div key={it.doc_id} className="highlight-row">
-              {it.doc_id} — {it.pers} — {it.cell} — {formatDate(it.submit_date)}
+              {it.doc_id} — {it.pers} — {it.cell} — {(it.submit_date)}
             </div>
           ))}
         </div>
@@ -515,7 +515,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
                 <td>{r.doc_id || r.queryId}</td>
                 <td className="pers">{r.pers || r.persDetails}</td>
                 <td>{r.cell}</td>
-                <td>{formatDate(r.submit_date || r.receivedDate)}</td>
+                <td>{(r.submit_date || r.receivedDate)}</td>
                 <td>{r.querytype || r.queryType}</td>
                 <td>{r.pending_with_cap || r.pending_with || r.pendingWith}</td>
                 <td>{r._section}</td>

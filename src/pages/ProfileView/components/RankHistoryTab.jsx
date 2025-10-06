@@ -1,27 +1,8 @@
-// RankHistoryTab.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 
-/* ---------------- Utilities ---------------- */
-const formatDate = (iso) => {
-  if (!iso) return '-';
-  try {
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '-';
-    return d.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  } catch {
-    return '-';
-  }
-};
-
-/* Developer logging helper (no-ops in production) */
 const devLog = (...args) => {
   if (process.env.NODE_ENV !== 'production') {
     try {
-      // eslint-disable-next-line no-console
       console.debug('[RankHistoryTab]', ...args);
     } catch {}
   }
@@ -30,15 +11,12 @@ const devLog = (...args) => {
 const devGroup = (label, fn) => {
   if (process.env.NODE_ENV === 'production') return;
   try {
-    // eslint-disable-next-line no-console
     console.groupCollapsed(`[RankHistoryTab] ${label}`);
     fn();
-    // eslint-disable-next-line no-console
     console.groupEnd();
   } catch {}
 };
 
-/* pick date raw from multiple possible keys */
 const pickDateRaw = (row) => {
   if (!row) return null;
   const candidates = ['wef', 'rankdt', 'wef_date', 'fromDate', 'rankDate'];

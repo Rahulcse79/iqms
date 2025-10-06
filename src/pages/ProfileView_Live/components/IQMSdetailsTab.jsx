@@ -7,8 +7,8 @@ export default function IQMSdetailsTab({
   serviceNumber,
   serviceNo,
   category,
-  type = "Service",   // default if not passed
-  queryValue = "",    // default if not passed
+  type = "Service", // default if not passed
+  queryValue = "", // default if not passed
 }) {
   const svc = serviceNumber ?? serviceNo;
   const [data, setData] = useState([]);
@@ -58,12 +58,123 @@ export default function IQMSdetailsTab({
     }
   };
 
+  const customStyles = {
+    table: {
+      style: {
+        backgroundColor: "var(--surface)",
+        borderRadius: "12px",
+        overflow: "hidden",
+      },
+    },
+    header: {
+      style: {
+        minHeight: "56px",
+        paddingLeft: "16px",
+        paddingRight: "8px",
+      },
+    },
+    headRow: {
+      style: {
+        backgroundColor: "var(--surface-accent)",
+        borderBottom: "1px solid var(--border)",
+        minHeight: "48px",
+      },
+    },
+    headCells: {
+      style: {
+        color: "var(--text)",
+        fontSize: "14px",
+        fontWeight: "600",
+        paddingLeft: "12px",
+        paddingRight: "12px",
+      },
+    },
+    rows: {
+      style: {
+        backgroundColor: "var(--surface)",
+        minHeight: "52px",
+        "&:not(:last-of-type)": {
+          borderBottom: "1px solid var(--border)",
+        },
+      },
+      highlightOnHoverStyle: {
+        backgroundColor: "var(--surface-accent)",
+        color: "var(--primary)",
+        transitionDuration: "0.25s",
+        transitionProperty: "background-color,color",
+        outline: "none",
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: "12px",
+        paddingRight: "12px",
+        color: "var(--text)",
+        fontSize: "14px",
+      },
+    },
+    pagination: {
+      style: {
+        padding: "8px",
+        color: "var(--text)",
+        backgroundColor: "transparent",
+      },
+      pageButtonsStyle: {
+        borderRadius: "6px",
+        height: "32px",
+        width: "32px",
+        padding: "4px",
+        margin: "0 4px",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        color: "var(--text)",
+        fill: "var(--text)",
+
+        "&:hover": {
+          backgroundColor: "var(--surface-accent)",
+          color: "var(--primary)",
+          fill: "var(--primary)",
+        },
+
+        "&:disabled": {
+          cursor: "not-allowed",
+          opacity: 0.5,
+        },
+
+        "&[aria-current='true']": {
+          backgroundColor: "var(--primary)",
+          color: "var(--on-primary)",
+          fill: "var(--on-primary)",
+        },
+      },
+    },
+  };
+
   // Define columns for DataTable
   const columns = [
-    { name: "Doc ID", selector: (row) => row.doc_id, sortable: true, width: "120px" },
-    { name: "Query Type", selector: (row) => decodeHtml(row.querytype), sortable: true, wrap: true },
-    { name: "Pending With", selector: (row) => row.pending_with, sortable: true, width: "140px" },
-    { name: "Pending Description", selector: (row) => row.pending_with_dec, wrap: true },
+    {
+      name: "Doc ID",
+      selector: (row) => row.doc_id,
+      sortable: true,
+      width: "120px",
+    },
+    {
+      name: "Query Type",
+      selector: (row) => decodeHtml(row.querytype),
+      sortable: true,
+      wrap: true,
+    },
+    {
+      name: "Pending With",
+      selector: (row) => row.pending_with,
+      sortable: true,
+      width: "140px",
+    },
+    {
+      name: "Pending Description",
+      selector: (row) => row.pending_with_dec,
+      wrap: true,
+    },
     {
       name: "Submit Date",
       selector: (row) =>
@@ -80,7 +191,9 @@ export default function IQMSdetailsTab({
           className="button-text-color"
           onClick={() =>
             navigate(
-              `/view/query/${encodeURIComponent(row.doc_id)}?category=${encodeURIComponent(
+              `/view/query/${encodeURIComponent(
+                row.doc_id
+              )}?category=${encodeURIComponent(
                 category
               )}&type=${encodeURIComponent(type)}&q=${encodeURIComponent(
                 queryValue || svc
@@ -106,7 +219,9 @@ export default function IQMSdetailsTab({
     <div>
       <h2>IQMS Details</h2>
 
-      {!svc && <p>Please enter Service Number and Category above and submit.</p>}
+      {!svc && (
+        <p>Please enter Service Number and Category above and submit.</p>
+      )}
       {error && <p style={{ color: "var(--red-text)" }}>{error}</p>}
 
       <div className="themed-data-table">
@@ -119,6 +234,7 @@ export default function IQMSdetailsTab({
           striped
           responsive
           persistTableHead
+          customStyles={customStyles}
         />
       </div>
     </div>

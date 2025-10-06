@@ -1,0 +1,193 @@
+/* components/GCIHistory.css
+   Theme-aware styles for GCIHistoryTab.
+   Uses CSS variables so the styles follow your theme.
+*/
+
+/* Root / container */
+.gci-history {
+  padding: 16px;
+  background: var(--surface, #fff);
+  color: var(--text, #1f2937);
+  border-radius: 10px;
+  border: 1px solid var(--border, rgba(15,23,42,0.06));
+  box-shadow: var(--shadow, 0 6px 18px rgba(12, 20, 40, 0.04));
+  font-family: var(--font-family, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif);
+}
+
+/* Header */
+.gci-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.gci-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text, #111827);
+}
+.gci-cache-badge {
+  background: color-mix(in srgb, var(--primary, #0ea5a4) 12%, var(--surface, #fff) 88%);
+  color: var(--primary, #0ea5a4);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid color-mix(in srgb, var(--primary, #0ea5a4) 14%, transparent 86%);
+}
+
+/* Service note */
+.gci-service-note {
+  margin-bottom: 12px;
+  color: var(--muted, #374151);
+  font-size: 14px;
+}
+.gci-service-note--error {
+  color: var(--danger, #b91c1c);
+  background: color-mix(in srgb, var(--danger, #b91c1c) 6%, transparent 94%);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--danger, #b91c1c) 12%, transparent 88%);
+}
+
+/* Section wrapper */
+.gci-section {
+  margin-bottom: 12px;
+}
+
+/* Label */
+.gci-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--text, #111827);
+}
+
+/* select row */
+.gci-select-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* select */
+.gci-select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--surface-accent, #f8fafc);
+  color: var(--text, #111827);
+  font-size: 14px;
+  min-width: 220px;
+  transition: box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.gci-select:focus {
+  outline: none;
+  border-color: var(--primary, #0ea5a4);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--primary, #0ea5a4) 12%, transparent 88%);
+}
+
+/* Buttons */
+.gci-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--surface, #fff);
+  color: var(--text, #111827);
+  cursor: pointer;
+  font-weight: 600;
+}
+.gci-btn:disabled,
+.gci-btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.gci-btn--ghost {
+  background: transparent;
+  border: 1px dashed var(--border, #d1d5db);
+}
+
+/* Selected info text */
+.gci-selected {
+  color: var(--muted, #6b7280);
+  font-size: 14px;
+}
+
+/* Loading / error / empty */
+.gci-loading,
+.gci-empty {
+  padding: 10px;
+  color: var(--muted, #6b7280);
+  background: transparent;
+  border-radius: 6px;
+}
+.gci-error {
+  padding: 10px;
+  color: var(--danger, #b91c1c);
+  background: color-mix(in srgb, var(--danger, #b91c1c) 6%, transparent 94%);
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--danger, #b91c1c) 10%, transparent 90%);
+}
+
+/* Table wrapper */
+.gci-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border, #e6eaea);
+  background: var(--surface, #fff);
+}
+
+/* Table */
+.gci-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+  font-size: 14px;
+}
+.gci-table thead {
+  background: var(--surface-accent, #f8fafc);
+}
+.gci-th {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border, #e6eaea);
+  text-align: left;
+  font-weight: 700;
+  color: var(--text, #111827);
+  position: sticky;
+  top: 0;
+}
+.gci-tr {
+  transition: background 0.12s ease;
+}
+.gci-tr:hover {
+  background: color-mix(in srgb, var(--surface-accent, #f8fafc) 88%, transparent 12%);
+}
+.gci-td {
+  padding: 10px 12px;
+  vertical-align: top;
+  border-bottom: 1px solid color-mix(in srgb, var(--border, #f1f5f9) 88%, transparent 12%);
+  color: var(--text, #111827);
+  word-break: break-word;
+}
+
+/* responsiveness: allow small displays to scroll horizontally and reduce padding */
+@media (max-width: 840px) {
+  .gci-table {
+    min-width: 540px;
+  }
+  .gci-select {
+    min-width: 160px;
+  }
+  .gci-title { font-size: 16px; }
+}
+
+@media (max-width: 520px) {
+  .gci-select-row { flex-direction: column; align-items: stretch; }
+  .gci-select { width: 100%; min-width: auto; }
+  .gci-btn { width: 100%; }
+  .gci-table { min-width: 460px; font-size: 13px; }
+  .gci-th, .gci-td { padding: 8px 10px; }
+}

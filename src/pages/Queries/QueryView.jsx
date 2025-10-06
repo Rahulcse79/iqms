@@ -2,15 +2,15 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./QueryView.css";
 import Comparison from "../Comparison";
-import ProfileViewLive from "../ProfileView_Live/ProfileView";
 import PORDATA from "../ProfileView/components/PORDataBankTab";
 import QueryDetails from "./QueryDetails";
 import PersonalDetails from "../ProfileView/components/PersonalDetails";
-import IRLAVIEW from "../ProfileView_Live/components/IRLAHistoryTab";
+import IRLAVIEW from "../ProfileView/components/IRLAHistoryTab";
 import GCIHistory from "../ProfileView/components/GCIHistoryTab";
 import { fetchPersonalData } from "../../actions/ProfileAction";
 import { useDispatch, useSelector } from "react-redux";
 import { UserRoleLabel } from "../../constants/Enum";
+import ProfileView from "../ProfileView/ProfileView";
 
 // Enhanced ResizablePanel Component
 const ResizablePanel = ({ onBack }) => {
@@ -395,10 +395,7 @@ const ResizablePanel = ({ onBack }) => {
         return <PORDATA sno={queryValue} cat={getCategoryCode(category)} />;
       case "Profile View":
         return (
-          <ProfileViewLive
-            category={getCategoryCode(category)}
-            queryValue={queryValue}
-          />
+          <ProfileView servNo={queryValue} cat={getCategoryCode(category)}/>
         );
       default:
         return null;

@@ -24,7 +24,10 @@ const devLog = (...args) => {
   }
 };
 
-/* ---------------- Styles (JS objects for easy drop-in) ---------------- */
+/* ---------------- Theme-aware Styles (JS objects) ----------------
+   These use CSS variables (with fallbacks) so the UI follows whichever
+   theme (.theme-light/.theme-dark) you apply globally.
+*/
 const styles = {
   container: {
     padding: 20,
@@ -134,12 +137,13 @@ const styles = {
     color: 'var(--muted, #374151)',
   },
 };
-/* ---------------- Component ---------------- */
+
+/* ---------------- Component (unchanged behavior) ---------------- */
 export default function TradeHistoryTab({ items = [], loading, error }) {
   /* ---------------- Hooks (always at top) ---------------- */
   const [pageSize, setPageSize] = useState(10); // 10, 20, 50
   const [page, setPage] = useState(1);
-  const [sortDir, setSortDir] = useState(null); // null | 'asc' | 'desc'
+  const [sortDir, setSortDir] = useState('desc'); // null | 'asc' | 'desc'
 
   /* ---------------- Data cleaning (stable via useMemo) ---------------- */
   const cleanedRows = useMemo(() => {
@@ -152,7 +156,7 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
         branch: row.branch ?? '-',
         occId: row.occ_id ?? row.occId ?? '-',
         wefRaw: wefRaw && !Number.isNaN(wefRaw.getTime()) ? wefRaw : null,
-        wefFormatted: formatDate(row.wef),
+        wefFormatted: (row.wef),
         irla: row.irla ?? row.irla_action ?? '-',
         __raw: row,
       };
@@ -203,18 +207,34 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
 
   /* ---------------- Early UI states (after hooks) ---------------- */
   if (loading) return <p style={{ padding: 20 }}>Loading trade history...</p>;
-  if (error) return <p style={{ padding: 20, color: 'red' }}>Error: {String(error)}</p>;
+  if (error) return <p style={{ padding: 20, color: 'var(--danger, red)' }}>Error: {String(error)}</p>;
   if (!Array.isArray(items) || items.length === 0) return <p style={{ padding: 20 }}>No trade history available.</p>;
 
   /* ---------------- Render ---------------- */
   const sortIcon = sortDir === 'asc' ? '▲' : sortDir === 'desc' ? '▼' : '↕';
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="trade-history-container">
+      {/* Small embedded CSS for responsive/polish (keeps file self-contained) */}
+      <style>{`
+        .trade-table tbody tr:hover {
+          background: color-mix(in srgb, var(--surface-accent, #f8fafc) 85%, transparent 15%);
+          transition: background 140ms ease;
+        }
+
+        @media (max-width: 720px) {
+          .trade-table td, .trade-table th {
+            padding: 8px 10px !important;
+            font-size: 13px !important;
+          }
+          .trade-table { min-width: 0 !important; }
+        }
+      `}</style>
+
       {/* Controls */}
       <div style={styles.controlsRow}>
         <div style={styles.leftControls}>
-          <label style={{ fontSize: 14, color: '#374151' }}>
+          <label style={{ fontSize: 14, color: 'var(--muted, #374151)' }}>
             Rows per page:{' '}
             <select
               aria-label="Rows per page"
@@ -238,8 +258,13 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
             type="button"
             onClick={() => setPage(1)}
             disabled={page === 1}
-            style={styles.navButton}
+            style={{
+              ...styles.navButton,
+              opacity: page === 1 ? 0.6 : 1,
+              cursor: page === 1 ? 'not-allowed' : 'pointer',
+            }}
             aria-label="First page"
+            title="First page"
           >
             ⏮
           </button>
@@ -247,8 +272,13 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            style={styles.navButton}
+            style={{
+              ...styles.navButton,
+              opacity: page === 1 ? 0.6 : 1,
+              cursor: page === 1 ? 'not-allowed' : 'pointer',
+            }}
             aria-label="Previous page"
+            title="Previous page"
           >
             ◀ Prev
           </button>
@@ -256,8 +286,13 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            style={styles.navButton}
+            style={{
+              ...styles.navButton,
+              opacity: page === totalPages ? 0.6 : 1,
+              cursor: page === totalPages ? 'not-allowed' : 'pointer',
+            }}
             aria-label="Next page"
+            title="Next page"
           >
             Next ▶
           </button>
@@ -265,8 +300,13 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
             type="button"
             onClick={() => setPage(totalPages)}
             disabled={page === totalPages}
-            style={styles.navButton}
+            style={{
+              ...styles.navButton,
+              opacity: page === totalPages ? 0.6 : 1,
+              cursor: page === totalPages ? 'not-allowed' : 'pointer',
+            }}
             aria-label="Last page"
+            title="Last page"
           >
             ⏭
           </button>
@@ -274,8 +314,8 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
       </div>
 
       {/* Table */}
-      <div style={styles.tableWrap}>
-        <table style={styles.table} role="table" aria-label="Trade history table">
+      <div style={styles.tableWrap} className="trade-table-wrap" aria-live="polite">
+        <table style={styles.table} role="table" aria-label="Trade history table" className="trade-table">
           <thead style={styles.thead}>
             <tr>
               <th style={{ ...styles.th, width: 80 }}>S No</th>
@@ -294,7 +334,7 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span>With Effect From</span>
-                  <span style={{ fontSize: 12, color: '#6b7280' }}>{sortIcon}</span>
+                  <span style={{ fontSize: 12, color: 'var(--muted, #6b7280)' }}>{sortIcon}</span>
                 </div>
               </th>
 
@@ -324,12 +364,12 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
 
       {/* Footer: page info and jump to page */}
       <div style={styles.footer}>
-        <div style={{ color: '#374151' }}>
+        <div style={{ color: 'var(--muted, #374151)' }}>
           Page <strong>{page}</strong> of <strong>{totalPages}</strong>
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: 'var(--text, #374151)' }}>
+          <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: 'var(--muted, #374151)' }}>
             Go to page:
             <input
               type="number"
@@ -345,7 +385,7 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
             />
           </label>
 
-          <div style={{ color: '#6b7280', fontSize: 13 }}>
+          <div style={{ color: 'var(--muted, #6b7280)', fontSize: 13 }}>
             Rows per page: <strong>{pageSize}</strong>
           </div>
         </div>

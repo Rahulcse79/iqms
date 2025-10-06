@@ -1,4 +1,3 @@
-// ProfileView.jsx
 import React, {
   useState,
   useRef,
@@ -16,7 +15,6 @@ import PORDataBankTab from "./components/PORDataBankTab";
 import MVRHistoryTab from "./components/MVRHistoryTab";
 import IRLAHistoryTab from "./components/IRLAHistoryTab";
 import IQMSDetailsTab from "./components/IQMSdetailsTab";
-import SearchSection from "./components/SearchSection";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchPersonalData,
@@ -29,8 +27,7 @@ import Form16B from "./components/Form16";
 
 const log = {
   debug: (...args) =>
-    process.env.NODE_ENV !== "production" &&
-    console.debug("[ProfileView]", ...args),
+    process.env.NODE_ENV !== "production" && console.debug("[ProfileView]", ...args),
   error: (...args) => console.error("[ProfileView]", ...args),
 };
 
@@ -279,9 +276,8 @@ function SectionPicker({
                 id={`${listId}-option-${idx}`}
                 role="option"
                 aria-selected={value === opt.id}
-                className={`combobox-option ${
-                  highlight === idx ? "combobox-option--highlighted" : ""
-                } ${value === opt.id ? "combobox-option--selected" : ""}`}
+                className={`combobox-option ${highlight === idx ? "combobox-option--highlighted" : ""
+                  } ${value === opt.id ? "combobox-option--selected" : ""}`}
                 onMouseEnter={() => setHighlight(idx)}
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -326,13 +322,13 @@ function SectionPicker({
                     opt.icon === "drive" ||
                     opt.icon === "doc" ||
                     opt.icon === "chart") && (
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M3 4h18v2H3V4zm0 4h18v12H3V8zm4 3v6l5-3-5-3z"
-                      />
-                    </svg>
-                  )}
+                      <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M3 4h18v2H3V4zm0 4h18v12H3V8zm4 3v6l5-3-5-3z"
+                        />
+                      </svg>
+                    )}
                 </span>
                 <span className="option-label">{opt.label}</span>
                 {value === opt.id && (
@@ -352,33 +348,9 @@ function SectionPicker({
   );
 }
 
-export default function ProfileView({
-  servNo: propServiceNo,
-  cat: propCategory,
-  ...restProps
-}) {
+export default function ProfileView() {
   const [serviceNo, setServiceNo] = useState("");
   const [category, setCategory] = useState("1");
-
-  // Assuming ProfileView({ servNo: propServiceNo, cat: propCategory, ... })
-  const defaultSystem = "LIVE"; // fallback system if not piped externally
-
-  const hasPropServiceNo =
-    typeof propServiceNo === "string" && propServiceNo.trim().length > 0;
-  const hasPropCategory =
-    propCategory !== undefined &&
-    propCategory !== null &&
-    `${propCategory}`.length > 0;
-  const hasPropInputs = hasPropServiceNo && hasPropCategory;
-
-  // Derived values: prefer incoming props, else local state
-  const valueServiceNo = propServiceNo ?? serviceNo;
-  const valueCategory = propCategory ?? category;
-
-  // Whether to pass setters to SearchSection (only if using local state)
-  const passServiceSetter = propServiceNo === undefined;
-  const passCategorySetter = propCategory === undefined;
-
   const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -394,13 +366,13 @@ export default function ProfileView({
 
   const dispatch = useDispatch();
 
-  // const personalSlice = useSelector((s) => s.personalData || {});
+  const personalSlice = useSelector((s) => s.personalData || {});
   const profileViewSlice = useSelector((s) => s.profileView || {});
-  // const userSlice = useSelector((s) => s.user ?? s.login_user ?? {});
+  const userSlice = useSelector((s) => s.user ?? s.login_user ?? {});
 
   const rankHistory = profileViewSlice.rankHistory || {};
   const tradeHistory = profileViewSlice.tradeHistory || {};
-  // const postingHistory = profileViewSlice.postingHistory || {};
+  const postingHistory = profileViewSlice.postingHistory || {};
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -438,10 +410,9 @@ export default function ProfileView({
     setError(null);
     try {
       const promises = [
-        dispatch(fetchPersonalData(valueServiceNo,valueCategory,
-)),
-        dispatch(getRankHistory(valueServiceNo,valueCategory, 1)),
-        dispatch(getTradeHistory(valueServiceNo,valueCategory, 1)),
+        dispatch(fetchPersonalData(serviceNo, category)),
+        dispatch(getRankHistory(serviceNo, category, 1)),
+        dispatch(getTradeHistory(serviceNo, category, 1)),
       ];
 
       const results = await Promise.allSettled(promises);
@@ -460,47 +431,11 @@ export default function ProfileView({
     }
   };
 
-  // Inside ProfileView.jsx
-  const handleSearch = React.useCallback(
-    async (a, b, c) => {
-      let srv = a,
-        cat = b,
-        sys = c;
-      if (
-        srv &&
-        typeof srv === "object" &&
-        typeof srv.preventDefault === "function"
-      ) {
-        srv.preventDefault();
-        srv = undefined;
-      }
-      const effectiveServiceNo = (srv ?? propServiceNo ?? serviceNo ?? "")
-        .toString()
-        .trim();
-      const effectiveCategory = cat ?? propCategory ?? category ?? "1";
-      const effectiveSystem = sys ?? "LIVE";
-      if (!effectiveServiceNo) {
-        alert("Please enter a service number.");
-        return;
-      }
-      await fetchAllData({
-        serviceNo: effectiveServiceNo,
-        category: effectiveCategory,
-        system: effectiveSystem,
-      });
-    },
-    [propServiceNo, propCategory, serviceNo, category, fetchAllData]
-  );
-
-  const didAutoRun = useRef(false);
-
-  useEffect(() => {
-    if (hasPropInputs && !didAutoRun.current) {
-      didAutoRun.current = true;
-      // handleSearch must accept values, not the submit event
-      handleSearch(propServiceNo, propCategory, defaultSystem);
-    }
-  }, [hasPropInputs, propServiceNo, propCategory, defaultSystem, handleSearch]);
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!serviceNo.trim()) return alert("Please enter a service number.");
+    await fetchAllData();
+  };
 
   const handleRetry = () => fetchAllData();
 
@@ -639,16 +574,13 @@ export default function ProfileView({
 
   return (
     <div className="profile-view-container">
-      {!hasPropInputs && (
-        <SearchSection
-          serviceNo={valueServiceNo}
-          category={valueCategory}
-          {...(passServiceSetter ? { setServiceNo } : {})}
-          {...(passCategorySetter ? { setCategory } : {})}
-          handleSearch={handleSearch}
-          defaultSystem="LIVE"
-        />
-      )}
+      <SearchSection
+        serviceNo={serviceNo}
+        setServiceNo={setServiceNo}
+        category={category}
+        setCategory={setCategory}
+        handleSearch={handleSearch}
+      />
 
       {loading && <div className="loading-overlay">Loading Profile...</div>}
 
@@ -675,9 +607,8 @@ export default function ProfileView({
           />
 
           <div
-            className={`dropdown-sticky dropdown-sticky--pinable ${
-              isPinned ? "dropdown-sticky--pinned" : ""
-            }`}
+            className={`dropdown-sticky dropdown-sticky--pinable ${isPinned ? "dropdown-sticky--pinned" : ""
+              }`}
             ref={dropdownRef}
           >
             <SectionPicker
@@ -690,40 +621,14 @@ export default function ProfileView({
 
           <div className="sections-container">
             {SECTIONS.map(({ id, Component, label }) => {
-              // Use normalized values derived earlier: valueServiceNo/valueCategory
+              // prepare tab props from profileView slice (this is the important fix)
               let tabProps = {};
-              if (id === "rank") {
-                tabProps = {
-                  ...rankHistory,
-                  serviceNo: valueServiceNo,
-                  category: valueCategory,
-                };
-              }
-              if (id === "trade") {
-                tabProps = {
-                  ...tradeHistory,
-                  serviceNo: valueServiceNo,
-                  category: valueCategory,
-                };
-              }
-              if (id === "posting") {
-                tabProps = {
-                  serviceNo: valueServiceNo,
-                  category: valueCategory,
-                };
-              }
-              if (id === "mvr") {
-                tabProps = {
-                  serviceNo: valueServiceNo,
-                  category: valueCategory,
-                };
-              }
-              if (id === "form") {
-                tabProps = {
-                  serviceNo: valueServiceNo,
-                  category: valueCategory,
-                };
-              }
+              if (id === "rank") tabProps = rankHistory;
+              if (id === "trade") tabProps = tradeHistory;
+              if (id === "posting") {tabProps = { serviceNo, category };}
+              if (id === "mvr") {tabProps = { serviceNo, category };}
+              if (id === "form") {tabProps = { serviceNo, category };}
+
 
               // debug the props being passed to the component (dev only)
               if (process.env.NODE_ENV !== "production") {
@@ -738,10 +643,12 @@ export default function ProfileView({
                   );
                   if (Array.isArray(tabProps?.items)) {
                     console.log("items length:", tabProps.items.length);
+                    // show up to first 5 rows to avoid huge output
                     console.table(tabProps.items.slice(0, 5));
                   } else {
                     console.log("tabProps (non-array items):", tabProps);
                   }
+
                   console.groupEnd();
                 } catch (e) {
                   // noop
@@ -753,31 +660,19 @@ export default function ProfileView({
                   key={id}
                   id={id}
                   ref={(el) => (sectionRefs.current[id] = el)}
-                  className={`profile-section ${
-                    activeSection === id ? "active-section" : ""
-                  }`}
+                  className={`profile-section ${activeSection === id ? "active-section" : ""
+                    }`}
                 >
                   <h2 className="section-title">{label}</h2>
                   <div className="section-content">
                     <LazyComponent
                       renderFn={() =>
                         id === "por" ? (
-                          // POR expects sno/cat; feed normalized inputs
-                          <Component sno={valueServiceNo} cat={valueCategory} />
+                          <Component sno={serviceNo} cat={category} /> // pass sno & cat as props
                         ) : id === "iqms" ? (
-                          // IQMS expects serviceNumber/serviceNo/category; send normalized values
-                          <Component
-                            {...tabProps}
-                            serviceNumber={valueServiceNo}
-                            serviceNo={valueServiceNo}
-                            category={valueCategory}
-                          />
+                          <Component {...tabProps} serviceNumber={serviceNo} serviceNo={serviceNo} category={category} />
                         ) : id === "irla" ? (
-                          // IRLA expects selSno/selCat; send normalized values
-                          <Component
-                            selSno={valueServiceNo}
-                            selCat={valueCategory}
-                          />
+                          <Component selSno={serviceNo} selCat={category} />
                         ) : (
                           <Component {...tabProps} />
                         )

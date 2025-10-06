@@ -87,7 +87,7 @@ export default function MVRHistoryTab({ serviceNo, baseUrl = DEFAULT_BASE }) {
           marginBottom: 12,
         }}
       >
-        <h3 style={{ margin: 0 }}>MVR History — {serviceNo}</h3>
+        <h3 style={{ margin: 0 }}>MVR History</h3>
         <div style={{ display: 'flex', gap: 8 }}>
         </div>
       </div>
