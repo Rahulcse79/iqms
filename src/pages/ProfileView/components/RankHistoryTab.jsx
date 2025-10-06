@@ -170,7 +170,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
         _idx: idx,
         rank: pickRankName(row),
         rankDateRaw: dateRaw, 
-        rankDateFormatted: dateRaw ? formatDate(dateRaw.toISOString()) : formatDate(row.wef ?? row.rankdt),
+        rankDateFormatted: dateRaw ? (dateRaw.toISOString()) : (row.wef ?? row.rankdt),
         remarks: pickRemarks(row),
         __raw: row,
       };

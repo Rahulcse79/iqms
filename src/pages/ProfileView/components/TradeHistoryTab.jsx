@@ -156,7 +156,7 @@ export default function TradeHistoryTab({ items = [], loading, error }) {
         branch: row.branch ?? '-',
         occId: row.occ_id ?? row.occId ?? '-',
         wefRaw: wefRaw && !Number.isNaN(wefRaw.getTime()) ? wefRaw : null,
-        wefFormatted: formatDate(row.wef),
+        wefFormatted: (row.wef),
         irla: row.irla ?? row.irla_action ?? '-',
         __raw: row,
       };

@@ -25,6 +25,7 @@ import {
   getPostingHistory,
 } from "../../actions/ProfileAction";
 import PersonalDetails from "./components/PersonalDetails";
+import Form16B from "./components/Form16";
 
 const log = {
   debug: (...args) =>
@@ -97,12 +98,24 @@ const SECTIONS = [
     icon: "chart",
   },
   {
+    id: "mvr",
+    label: "MVR History",
+    Component: MVRHistoryTab,
+    icon: "folder",
+  },
+  {
     id: "por",
     label: "POR Data Bank",
     Component: PORDataBankTab,
     icon: "folder",
   },
   { id: "irla", label: "IRLA History", Component: IRLAHistoryTab, icon: "doc" },
+  {
+    id: "form",
+    label: "Form 16",
+    Component: Form16B,
+    icon: "chart",
+  },
 ];
 
 function SectionPicker({
@@ -616,6 +629,10 @@ export default function ProfileView() {
               if (id === "rank") tabProps = rankHistory;
               if (id === "trade") tabProps = tradeHistory;
               if (id === "posting") {tabProps = { serviceNo, category };}
+              if (id === "mvr") {tabProps = { serviceNo, category };}
+              if (id === "form") {tabProps = { serviceNo, category };}
+
+
               // debug the props being passed to the component (dev only)
               if (process.env.NODE_ENV !== "production") {
                 try {
