@@ -1,0 +1,306 @@
+.mvr-root {
+  --bg: #fff;
+  --muted: #6b7280;
+  --accent: #0b76ef;
+}
+.mvr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.mvr-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.mvr-search {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-width: 260px;
+}
+.mvr-table-wrap {
+  overflow-x: auto;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 6px;
+  border: 1px solid #f3f4f6;
+}
+.mvr-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+.mvr-table thead th {
+  background: #f8fafc;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.mvr-table th,
+.mvr-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.mvr-table tbody tr:hover {
+  background: #fbfdff;
+}
+.mvr-meta {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.mvr-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mvr-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+}
+.mvr-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.mvr-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.mvr-sort-ind {
+  font-size: 12px;
+  margin-left: 6px;
+  color: var(--muted);
+}
+.mvr-no-record {
+  padding: 18px;
+  color: var(--muted);
+}
+.mvr-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mvr-page-info {
+  font-size: 13px;
+  color: var(--muted);
+}
+.mvr-select {
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+/* MVRHistoryTab.css — Theme-based, enterprise-level styling */
+
+/* ---------- Root & Base ---------- */
+.mvr-root {
+  background: var(--bg, #f9fafb);
+  color: var(--text, #1e293b);
+  font-family: var(--font-family, Inter, system-ui, sans-serif);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: var(--shadow, 0 2px 8px rgba(0, 0, 0, 0.04));
+}
+
+/* ---------- Header ---------- */
+.mvr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.mvr-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+}
+
+/* ---------- Controls ---------- */
+.mvr-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.mvr-search {
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 0.5rem;
+  background: var(--surface, #fff);
+  color: var(--text, #1e293b);
+  font-size: 0.9rem;
+  min-width: 260px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.mvr-search:focus {
+  border-color: var(--accent, #0b76ef);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #0b76ef) 25%, transparent);
+  outline: none;
+}
+
+/* ---------- Table Wrapper ---------- */
+.mvr-table-wrap {
+  overflow-x: auto;
+  background: var(--surface, #fff);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border, #e5e7eb);
+  padding: 0.5rem;
+  box-shadow: var(--shadow, 0 4px 16px rgba(0,0,0,0.04));
+}
+
+/* ---------- Table ---------- */
+.mvr-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+  font-size: 0.9rem;
+  color: var(--text, #1e293b);
+}
+.mvr-table thead th {
+  background: linear-gradient(to bottom, var(--surface-accent, #f3f4f6), var(--surface, #fff));
+  color: var(--text, #0f172a);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 2px solid var(--border, #e2e8f0);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.mvr-table th,
+.mvr-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  vertical-align: middle;
+}
+.mvr-table tbody tr:nth-child(even) {
+  background: var(--surface-accent, #f8fafc);
+}
+.mvr-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent, #0b76ef) 6%, var(--surface, #fff) 94%);
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+/* ---------- Meta Info ---------- */
+.mvr-meta {
+  color: var(--muted, #64748b);
+  font-size: 0.82rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ---------- Footer ---------- */
+.mvr-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+/* ---------- Buttons ---------- */
+.mvr-btn {
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #fff);
+  color: var(--text, #1e293b);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.mvr-btn:hover {
+  background: var(--surface-accent, #f3f4f6);
+  border-color: var(--accent, #0b76ef);
+  color: var(--accent, #0b76ef);
+  transform: translateY(-1px);
+}
+.mvr-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--surface-accent, #f1f5f9);
+}
+
+/* ---------- Sortable Columns ---------- */
+.mvr-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+.mvr-sortable:hover {
+  color: var(--accent, #0b76ef);
+}
+.mvr-sort-ind {
+  font-size: 0.75rem;
+  margin-left: 0.4rem;
+  color: var(--muted, #94a3b8);
+}
+
+/* ---------- Empty / No Record ---------- */
+.mvr-no-record {
+  padding: 1rem;
+  color: var(--muted, #6b7280);
+  text-align: center;
+  background: var(--surface, #fff);
+  border-radius: 0.5rem;
+  border: 1px dashed var(--border, #e2e8f0);
+}
+
+/* ---------- Pagination ---------- */
+.mvr-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mvr-page-info {
+  font-size: 0.82rem;
+  color: var(--muted, #64748b);
+}
+.mvr-select {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 0.5rem;
+  background: var(--surface, #fff);
+  color: var(--text, #1e293b);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.mvr-select:focus {
+  border-color: var(--accent, #0b76ef);
+  outline: none;
+}
+
+/* ---------- Responsive Tweaks ---------- */
+@media (max-width: 768px) {
+  .mvr-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mvr-table {
+    font-size: 0.82rem;
+    min-width: 700px;
+  }
+  .mvr-table th,
+  .mvr-table td {
+    padding: 0.5rem 0.6rem;
+  }
+}
+@media (max-width: 520px) {
+  .mvr-table {
+    min-width: 550px;
+  }
+  .mvr-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

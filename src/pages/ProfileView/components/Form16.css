@@ -1,0 +1,21 @@
+.year-btn {
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  border: 1px solid #e2e8f0; /* slate-200 */
+  background-color: var(--surface);
+  color: var(--text); /* slate-700 */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.year-btn:hover {
+  background-color: var(--button-bg); /* slate-50 */
+}
+
+.year-btn.active {
+  background-color: var(--button-bg); /* slate-800 */
+  color: var(--text);
+  font-weight: 600;
+}

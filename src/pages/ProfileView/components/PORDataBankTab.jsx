@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import React, { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import "./PORDataTable.css";
@@ -10,8 +10,9 @@ export default function PORDataTable({ sno, cat }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [porList, setPorList] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState("ALL");
   const [lastSearched, setLastSearched] = useState(null);
+  const [searchText, setSearchText] = useState("");
 
   // Popup state
   const [popupOpen, setPopupOpen] = useState(false);
@@ -19,20 +20,19 @@ export default function PORDataTable({ sno, cat }) {
   const [popupLoading, setPopupLoading] = useState(false);
   const [popupError, setPopupError] = useState(null);
 
-  // Input change handler (keep year numeric only)
+  // Handle year input change
   const handleYearChange = useCallback((e) => {
     const val = e.target.value.replace(/[^\d]/g, "");
     setSelectedYear(val === "" ? "" : Number(val));
   }, []);
 
-  // Validate year before API call
   const isYearValid = useMemo(() => {
+    if (selectedYear === "ALL") return true;
     const y = Number(selectedYear);
     const current = new Date().getFullYear();
     return Number.isInteger(y) && y >= 2000 && y <= current;
   }, [selectedYear]);
 
-  // Search button handler — fetch only when user clicks Search
   const handleSearch = useCallback(async () => {
     if (!isYearValid || !sno || cat == null) return;
 
@@ -44,7 +44,10 @@ export default function PORDataTable({ sno, cat }) {
     try {
       const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
 
-      const url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${selectedYear}&requestFrom=PANKH`;
+      let url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
+      if (selectedYear !== "ALL") {
+        url += `&porYear=${selectedYear}`;
+      }
 
       const response = await axios.post(url, body, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -61,7 +64,6 @@ export default function PORDataTable({ sno, cat }) {
     }
   }, [sno, cat, selectedYear, isYearValid]);
 
-  // Records to display
   const records = useMemo(() => {
     if (!Array.isArray(porList)) return [];
     return porList.filter(
@@ -69,7 +71,17 @@ export default function PORDataTable({ sno, cat }) {
     );
   }, [porList]);
 
-  // Action: Fetch detailed HTML and open popup
+  // Table search filter
+  const filteredRecords = useMemo(() => {
+    if (!searchText.trim()) return records;
+    const lower = searchText.toLowerCase();
+    return records.filter((row) =>
+      Object.values(row).some(
+        (val) => val && String(val).toLowerCase().includes(lower)
+      )
+    );
+  }, [records, searchText]);
+
   const handleViewDetails = useCallback(
     async (row) => {
       if (!row?.OCC_ID) return;
@@ -89,7 +101,6 @@ export default function PORDataTable({ sno, cat }) {
           timeout: 10000,
         });
 
-        // Response is HTML string
         setPopupContent(
           typeof response.data === "string" ? response.data : JSON.stringify(response.data)
         );
@@ -111,23 +122,12 @@ export default function PORDataTable({ sno, cat }) {
           <label htmlFor="por-dt-year-input" className="por-dt-label">
             Select Year
           </label>
-          <input
-            id="por-dt-year-input"
-            inputMode="numeric"
-            type="text"
-            className="por-dt-input"
-            value={selectedYear}
-            onChange={handleYearChange}
-            placeholder={String(new Date().getFullYear())}
-            aria-invalid={!isYearValid}
-            aria-describedby="por-dt-year-help"
-            maxLength={4}
-          />
           <select
             className="por-dt-select"
             value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            onChange={(e) => setSelectedYear(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
           >
+            <option value="ALL">ALL</option>
             {Array.from({ length: new Date().getFullYear() - 1999 }, (_, i) => {
               const year = new Date().getFullYear() - i;
               return (
@@ -138,7 +138,7 @@ export default function PORDataTable({ sno, cat }) {
             })}
           </select>
           <div id="por-dt-year-help" className="por-dt-help">
-            Year between 2000 and {new Date().getFullYear()}
+            Year between 2000 and {new Date().getFullYear()} or select ALL
           </div>
         </div>
 
@@ -160,6 +160,7 @@ export default function PORDataTable({ sno, cat }) {
               setPorList([]);
               setError(null);
               setLastSearched(null);
+              setSearchText("");
             }}
             aria-label="Reset year and view"
           >
@@ -167,6 +168,19 @@ export default function PORDataTable({ sno, cat }) {
           </button>
         </div>
       </div>
+
+      {/* Table search */}
+      {records.length > 0 && (
+        <div className="por-dt-search">
+          <input
+            type="text"
+            className="por-dt-input"
+            placeholder="Search in table..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </div>
+      )}
 
       {lastSearched && !loading && !error && (
         <div className="por-dt-meta">
@@ -176,7 +190,7 @@ export default function PORDataTable({ sno, cat }) {
 
       {error && <div className="por-dt-error">Error: {String(error)}</div>}
 
-      {!loading && records.length === 0 && lastSearched && !error && (
+      {!loading && filteredRecords.length === 0 && lastSearched && !error && (
         <div className="por-dt-empty">
           No POR records found for {lastSearched.porYear}.
         </div>
@@ -184,7 +198,7 @@ export default function PORDataTable({ sno, cat }) {
 
       {loading && <div className="por-dt-loading">Loading POR data…</div>}
 
-      {records.length > 0 && (
+      {filteredRecords.length > 0 && (
         <div className="por-dt-table-wrapper">
           <table className="por-dt-table" role="table" aria-label="POR records">
             <thead>
@@ -199,7 +213,7 @@ export default function PORDataTable({ sno, cat }) {
               </tr>
             </thead>
             <tbody>
-              {records.map((row, index) => (
+              {filteredRecords.map((row, index) => (
                 <tr key={row.SER_NO ?? row.PORNO ?? index}>
                   <td>{row.PORYEAR ?? "-"}</td>
                   <td>{row.PORNO ?? "-"}</td>
@@ -223,7 +237,6 @@ export default function PORDataTable({ sno, cat }) {
         </div>
       )}
 
-      {/* Popup Modal */}
       {popupOpen && (
         <div className="por-dt-popup-overlay" role="dialog" aria-modal="true">
           <div className="por-dt-popup">
