@@ -94,17 +94,17 @@ const cleaned = useMemo(() => {
     name: dataObj.p_name ?? '-',
     category: mapCategory(dataObj.cat),
     system: dataObj.system ?? '-',
-    rankCode: dataObj.rankcd ?? '-',
+    rankCode: dataObj.rank_name ?? '-',
     rankType: mapRankType(dataObj.ranktype),
     rankDate: (dataObj.rankdt),
-    tradeCode: dataObj.trtcd ?? '-',   // ✅ updated key
+    tradeCode: dataObj.trade_name ?? '-',   // ✅ updated key
     dateOfBirth: (dataObj.dob),
     enlistmentDate: (dataObj.enrldt),
     sex: mapSex(dataObj.sex),
     maritalStatus: mapMaritalStatus(dataObj.mstatus),
-    currentUnit: dataObj.unitcd ?? '-',
-    previousUnit: dataObj.prev_unitcd ?? '-',
-    sorsDate: (dataObj.sonsdt),  // ✅ updated key
+    currentUnit: dataObj.unit_name ?? '-',
+    previousUnit: dataObj.prev_unit_name ?? '-',
+    sorsDate: (dataObj.sorsdt),  // ✅ updated key
     pan: dataObj.pan ?? '-',
     pran: dataObj.pran ?? '-',
     irla: dataObj.irla ?? '-', // will show "-" if not present
@@ -143,12 +143,12 @@ const cleaned = useMemo(() => {
       <div style={styles.section}>
         <h4 style={styles.sectionTitle}>Rank & Posting</h4>
         <InfoGrid data={{
-          'Rank Code': cleaned.rankCode,
+          'Rank': cleaned.rankCode,
           'Rank Type': cleaned.rankType,
           'Rank Date': cleaned.rankDate,
-          'Trade Code': cleaned.tradeCode,
-          'Current Unit Code': cleaned.currentUnit,
-          'Previous Unit Code': cleaned.previousUnit,
+          'Trade': cleaned.tradeCode,
+          'Current Unit': cleaned.currentUnit,
+          'Previous Unit': cleaned.previousUnit,
           'SORS Date': cleaned.sorsDate,
         }}/>
       </div>
