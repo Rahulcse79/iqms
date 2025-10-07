@@ -1,15 +1,15 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from "react";
 
 const devLog = (...args) => {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== "production") {
     try {
-      console.debug('[RankHistoryTab]', ...args);
+      console.debug("[RankHistoryTab]", ...args);
     } catch {}
   }
 };
 
 const devGroup = (label, fn) => {
-  if (process.env.NODE_ENV === 'production') return;
+  if (process.env.NODE_ENV === "production") return;
   try {
     console.groupCollapsed(`[RankHistoryTab] ${label}`);
     fn();
@@ -19,7 +19,7 @@ const devGroup = (label, fn) => {
 
 const pickDateRaw = (row) => {
   if (!row) return null;
-  const candidates = ['wef', 'rankdt', 'wef_date', 'fromDate', 'rankDate'];
+  const candidates = ["wef", "rankdt", "wef_date", "fromDate", "rankDate"];
   for (const k of candidates) {
     if (row[k]) {
       const d = new Date(row[k]);
@@ -29,132 +29,154 @@ const pickDateRaw = (row) => {
   return null;
 };
 
-const pickRankName = (row) => row?.rank_name ?? row?.rankName ?? row?.rank ?? '-';
-const pickRemarks = (row) => row?.irla_action ?? row?.irla ?? row?.remarks ?? '-';
+// Add this beside pickDateRaw
+const pickDateString = (row) => {
+  if (!row) return "-";
+  const candidates = ["wef", "rankdt", "wef_date", "fromDate", "rankDate"];
+  for (const k of candidates) {
+    const v = row?.[k];
+    if (v !== undefined && v !== null && String(v).trim() !== "") {
+      return String(v); // display exactly as sent by the server
+    }
+  }
+  return "-";
+};
+
+const pickRankName = (row) =>
+  row?.rank_name ?? row?.rankName ?? row?.rank ?? "-";
+const pickRemarks = (row) =>
+  row?.irla_action ?? row?.irla ?? row?.remarks ?? "-";
 
 const styles = {
   container: {
-    padding: '20px',
+    padding: "20px",
     fontFamily:
       "var(--font-family, 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial)",
-    color: 'var(--text, #111827)',
-    background: 'transparent',
+    color: "var(--text, #111827)",
+    background: "transparent",
   },
   controlsRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
+    display: "flex",
+    justifyContent: "space-between",
     gap: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 12,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   leftControls: {
-    display: 'flex',
+    display: "flex",
     gap: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   select: {
-    padding: '6px 8px',
+    padding: "6px 8px",
     borderRadius: 6,
-    border: '1px solid var(--border, #d1d5db)',
-    background: 'var(--surface, #fff)',
-    color: 'var(--text, #111827)',
+    border: "1px solid var(--border, #d1d5db)",
+    background: "var(--surface, #fff)",
+    color: "var(--text, #111827)",
   },
   tableWrap: {
-    overflowX: 'auto',
+    overflowX: "auto",
     borderRadius: 8,
-    boxShadow: 'var(--shadow, 0 1px 2px rgba(15,23,42,0.05))',
-    border: '1px solid var(--border, #e6eaea)',
-    background: 'var(--surface, #fff)',
+    boxShadow: "var(--shadow, 0 1px 2px rgba(15,23,42,0.05))",
+    border: "1px solid var(--border, #e6eaea)",
+    background: "var(--surface, #fff)",
   },
   table: {
-    width: '100%',
-    borderCollapse: 'collapse',
+    width: "100%",
+    borderCollapse: "collapse",
     minWidth: 680,
     fontSize: 14,
-    color: 'var(--text, #111827)',
+    color: "var(--text, #111827)",
   },
   thead: {
-    background: 'var(--surface-accent, #f8fafc)',
-    color: 'var(--text, #0f172a)',
+    background: "var(--surface-accent, #f8fafc)",
+    color: "var(--text, #0f172a)",
     fontSize: 14,
-    textAlign: 'left',
+    textAlign: "left",
   },
   th: {
-    padding: '12px 14px',
-    borderBottom: '1px solid var(--border, #e6eaea)',
+    padding: "12px 14px",
+    borderBottom: "1px solid var(--border, #e6eaea)",
     fontWeight: 600,
   },
   thSortable: {
-    cursor: 'pointer',
-    userSelect: 'none',
+    cursor: "pointer",
+    userSelect: "none",
   },
   td: {
-    padding: '12px 14px',
-    borderBottom: '1px solid color-mix(in srgb, var(--border, #f1f5f9) 80%, transparent 20%)',
+    padding: "12px 14px",
+    borderBottom:
+      "1px solid color-mix(in srgb, var(--border, #f1f5f9) 80%, transparent 20%)",
     fontSize: 14,
-    verticalAlign: 'middle',
-    color: 'var(--text, #111827)',
-    background: 'transparent',
+    verticalAlign: "middle",
+    color: "var(--text, #111827)",
+    background: "transparent",
   },
   tbodyRowAlt: {
-    background: 'color-mix(in srgb, var(--surface, #ffffff) 92%, var(--glass, rgba(0,0,0,0.02)) 8%)',
+    background:
+      "color-mix(in srgb, var(--surface, #ffffff) 92%, var(--glass, rgba(0,0,0,0.02)) 8%)",
   },
   navBtn: {
-    padding: '6px 10px',
+    padding: "6px 10px",
     borderRadius: 6,
-    border: '1px solid var(--border, #e2e8f0)',
-    background: 'var(--surface, #fff)',
-    color: 'var(--text, #111827)',
-    cursor: 'pointer',
+    border: "1px solid var(--border, #e2e8f0)",
+    background: "var(--surface, #fff)",
+    color: "var(--text, #111827)",
+    cursor: "pointer",
   },
   pageInput: {
     width: 72,
-    padding: '6px 8px',
+    padding: "6px 8px",
     borderRadius: 6,
-    border: '1px solid var(--border, #d1d5db)',
-    background: 'var(--surface, #fff)',
-    color: 'var(--text, #111827)',
+    border: "1px solid var(--border, #d1d5db)",
+    background: "var(--surface, #fff)",
+    color: "var(--text, #111827)",
   },
   metaText: {
     fontSize: 13,
-    color: 'var(--muted, #374151)',
+    color: "var(--muted, #374151)",
   },
 };
-
 
 export default function RankHistoryTab({ items = [], loading, error }) {
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
-  const [sortDir, setSortDir] = useState('desc');
+  const [sortDir, setSortDir] = useState("desc");
 
-  devGroup('Props Snapshot', () => {
-    devLog('loading:', loading);
-    devLog('error:', error);
-    devLog('items type:', Array.isArray(items) ? 'array' : typeof items);
+  devGroup("Props Snapshot", () => {
+    devLog("loading:", loading);
+    devLog("error:", error);
+    devLog("items type:", Array.isArray(items) ? "array" : typeof items);
     if (Array.isArray(items)) {
       console.table(items.slice(0, 10));
     } else {
-      devLog('items (non-array):', items);
+      devLog("items (non-array):", items);
     }
   });
 
   const cleanedRows = useMemo(() => {
     if (!Array.isArray(items)) return [];
     const mapped = items.map((row, idx) => {
-      devLog('Raw Rank Data (row):', row);
-      const dateRaw = pickDateRaw(row);
+      devLog("Raw Rank Data (row):", row);
+
+      // Keep a parsed Date only for sorting (may be null if unparseable)
+      const dateRawForSort = pickDateRaw(row); // existing helper
+
+      // NEW: raw date string for display (no parsing/formatting)
+      const dateDisplay = pickDateString(row);
+
       return {
         _idx: idx,
         rank: pickRankName(row),
-        rankDateRaw: dateRaw, 
-        rankDateFormatted: dateRaw ? (dateRaw.toISOString()) : (row.wef ?? row.rankdt),
+        rankDateRaw: dateRawForSort, // used for sorting only
+        rankDateFormatted: dateDisplay, // display exactly as received
         remarks: pickRemarks(row),
         __raw: row,
       };
     });
 
-    devGroup('cleanedRows sample', () => {
+    devGroup("cleanedRows sample", () => {
       console.table(
         mapped.slice(0, 10).map((r) => ({
           _idx: r._idx,
@@ -176,9 +198,9 @@ export default function RankHistoryTab({ items = [], loading, error }) {
       if (!a.rankDateRaw) return 1;
       if (!b.rankDateRaw) return -1;
       const diff = a.rankDateRaw.getTime() - b.rankDateRaw.getTime();
-      return sortDir === 'asc' ? diff : -diff;
+      return sortDir === "asc" ? diff : -diff;
     });
-    devLog('sortedRows direction:', sortDir, 'count:', arr.length);
+    devLog("sortedRows direction:", sortDir, "count:", arr.length);
     return arr;
   }, [cleanedRows, sortDir]);
 
@@ -198,8 +220,8 @@ export default function RankHistoryTab({ items = [], loading, error }) {
 
   useEffect(() => {
     devGroup(`Page ${page} Rows`, () => {
-      devLog('startIndex:', startIndex);
-      devLog('pageRows length:', pageRows.length);
+      devLog("startIndex:", startIndex);
+      devLog("pageRows length:", pageRows.length);
       console.table(
         pageRows.map((r, i) => ({
           idx: startIndex + i + 1,
@@ -211,21 +233,33 @@ export default function RankHistoryTab({ items = [], loading, error }) {
     });
   }, [pageRows, page, startIndex]);
 
-  const toggleSort = () => setSortDir((d) => (d === null ? 'asc' : d === 'asc' ? 'desc' : null));
+  const toggleSort = () =>
+    setSortDir((d) => (d === null ? "asc" : d === "asc" ? "desc" : null));
   const onHeaderKey = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       toggleSort();
     }
   };
 
-  devLog('Render check', { loading, error, itemsLength: Array.isArray(items) ? items.length : null, total });
+  devLog("Render check", {
+    loading,
+    error,
+    itemsLength: Array.isArray(items) ? items.length : null,
+    total,
+  });
 
   if (loading) return <p style={{ padding: 20 }}>Loading rank history...</p>;
-  if (error) return <p style={{ padding: 20, color: 'var(--danger, red)' }}>Error: {String(error)}</p>;
-  if (!Array.isArray(items) || items.length === 0) return <p style={{ padding: 20 }}>No rank history available.</p>;
+  if (error)
+    return (
+      <p style={{ padding: 20, color: "var(--danger, red)" }}>
+        Error: {String(error)}
+      </p>
+    );
+  if (!Array.isArray(items) || items.length === 0)
+    return <p style={{ padding: 20 }}>No rank history available.</p>;
 
-  const sortIcon = sortDir === 'asc' ? '▲' : sortDir === 'desc' ? '▼' : '↕';
+  const sortIcon = sortDir === "asc" ? "▲" : sortDir === "desc" ? "▼" : "↕";
 
   return (
     <div style={styles.container} className="rank-history-container">
@@ -252,8 +286,16 @@ export default function RankHistoryTab({ items = [], loading, error }) {
 
       <div style={styles.controlsRow}>
         <div style={styles.leftControls}>
-          <label style={{ fontSize: 14, color: 'var(--muted, #374151)', display: 'flex', gap: 8, alignItems: 'center' }}>
-            Rows per page:{' '}
+          <label
+            style={{
+              fontSize: 14,
+              color: "var(--muted, #374151)",
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+            }}
+          >
+            Rows per page:{" "}
             <select
               aria-label="Rows per page"
               value={pageSize}
@@ -267,11 +309,13 @@ export default function RankHistoryTab({ items = [], loading, error }) {
           </label>
 
           <div style={styles.metaText}>
-            Showing <strong>{Math.min(total, startIndex + 1)}</strong> - <strong>{Math.min(total, startIndex + pageRows.length)}</strong> of <strong>{total}</strong>
+            Showing <strong>{Math.min(total, startIndex + 1)}</strong> -{" "}
+            <strong>{Math.min(total, startIndex + pageRows.length)}</strong> of{" "}
+            <strong>{total}</strong>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button
             type="button"
             onClick={() => setPage(1)}
@@ -279,7 +323,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
             style={{
               ...styles.navBtn,
               opacity: page === 1 ? 0.6 : 1,
-              cursor: page === 1 ? 'not-allowed' : 'pointer',
+              cursor: page === 1 ? "not-allowed" : "pointer",
             }}
             aria-label="First page"
             title="First page"
@@ -294,7 +338,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
             style={{
               ...styles.navBtn,
               opacity: page === 1 ? 0.6 : 1,
-              cursor: page === 1 ? 'not-allowed' : 'pointer',
+              cursor: page === 1 ? "not-allowed" : "pointer",
             }}
             aria-label="Previous page"
             title="Previous page"
@@ -309,7 +353,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
             style={{
               ...styles.navBtn,
               opacity: page === totalPages ? 0.6 : 1,
-              cursor: page === totalPages ? 'not-allowed' : 'pointer',
+              cursor: page === totalPages ? "not-allowed" : "pointer",
             }}
             aria-label="Next page"
             title="Next page"
@@ -324,7 +368,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
             style={{
               ...styles.navBtn,
               opacity: page === totalPages ? 0.6 : 1,
-              cursor: page === totalPages ? 'not-allowed' : 'pointer',
+              cursor: page === totalPages ? "not-allowed" : "pointer",
             }}
             aria-label="Last page"
             title="Last page"
@@ -335,7 +379,11 @@ export default function RankHistoryTab({ items = [], loading, error }) {
       </div>
 
       {/* Table */}
-      <div style={styles.tableWrap} className="rank-history-scroll" aria-live="polite">
+      <div
+        style={styles.tableWrap}
+        className="rank-history-scroll"
+        aria-live="polite"
+      >
         <table
           style={styles.table}
           role="table"
@@ -351,14 +399,24 @@ export default function RankHistoryTab({ items = [], loading, error }) {
                 style={{ ...styles.th, ...styles.thSortable }}
                 role="button"
                 tabIndex={0}
-                aria-sort={sortDir ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                aria-sort={
+                  sortDir
+                    ? sortDir === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
                 onClick={toggleSort}
                 onKeyDown={onHeaderKey}
                 title="Toggle sort: none → ascending → descending"
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span>Rank Date</span>
-                  <span style={{ fontSize: 12, color: 'var(--muted, #6b7280)' }}>{sortIcon}</span>
+                  <span
+                    style={{ fontSize: 12, color: "var(--muted, #6b7280)" }}
+                  >
+                    {sortIcon}
+                  </span>
                 </div>
               </th>
 
@@ -371,7 +429,9 @@ export default function RankHistoryTab({ items = [], loading, error }) {
               const isAlt = (startIndex + idx) % 2 === 1;
               return (
                 <tr
-                  key={`${row.__raw?.rank_name ?? row._idx}-${startIndex + idx}`}
+                  key={`${row.__raw?.rank_name ?? row._idx}-${
+                    startIndex + idx
+                  }`}
                   style={isAlt ? styles.tbodyRowAlt : undefined}
                 >
                   <td style={styles.td}>{startIndex + idx + 1}</td>
@@ -389,25 +449,25 @@ export default function RankHistoryTab({ items = [], loading, error }) {
       <div
         style={{
           marginTop: 12,
-          display: 'flex',
-          justifyContent: 'space-between',
+          display: "flex",
+          justifyContent: "space-between",
           gap: 12,
-          alignItems: 'center',
-          flexWrap: 'wrap',
+          alignItems: "center",
+          flexWrap: "wrap",
         }}
       >
-        <div style={{ color: 'var(--muted, #374151)' }}>
+        <div style={{ color: "var(--muted, #374151)" }}>
           Page <strong>{page}</strong> of <strong>{totalPages}</strong>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <label
             style={{
-              display: 'flex',
+              display: "flex",
               gap: 8,
-              alignItems: 'center',
+              alignItems: "center",
               fontSize: 13,
-              color: 'var(--muted, #374151)',
+              color: "var(--muted, #374151)",
             }}
           >
             Go to page:
@@ -425,7 +485,7 @@ export default function RankHistoryTab({ items = [], loading, error }) {
             />
           </label>
 
-          <div style={{ color: 'var(--muted, #6b7280)', fontSize: 13 }}>
+          <div style={{ color: "var(--muted, #6b7280)", fontSize: 13 }}>
             Rows per page: <strong>{pageSize}</strong>
           </div>
         </div>

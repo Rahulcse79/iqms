@@ -178,7 +178,7 @@ export default function IQMSdetailsTab({
     {
       name: "Submit Date",
       selector: (row) =>
-        row.submit_date ? new Date(row.submit_date).toLocaleString() : "",
+        row.submit_date ?(row.submit_date) : "",
       sortable: true,
       width: "200px",
     },
