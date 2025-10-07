@@ -927,14 +927,14 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
     // Create all fetch tasks - all run in parallel and independently
     const tasks = [
       {
-        name: "pending-all-levels",
+        name: "pending",
         task: dispatch(fetchAllPendingQueriesForRole(activeRole)),
         description:
           "Fetch pending queries for creator, verifier, and approver",
         critical: false,
       },
       {
-        name: "replied-new",
+        name: "replied",
         task: dispatch(
           fetchRepliedQueriesNew({
             moduleCat: String(activeRole.MODULE_CAT),
@@ -947,7 +947,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
         critical: false,
       },
       {
-        name: "transferred-new",
+        name: "transferred",
         task: dispatch(
           fetchAllTransferredQueriesForRole(activeRole, designationFlags)
         ),

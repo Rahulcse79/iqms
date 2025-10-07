@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { RiMenuFill } from "react-icons/ri";
 import { FaUserCircle } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -6,13 +6,10 @@ import { GrRefresh } from "react-icons/gr";
 import useTheme from "../hooks/useTheme";
 import { useActiveRole } from "../hooks/useActiveRole";
 import "./Topbar.css";
-import { useDataRefresher } from "../hooks/useDataRefresherNew";
 import { getUserRoleLabel } from "../constants/Enum";
-import {
-  getDesignationFlags,
-  fetchQueriesForRoleNew,
-} from "../utils/helpers";
+import { getDesignationFlags, fetchQueriesForRoleNew } from "../utils/helpers";
 import { useDispatch } from "react-redux";
+import Loader from "./Loader";
 
 /**
  * Topbar with Enhanced Active Role Management
@@ -25,7 +22,8 @@ const Topbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { refreshing, refreshData } = useDataRefresher();
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const [refreshProgress, setRefreshProgress] = useState({});
   const [errorPlaceholder, setErrorPlaceholder] = useState("");
   const [isError, setIsError] = useState(false);
 
@@ -103,8 +101,63 @@ const Topbar = ({ toggleSidebar }) => {
 
   /** 🔄 Manual Refresh */
   const handleRefreshScreen = async () => {
-    navigate("/");
-    await refreshData();
+    if (switchingRole || isManualRefreshing) return; // Prevent multiple refreshes
+
+    console.log("🔄 Manual data refresh initiated...");
+    setIsManualRefreshing(true);
+    setRefreshProgress({ step: "starting" });
+    navigate("/"); // Navigate to home to reset view
+
+    try {
+      setRefreshProgress({ step: "fetching", taskName: "designation flags" });
+      const flags = await getDesignationFlags(activeRole);
+
+      const fetchResult = await fetchQueriesForRoleNew(
+        dispatch,
+        activeRole,
+        flags,
+        (progress) => {
+          setRefreshProgress({
+            step: "fetching",
+            ...progress,
+          });
+        },
+        (error) => {
+          console.warn("Non-critical error during manual refresh:", error);
+        }
+      );
+
+      console.log(`Data Refresh Completed Through Topbar`, fetchResult);
+
+      if (fetchResult.success) {
+        setRefreshProgress({
+          step: "completed",
+          successful: fetchResult.successful,
+          total: fetchResult.total,
+        });
+        console.log(
+          `✅ Queries reloaded for ${activeRole.PORTFOLIO_NAME}: ${fetchResult.successful}/${fetchResult.total} successful`
+        );
+      } else {
+        setRefreshProgress({
+          step: "completed_with_errors",
+          successful: fetchResult.successful,
+          total: fetchResult.total,
+        });
+        console.warn(
+          `⚠️ Some queries failed during refresh for ${activeRole.PORTFOLIO_NAME}`
+        );
+      }
+    } catch (error) {
+      console.error("❌ Critical error during data refresh:", error);
+      setRefreshProgress({ step: "error", error: error.message });
+    } finally {
+      // Hide the indicator after a delay
+      setTimeout(() => {
+        setIsManualRefreshing(false);
+        setRefreshProgress({});
+      }, 2000);
+    }
   };
 
   /** 🔄 Enhanced Portfolio Change - Now fetches queries for new role */
@@ -264,6 +317,26 @@ const Topbar = ({ toggleSidebar }) => {
     navigate(targetPath, { state });
   };
 
+  // Get manual refresh indicator text
+  const getRefreshIndicatorText = () => {
+    switch (refreshProgress.step) {
+      case "starting":
+        return "Refreshing...";
+      case "fetching":
+        return refreshProgress.taskName
+          ? `Loading ${refreshProgress.taskName} (${refreshProgress.current}/${refreshProgress.total})`
+          : "Fetching data...";
+      case "completed":
+        return `✅ Refresh complete (${refreshProgress.successful}/${refreshProgress.total})`;
+      case "completed_with_errors":
+        return `⚠️ Refresh complete with errors`;
+      case "error":
+        return `❌ Error: ${refreshProgress.error}`;
+      default:
+        return "";
+    }
+  };
+
   /** 🌓 Theme */
   const { theme, toggleTheme } = useTheme();
 
@@ -317,6 +390,10 @@ const Topbar = ({ toggleSidebar }) => {
         </div>
       </header>
     );
+  }
+
+  if (isManualRefreshing) {
+    return <Loader text={getRefreshIndicatorText()} />;
   }
 
   return (
@@ -397,22 +474,41 @@ const Topbar = ({ toggleSidebar }) => {
         </div>
 
         {/* Refresh Button */}
-        {/* <div className="refresh-container">
+        <div className="refresh-container controls-group">
           <GrRefresh
             className={`refresh-button-api control ${
-              refreshing || switchingRole ? "spinning" : ""
+              isManualRefreshing || switchingRole ? "spinning" : ""
             }`}
             onClick={handleRefreshScreen}
             title={
-              switchingRole ? "Role switching in progress..." : "Refresh data"
+              switchingRole
+                ? "Role switching in progress..."
+                : isManualRefreshing
+                ? getRefreshIndicatorText()
+                : "Refresh data"
             }
             aria-label="Refresh"
             style={{
-              opacity: switchingRole ? 0.6 : 1,
-              cursor: switchingRole ? "not-allowed" : "pointer",
+              opacity: switchingRole || isManualRefreshing ? 0.6 : 1,
+              cursor:
+                switchingRole || isManualRefreshing ? "not-allowed" : "pointer",
             }}
           />
-        </div> */}
+          {isManualRefreshing && (
+            <div
+              className="refresh-indicator"
+              style={{
+                fontSize: "11px",
+                color: "var(--primary)",
+                marginLeft: "8px",
+                whiteSpace: "nowrap",
+              }}
+              title={getRefreshIndicatorText()}
+            >
+              {getRefreshIndicatorText()}
+            </div>
+          )}
+        </div>
 
         {/* Center: Category + Search */}
         <div className="topbar-center controls-group">
