@@ -1,20 +1,9 @@
-// FreqQuery.jsx
-// Industrial-grade Frequent Query count UI
-// Place next to FreqQuery.css and import: import "./FreqQuery.css";
-
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFrqQueryCount, clearFrqQryResults } from "../actions/queryActions"; // adjust path if needed
 import { userRoleOptions, getUserRoleLabel } from "../constants/Enum"; // adjust path if needed
+import { useNavigate } from "react-router-dom";
 import "./FreqQuery.css";
-
-/**
- * FreqQuery component
- * - Dropdown based on userRoleOptions
- * - Calls API GET /frqQueryCount/:Module_Cat via fetchFrqQueryCount
- * - Uses bucket key `role{code}` so reducer caches per-role
- * - Shows table, client-side pagination, export CSV, refresh, and clear-cache
- */
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -26,6 +15,13 @@ function bucketKeyForRole(roleCode) {
 function trimPers(persValue) {
   if (!persValue) return "";
   return String(persValue).trim();
+}
+
+/* extract leading service number from start of pers */
+function extractLeadingServiceNumber(pers) {
+  const s = trimPers(pers);
+  const m = s.match(/^\d+/);
+  return m ? m[0] : null;
 }
 
 /* small utility to build compact page range with ellipses */
@@ -45,8 +41,7 @@ function buildPageRange(current, total) {
 function downloadCSV(filename, rows) {
   if (!rows || rows.length === 0) return;
   const columns = Object.keys(rows[0]);
-  const escape = (v) =>
-    `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const escape = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const csv = [columns.join(",")]
     .concat(rows.map((r) => columns.map((c) => escape(r[c])).join(",")))
     .join("\r\n");
@@ -63,9 +58,11 @@ function downloadCSV(filename, rows) {
 
 export default function FreqQuery() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // selected role default -> first option (or 0)
-  const defaultRole = (userRoleOptions && userRoleOptions[0] && userRoleOptions[0].value) ?? 0;
+  const defaultRole =
+    (userRoleOptions && userRoleOptions[0] && userRoleOptions[0].value) ?? 0;
   const [selectedRole, setSelectedRole] = useState(defaultRole);
 
   // local interaction state
@@ -102,7 +99,8 @@ export default function FreqQuery() {
       setLocalError(null);
     }
     if (reduxError) {
-      const message = (reduxError && reduxError.message) || reduxError || "Error loading data";
+      const message =
+        (reduxError && reduxError.message) || reduxError || "Error loading data";
       setLocalError(message);
     }
     // when role changes, reset pagination and search
@@ -117,7 +115,9 @@ export default function FreqQuery() {
       setLoading(true);
       setLocalError(null);
       try {
-        const p = dispatch(fetchFrqQueryCount(selectedRole, { key: bucketKey, force }));
+        const p = dispatch(
+          fetchFrqQueryCount(selectedRole, { key: bucketKey, force })
+        );
         pendingPromiseRef.current = p;
         const data = await p;
         setLocalItems(Array.isArray(data?.items) ? data.items : []);
@@ -134,7 +134,10 @@ export default function FreqQuery() {
     return () => {
       // cancel pending call if component unmounts or role changes
       try {
-        if (pendingPromiseRef.current && typeof pendingPromiseRef.current.cancel === "function") {
+        if (
+          pendingPromiseRef.current &&
+          typeof pendingPromiseRef.current.cancel === "function"
+        ) {
           pendingPromiseRef.current.cancel();
         }
       } catch (e) {
@@ -172,14 +175,19 @@ export default function FreqQuery() {
   const handleRefresh = async () => {
     try {
       // cancel any pending
-      if (pendingPromiseRef.current && typeof pendingPromiseRef.current.cancel === "function") {
+      if (
+        pendingPromiseRef.current &&
+        typeof pendingPromiseRef.current.cancel === "function"
+      ) {
         pendingPromiseRef.current.cancel();
       }
     } catch (e) {}
     setLoading(true);
     setLocalError(null);
     try {
-      const p = dispatch(fetchFrqQueryCount(selectedRole, { key: bucketKey, force: true }));
+      const p = dispatch(
+        fetchFrqQueryCount(selectedRole, { key: bucketKey, force: true })
+      );
       pendingPromiseRef.current = p;
       const data = await p;
       setLocalItems(Array.isArray(data?.items) ? data.items : []);
@@ -189,6 +197,21 @@ export default function FreqQuery() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFreqView = (row) => {
+    const serviceNumber = extractLeadingServiceNumber(row?.pers);
+    if (!serviceNumber) {
+      setLocalError("No service number found in 'pers'.");
+      return;
+    }
+    const categoryRaw = getUserRoleLabel(selectedRole);
+    const category = String(categoryRaw ?? "").trim().toUpperCase() || String(selectedRole);
+    const search = `?category=${encodeURIComponent(category)}&type=${encodeURIComponent(
+      "Service"
+    )}&q=${encodeURIComponent(serviceNumber)}`;
+    // Navigate to: /search-results?category=<CATEGORY>&type=Service&q=<SERVICE_NUMBER>
+    navigate({ pathname: "/search-results", search });
   };
 
   const handleClearCache = () => {
@@ -211,7 +234,9 @@ export default function FreqQuery() {
     <div className="freq-page" aria-live="polite">
       <header className="freq-header">
         <h2 className="freq-title">Frequent Query Count</h2>
-        <p className="freq-sub">Select a role to view total frequent-query counts. Data is cached per role.</p>
+        <p className="freq-sub">
+          Select a role to view total frequent-query counts. Data is cached per role.
+        </p>
       </header>
 
       <div className="freq-controls">
@@ -235,7 +260,12 @@ export default function FreqQuery() {
         </select>
 
         <div className="freq-actions">
-          <button className="freq-btn freq-btn-primary" onClick={handleRefresh} disabled={loading} aria-disabled={loading}>
+          <button
+            className="freq-btn freq-btn-primary"
+            onClick={handleRefresh}
+            disabled={loading}
+            aria-disabled={loading}
+          >
             {loading ? "Loading…" : "Refresh"}
           </button>
 
@@ -249,7 +279,11 @@ export default function FreqQuery() {
             Clear Filter
           </button>
 
-          <button className="freq-btn" onClick={handleExportCSV} disabled={totalItems === 0}>
+          <button
+            className="freq-btn"
+            onClick={handleExportCSV}
+            disabled={totalItems === 0}
+          >
             Export CSV
           </button>
 
@@ -259,9 +293,20 @@ export default function FreqQuery() {
         </div>
 
         <div className="freq-meta">
-          <span className="freq-meta-item">Role: <strong>{getUserRoleLabel(selectedRole)}</strong></span>
-          {lastFetched && <span className="freq-meta-item">Last fetched: <time dateTime={lastFetched}>{new Date(lastFetched).toLocaleString()}</time></span>}
-          <span className="freq-meta-item">Total: <strong>{totalItems}</strong></span>
+          <span className="freq-meta-item">
+            Role: <strong>{getUserRoleLabel(selectedRole)}</strong>
+          </span>
+          {lastFetched && (
+            <span className="freq-meta-item">
+              Last fetched:{" "}
+              <time dateTime={lastFetched}>
+                {new Date(lastFetched).toLocaleString()}
+              </time>
+            </span>
+          )}
+          <span className="freq-meta-item">
+            Total: <strong>{totalItems}</strong>
+          </span>
         </div>
 
         <div className="freq-filter">
@@ -294,12 +339,17 @@ export default function FreqQuery() {
           <div className="freq-empty">No results found.</div>
         ) : (
           <>
-            <table className="freq-table" role="table" aria-label="Frequent Query Count table">
+            <table
+              className="freq-table"
+              role="table"
+              aria-label="Frequent Query Count table"
+            >
               <thead>
                 <tr>
                   <th style={{ width: 60 }}>S.No</th>
                   <th>Name / Person</th>
                   <th style={{ width: 140 }}>Total FRQ Count</th>
+                  <th style={{ width: 140 }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -308,6 +358,14 @@ export default function FreqQuery() {
                     <td>{(currentPage - 1) * pageSize + idx + 1}</td>
                     <td className="freq-pers">{trimPers(row.pers)}</td>
                     <td className="freq-count">{row.total_frq_count ?? "-"}</td>
+                    <td>
+                      <button
+                        onClick={() => handleFreqView(row)}
+                        aria-label={`View details for ${trimPers(row.pers)}`}
+                      >
+                        View
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -316,10 +374,15 @@ export default function FreqQuery() {
             {/* Pagination */}
             <div className="freq-pagination-wrap">
               <div className="freq-pagination-meta">
-                Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalItems)} of {totalItems}
+                Showing {(currentPage - 1) * pageSize + 1}–
+                {Math.min(currentPage * pageSize, totalItems)} of {totalItems}
               </div>
 
-              <div className="freq-pagination" role="navigation" aria-label="Table pagination">
+              <div
+                className="freq-pagination"
+                role="navigation"
+                aria-label="Table pagination"
+              >
                 <button
                   className="freq-page-btn"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -360,7 +423,15 @@ export default function FreqQuery() {
                 <label htmlFor="pagesize" className="sr-only">
                   Page size
                 </label>
-                <select id="pagesize" className="freq-pagesize-select" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
+                <select
+                  id="pagesize"
+                  className="freq-pagesize-select"
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
                   <option value={5}>5 / page</option>
                   <option value={10}>10 / page</option>
                   <option value={20}>20 / page</option>
