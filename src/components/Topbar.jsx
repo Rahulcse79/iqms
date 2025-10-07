@@ -9,9 +9,8 @@ import "./Topbar.css";
 import { useDataRefresher } from "../hooks/useDataRefresherNew";
 import { getUserRoleLabel } from "../constants/Enum";
 import {
-  fetchQueriesForRoleNew,
   getDesignationFlags,
-  fetchQueriesForRoleNew1,
+  fetchQueriesForRoleNew,
 } from "../utils/helpers";
 import { useDispatch } from "react-redux";
 
@@ -43,8 +42,6 @@ const Topbar = ({ toggleSidebar }) => {
     loading: roleLoading,
     error: roleError,
     setActiveRole,
-    hasPermission,
-    hasAccessToCell,
   } = useActiveRole();
 
   const [airForceProfile, setAirForceProfile] = useState(null);
@@ -143,7 +140,7 @@ const Topbar = ({ toggleSidebar }) => {
       const flags = await getDesignationFlags(selected);
 
       // Fetch queries for the new role
-      const fetchResult = await fetchQueriesForRoleNew1(
+      const fetchResult = await fetchQueriesForRoleNew(
         dispatch,
         selected,
         flags,

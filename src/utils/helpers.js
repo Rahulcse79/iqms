@@ -1058,41 +1058,6 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
 };
 
 /**
- * NEW API: Fetch queries specifically for active role change
- * @param {Function} dispatch - Redux dispatch function
- * @param {Object} newActiveRole - New active role object
- * @param {Function} [onProgress] - Progress callback
- * @param {Function} [onError] - Error callback
- * @returns {Promise} - Fetch results
- */
-export const fetchQueriesForRoleNew = async (
-  dispatch,
-  newActiveRole,
-  onProgress,
-  onError
-) => {
-  console.log(
-    "🔄 Fetching queries for role change (NEW API):",
-    newActiveRole.PORTFOLIO_NAME
-  );
-
-  return fetchAllUserQueriesNew(dispatch, {
-    activeRole: newActiveRole,
-    onProgress: (progress) => {
-      if (onProgress) {
-        onProgress({
-          ...progress,
-          roleChange: true,
-          roleName: newActiveRole.PORTFOLIO_NAME,
-          apiVersion: "NEW",
-        });
-      }
-    },
-    onError,
-  });
-};
-
-/**
  * Helper function to get NEW API parameters from active role
  * @param {Object} activeRole - Active role object
  * @returns {Object} - API parameters
@@ -1219,7 +1184,7 @@ export const getDesignationFlags = async (activeRole) => {
   }
 };
 
-export const fetchQueriesForRoleNew1 = async (
+export const fetchQueriesForRoleNew = async (
   dispatch,
   newActiveRole,
   designationFlags, // ADD THIS
