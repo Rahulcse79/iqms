@@ -1,251 +1,147 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import PropTypes from "prop-types";
-import axios from "axios";
 
-const DEFAULT_BASE = "http://175.25.5.7/API/controller.php";
-const Form_API_TOKEN =
-  process.env.REACT_APP_IRLA_API_TOKEN ||
-  "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
 
-export default function Form16B({
-  serviceNo,
-  cat,
-  baseUrl = DEFAULT_BASE,
-  requestForm = "PANKH",
-  startYear = 2014,
-  endYear = 2024,
-}) {
-  // Build list of financial years (e.g. "2014-15")
-  const years = useMemo(() => {
-    const arr = [];
-    for (let y = startYear; y <= endYear; y++) {
-      const nextYY = (y + 1).toString().slice(-2).padStart(2, "0");
-      arr.push(`${y}-${nextYY}`);
-    }
-    return arr;
-  }, [startYear, endYear]);
+import React, { useState, useEffect, useRef } from 'react';
 
-  // default selected year -> most recent (endYear)
-  const [selectedYear, setSelectedYear] = useState(() => years[years.length - 1] || "");
+const DEFAULT_API_BASE = 'http://175.25.5.7/API/controller.php';
+const Form_API_TOKEN = process.env.REACT_APP_IRLA_API_TOKEN || "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
+
+function generateYears(start = 2015, end = 2024) {
+  const arr = [];
+  for (let y = start; y <= end; y++) arr.push(y);
+  return arr;
+}
+
+function finYearLabel(start) {
+  // format yyyy-yy e.g. 2024-25
+  const endShort = String((start + 1) % 100).padStart(2, '0');
+  return `${start}-${endShort}`;
+}
+
+export default function Form16({ selSno, selCat, baseUrl = DEFAULT_API_BASE, apiToken = Form_API_TOKEN }) {
+  const years = generateYears(2015, 2024); // 2015-16 .. 2024-25 (10 tabs)
+  const defaultStart = Math.max(...years);
+
+  const [selectedStart, setSelectedStart] = useState(defaultStart);
+  const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
 
-  // use a ref for AbortController so we can cancel previous request when switching tabs
-  const abortCtrlRef = useRef(null);
-  // used to prevent double-calling when we trigger fetch from onClick AND effect
-  const skipEffectRef = useRef(false);
+  const objectUrlRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
-  // cleanup blob urls on unmount
+  // cleanup on unmount
   useEffect(() => {
     return () => {
-      if (abortCtrlRef.current) {
-        try {
-          abortCtrlRef.current.abort();
-        } catch (e) {}
-      }
-      if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     };
-  }, [pdfBlobUrl]);
+  }, []);
 
-  const fetchPdf = useCallback(
-    async (finYear) => {
-      if (!serviceNo || !cat) return;
-
-      setError(null);
-      setLoading(true);
-
-      // cancel previous
-      if (abortCtrlRef.current) {
-        try {
-          abortCtrlRef.current.abort();
-        } catch (e) {}
-      }
-      const controller = new AbortController();
-      abortCtrlRef.current = controller;
-
-      try {
-        // Build query string - include both requestForm and encoded key with space to be tolerant
-        const qs = `?apexApiForm16B&selSno=${encodeURIComponent(
-          serviceNo
-        )}&selCat=${encodeURIComponent(cat)}&finYear=${encodeURIComponent(
-          finYear
-        )}&requestForm=${encodeURIComponent(requestForm)}&request%20Form=${encodeURIComponent(
-          requestForm
-        )}`;
-
-        const url = `${baseUrl}${qs}`;
-
-        // token in x-www-form-urlencoded body as `api_token` (as you said you tested in Postman)
-        const body = new URLSearchParams({ api_token: Form_API_TOKEN }).toString();
-
-        const resp = await axios.post(url, body, {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          responseType: "blob",
-          signal: controller.signal,
-        });
-
-        const contentType = (resp.headers && resp.headers["content-type"]) || "";
-
-        if (contentType.toLowerCase().includes("pdf")) {
-          const blob = new Blob([resp.data], { type: "application/pdf" });
-          const blobUrl = URL.createObjectURL(blob);
-          // revoke previous
-          setPdfBlobUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return blobUrl;
-          });
-        } else {
-          // Not a PDF — try to read as text for helpful error
-          let text = "(could not parse response)";
-          try {
-            // resp.data is a Blob — use its text() to read
-            const txt = await resp.data.text();
-            text = txt ? txt.slice(0, 800) : text;
-          } catch (e) {}
-          throw new Error("Server did not return a PDF. Response starts with: " + text);
-        }
-      } catch (err) {
-        // axios cancellation uses name 'CanceledError' in newer axios versions, and AbortError for native AbortController
-        if (err?.name === "CanceledError" || err?.name === "AbortError") {
-          // aborted — do nothing
-        } else {
-          setError(err.message || String(err));
-          // cleanup any existing pdf
-          setPdfBlobUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return null;
-          });
-        }
-      } finally {
-        setLoading(false);
-        abortCtrlRef.current = null;
-      }
-    },
-    [serviceNo, cat, baseUrl, requestForm]
-  );
-
-  // fetch whenever serviceNo or cat changes, or when selectedYear changes
+  // Fetch PDF whenever props or selected year change
   useEffect(() => {
-    if (!serviceNo || !cat || !selectedYear) return;
-    if (skipEffectRef.current) {
-      // this was triggered by our own click handler which already fetched — avoid duplicate
-      skipEffectRef.current = false;
+    // Basic validation
+    if (!selSno || !selCat) {
+      setError('selSno and selCat props are required.');
+      setPdfUrl(null);
       return;
     }
-    fetchPdf(selectedYear);
-  }, [serviceNo, cat, selectedYear, fetchPdf]);
 
-  function handleTabClick(y) {
-    // set selected year for UI
-    setSelectedYear(y);
-    // mark that the effect should skip the next fetch (we'll fetch immediately)
-    skipEffectRef.current = true;
-    // call fetch directly with the clicked year (faster feedback and avoids relying on state flush)
-    fetchPdf(y);
-  }
+    const finYear = finYearLabel(selectedStart);
 
-  function handleDownload() {
-    if (!pdfBlobUrl) return;
-    const a = document.createElement("a");
-    a.href = pdfBlobUrl;
-    a.download = `Form16-${serviceNo}-${selectedYear}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
+    // abort previous call if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setLoading(true);
+    setError(null);
+
+    // revoke previous object URL
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+
+    // Construct URL — sample used apexApiForm16B as a flag and requestForm=PANKH
+    // If your API expects different param names (e.g. "request Form" with space) update here.
+    const url = `${baseUrl}?apexApiForm16B=1&selSno=${encodeURIComponent(selSno)}&selCat=${encodeURIComponent(selCat)}&finYear=${encodeURIComponent(finYear)}&requestForm=PANKH`;
+
+    // Token needs to be posted as x-www-form-urlencoded body: api_token=VALUE
+    const body = new URLSearchParams({ api_token: apiToken }).toString();
+
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+      signal: controller.signal,
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`Server returned ${res.status} ${res.statusText}`);
+        return res.blob();
+      })
+      .then(blob => {
+        if (!blob || blob.size === 0) throw new Error('Received empty response (no PDF).');
+        const objectUrl = URL.createObjectURL(blob);
+        objectUrlRef.current = objectUrl;
+        setPdfUrl(objectUrl);
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') return; // ignore aborts
+        setError(err.message || 'Failed to fetch PDF.');
+        setPdfUrl(null);
+      })
+      .finally(() => setLoading(false));
+
+    // cleanup for this effect run
+    return () => controller.abort();
+  }, [selSno, selCat, selectedStart, baseUrl, apiToken]);
+
+  const finYear = finYearLabel(selectedStart);
 
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ margin: 0 }}>Form 16B — {serviceNo ?? "(no service number)"}</h3>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => fetchPdf(selectedYear)} disabled={loading || !serviceNo || !cat}>
-            Refresh
-          </button>
-          <button onClick={handleDownload} disabled={!pdfBlobUrl}>
-            Download PDF
-          </button>
-          {pdfBlobUrl && (
-            <button onClick={() => window.open(pdfBlobUrl, "_blank")} title="Open PDF in new tab">
-              Open
-            </button>
-          )}
+    <div className="p-4">
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-semibold">Form 16 {selSno ? ` - SNO: ${selSno}` : ''}</h2>
+          <div className="text-sm">Selected: {finYear}</div>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {years.map(y => {
+            const label = finYearLabel(y);
+            const active = y === selectedStart;
+            return (
+              <button
+                key={y}
+                onClick={() => setSelectedStart(y)}
+                className={`whitespace-nowrap px-3 py-1 rounded-2xl text-sm border transition ${active ? 'bg-slate-800 text-white' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}>
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: 6,
-          background: "var('--bg')",
-          marginTop: 12,
-          marginBottom: 12,
-          overflowX: "auto",
-          paddingBottom: 6,
-        }}
-      >
-        {years.map((y) => (
-          <button
-            key={y}
-            onClick={() => handleTabClick(y)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: y === selectedYear ? "2px solid #0b76ef" : "1px solid #ddd",
-              background: y === selectedYear ? "rgba(11,118,239,0.08)" : "white",
-              cursor: "pointer",
-            }}
-          >
-            {y}
-          </button>
-        ))}
-      </div>
+      <div className="border rounded p-2">
+        {loading && <div className="py-8 text-center">Loading PDF for {finYear}...</div>}
+        {error && <div className="text-red-600 py-2">{error}</div>}
 
-      {/* Status */}
-      <div style={{ marginBottom: 12 }}>
-        {loading && <div>Loading PDF for {selectedYear} ...</div>}
-        {error && (
-          <div style={{ color: "var('--red')", whiteSpace: "pre-wrap" }}>Error: {error}</div>
-        )}
-      </div>
-
-      {/* PDF viewer */}
-      <div style={{ minHeight: 300, border: "1px solid #eee" }}>
-        {pdfBlobUrl ? (
-          // Use <object> so pdf opens in browsers that support PDF plugin; <iframe> works too.
-          <object
-            data={pdfBlobUrl}
-            type="application/pdf"
-            width="100%"
-            height={700}
-            aria-label={`Form16 PDF for ${selectedYear}`}
-          >
-            <p>
-              Your browser does not support inline PDFs. <a href={pdfBlobUrl}>Download PDF</a> to
-              view.
-            </p>
-          </object>
-        ) : (
-          !loading && (
-            <div style={{ padding: 24, color: "var('--text')" }}>
-              No PDF to display. Select a year tab to load the Form 16 PDF.
+        {!loading && !error && pdfUrl && (
+          <div>
+            <div className="mb-2 flex gap-2 items-center">
+              <a className="underline text-sm" href={pdfUrl} target="_blank" rel="noreferrer">Open in new tab</a>
+              <a className="underline text-sm" href={pdfUrl} download={`Form16_${selSno}_${finYear}.pdf`}>Download</a>
             </div>
-          )
+            <iframe title={`Form16-${selSno}-${finYear}`} src={pdfUrl} className="w-full h-[700px] border rounded" />
+          </div>
+        )}
+
+        {!loading && !error && !pdfUrl && (
+          <div className="py-8 text-center text-slate-500">No PDF loaded — click a year to fetch.</div>
         )}
       </div>
     </div>
   );
 }
-
-Form16B.propTypes = {
-  serviceNo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  cat: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  baseUrl: PropTypes.string,
-  requestForm: PropTypes.string,
-  startYear: PropTypes.number,
-  endYear: PropTypes.number,
-};

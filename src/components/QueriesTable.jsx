@@ -75,6 +75,19 @@ const QueriesTable = ({ title, data = [] }) => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
+  // Return the raw API value as-is if it is a string; otherwise JSON-stringify to preserve payload shape without formatting
+  const getDisplayDate = (row) => {
+    const raw =
+      (row && (row.afcaadDate ?? row.date ?? row.dateString ?? row.apiDate)) ??
+      "";
+    if (typeof raw === "string") return raw;
+    try {
+      return JSON.stringify(raw);
+    } catch {
+      return String(raw ?? "");
+    }
+  };
+
   const handleView = (row) => {
     const category = getUserRoleLabel(row.cat);
     const queryParams = new URLSearchParams({
@@ -99,14 +112,14 @@ const QueriesTable = ({ title, data = [] }) => {
     },
     {
       name: "Service No (Pers)",
-      selector: (row) => row.serviceNo || "",
+      selector: (row) => row.serviceNo ?? "",
       sortable: true,
     },
-    { name: "Query Type", selector: (row) => row.type || "", sortable: true },
-    { name: "Query ID", selector: (row) => row.queryId || "", sortable: true },
+    { name: "Query Type", selector: (row) => row.type ?? "", sortable: true },
+    { name: "Query ID", selector: (row) => row.queryId ?? "", sortable: true },
     {
       name: "Query Received (AFCAAD Date)",
-      selector: (row) => row.date || "",
+      selector: (row) => getDisplayDate(row),
       sortable: true,
     },
     {
@@ -138,7 +151,9 @@ const QueriesTable = ({ title, data = [] }) => {
     const text = filteredData
       .map(
         (row, i) =>
-          `${i + 1}\t${row.serviceNo}\t${row.type}\t${row.queryId}\t${row.date}`
+          `${i + 1}\t${row.serviceNo}\t${row.type}\t${
+            row.queryId
+          }\t${getDisplayDate(row)}`
       )
       .join("\n");
     navigator.clipboard.writeText(text);
@@ -152,7 +167,7 @@ const QueriesTable = ({ title, data = [] }) => {
       row.serviceNo,
       row.type,
       row.queryId,
-      row.date,
+      getDisplayDate(row),
     ]);
     const csv = [header, ...rows].map((e) => e.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -173,9 +188,9 @@ const QueriesTable = ({ title, data = [] }) => {
     filteredData.forEach((row, i) => {
       const y = 50 + i * 10;
       doc.text(
-        `${i + 1}. ${row.serviceNo} | ${row.type} | ${row.queryId} | ${
-          row.date
-        }`,
+        `${i + 1}. ${row.serviceNo} | ${row.type} | ${
+          row.queryId
+        } | ${getDisplayDate(row)}`,
         20,
         y
       );
@@ -188,9 +203,9 @@ const QueriesTable = ({ title, data = [] }) => {
     const content = filteredData
       .map(
         (row, i) =>
-          `${i + 1} | ${row.serviceNo} | ${row.type} | ${row.queryId} | ${
-            row.date
-          }`
+          `${i + 1} | ${row.serviceNo} | ${row.type} | ${
+            row.queryId
+          } | ${getDisplayDate(row)}`
       )
       .join("\n");
     const printWindow = window.open("", "", "width=800,height=600");

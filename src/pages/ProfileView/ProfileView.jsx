@@ -25,7 +25,7 @@ import {
   getPostingHistory,
 } from "../../actions/ProfileAction";
 import PersonalDetails from "./components/PersonalDetails";
-import Form16B from "./components/Form16";
+import Form16 from "./components/Form16";
 
 const log = {
   debug: (...args) =>
@@ -113,7 +113,7 @@ const SECTIONS = [
   {
     id: "form",
     label: "Form 16",
-    Component: Form16B,
+    Component: Form16,
     icon: "chart",
   },
 ];
@@ -720,8 +720,8 @@ export default function ProfileView({
               }
               if (id === "form") {
                 tabProps = {
-                  serviceNo: valueServiceNo,
-                  category: valueCategory,
+                  selSno: valueServiceNo,
+                  selCat: valueCategory,
                 };
               }
 

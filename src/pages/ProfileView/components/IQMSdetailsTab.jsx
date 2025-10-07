@@ -7,8 +7,8 @@ export default function IQMSdetailsTab({
   serviceNumber,
   serviceNo,
   category,
-  type = "Service", // default if not passed
-  queryValue = "", // default if not passed
+  type = "Service", 
+  queryValue = "", 
 }) {
   const svc = serviceNumber ?? serviceNo;
   const [data, setData] = useState([]);
@@ -178,7 +178,7 @@ export default function IQMSdetailsTab({
     {
       name: "Submit Date",
       selector: (row) =>
-        row.submit_date ?(row.submit_date) : "",
+        row.submit_date ? new Date(row.submit_date).toLocaleString() : "",
       sortable: true,
       width: "200px",
     },
