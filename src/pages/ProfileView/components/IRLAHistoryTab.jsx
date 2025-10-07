@@ -4,7 +4,7 @@ import MonthYearPicker from "./MonthYearPicker";
 import axios from "axios";
 import "./IRLAHistoryTab.css";
 
-const IRLA_API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS"; 
+const IRLA_API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
 
 export default function IRLAHistoryTab({ selSno, selCat }) {
   const [selected, setSelected] = useState({ month: "", year: "" });
@@ -54,7 +54,11 @@ export default function IRLAHistoryTab({ selSno, selCat }) {
       setPdfSrc(objectUrl);
     } catch (err) {
       console.error("IRLA fetch failed:", err);
-      setError(err?.response?.data?.message || err.message || "Failed to fetch IRLA View");
+      setError(
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to fetch IRLA View"
+      );
     } finally {
       setLoading(false);
     }
@@ -72,10 +76,18 @@ export default function IRLAHistoryTab({ selSno, selCat }) {
     window.open(pdfSrc, "_blank", "noopener,noreferrer");
   }, [pdfSrc]);
 
+  // Get current year and set the range
+  const currentYear = new Date().getFullYear();
+  const minYear = 2013; // oldest year allowed
+
   return (
     <div className="irla-root" role="region" aria-label="IRLA History">
       <div className="irla-controls">
-        <MonthYearPicker onChange={handlePickerChange} yearsBack={5} />
+        <MonthYearPicker
+          onChange={handlePickerChange}
+          minYear={minYear}
+          maxYear={currentYear}
+        />
         <div className="irla-actions">
           <button
             className="irla-btn irla-btn--primary"
