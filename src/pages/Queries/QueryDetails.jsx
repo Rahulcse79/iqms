@@ -9,6 +9,7 @@ import {
   fetchTransferToVerifierOption,
   fetchTransferToSubsectionOptions,
   submitIqmsReply,
+  validateReplyPermission,
 } from "../../utils/helpers";
 
 const STORAGE_KEY = "queryDrafts_v2";
@@ -125,6 +126,12 @@ const QueryDetails = ({
   const [activeTab, setActiveTab] = useState("details");
   const [formError, setFormError] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [permissionCheck, setPermissionCheck] = useState({
+    canReply: false,
+    reason: "",
+    isLoading: true,
+    debug: {},
+  });
 
   // ENHANCED: Submission state management
   const [submitState, setSubmitState] = useState({
@@ -175,59 +182,104 @@ const QueryDetails = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  // Load verifier option when query data is available
+  // NEW: Permission validation effect
   useEffect(() => {
-    const loadVerifierOption = async () => {
-      if (!item?.pending_with) return;
+    const checkPermissions = () => {
+      setPermissionCheck({
+        canReply: false,
+        reason: "",
+        isLoading: true,
+        debug: {},
+      });
 
-      setLoadingVerifierOption(true);
-      setApiErrors((prev) => ({ ...prev, verifier: null }));
-
-      try {
-        const option = await fetchTransferToVerifierOption(item.pending_with);
-        setVerifierOption(option);
-        console.log("📋 Verifier option loaded:", option.DESCRIPTION);
-      } catch (error) {
-        console.error("❌ Failed to load verifier option:", error);
-        setApiErrors((prev) => ({ ...prev, verifier: error.message }));
-        setVerifierOption(null);
-      } finally {
-        setLoadingVerifierOption(false);
-      }
-    };
-
-    loadVerifierOption();
-  }, [item?.pending_with]);
-
-  // Load subsection options when "Transfer to Sub-Section" is selected
-  useEffect(() => {
-    const loadSubsectionOptions = async () => {
-      if (
-        localDraft.forwardOption !== "Transfer to Sub-Section" ||
-        !item?.doc_id
-      ) {
-        setSubsectionOptions([]);
+      if (!item) {
+        setPermissionCheck({
+          canReply: false,
+          reason: "Query data not loaded yet...",
+          isLoading: true,
+          debug: {},
+        });
         return;
       }
 
-      setLoadingSubsectionOptions(true);
-      setApiErrors((prev) => ({ ...prev, subsection: null }));
+      const activeRole = getCurrentActiveRole();
+      const validation = validateReplyPermission(item, activeRole);
 
-      try {
-        const options = await fetchTransferToSubsectionOptions(item.doc_id);
-        setSubsectionOptions(options);
-        console.log("📋 Subsection options loaded:", options.length, "options");
-      } catch (error) {
-        console.error("❌ Failed to load subsection options:", error);
-        setApiErrors((prev) => ({ ...prev, subsection: error.message }));
-        setSubsectionOptions([]);
-      } finally {
-        setLoadingSubsectionOptions(false);
-      }
+      setPermissionCheck({
+        canReply: validation.canTakeAction,
+        reason: validation.reason,
+        isLoading: false,
+        debug: validation.debug,
+      });
     };
 
-    loadSubsectionOptions();
-  }, [localDraft.forwardOption, item?.doc_id]);
+    checkPermissions();
+  }, [item]);
+
+  // Load verifier option when query data is available
+  useEffect(
+    () => {
+      const loadVerifierOption = async () => {
+        if (!item?.pending_with || !permissionCheck.canReply) return;
+
+        setLoadingVerifierOption(true);
+        setApiErrors((prev) => ({ ...prev, verifier: null }));
+
+        try {
+          const option = await fetchTransferToVerifierOption(item.pending_with);
+          setVerifierOption(option);
+          console.log("📋 Verifier option loaded:", option.DESCRIPTION);
+        } catch (error) {
+          console.error("❌ Failed to load verifier option:", error);
+          setApiErrors((prev) => ({ ...prev, verifier: error.message }));
+          setVerifierOption(null);
+        } finally {
+          setLoadingVerifierOption(false);
+        }
+      };
+
+      loadVerifierOption();
+    },
+    [item?.pending_with, permissionCheck.canReply]
+  );
+
+  // Load subsection options when Transfer to Sub-Section is selected AND user has permission
+  useEffect(
+    () => {
+      const loadSubsectionOptions = async () => {
+        if (
+          localDraft.forwardOption !== "Transfer to Sub-Section" ||
+          !item?.doc_id ||
+          !permissionCheck.canReply
+        ) {
+          setSubsectionOptions([]);
+          return;
+        }
+
+        setLoadingSubsectionOptions(true);
+        setApiErrors((prev) => ({ ...prev, subsection: null }));
+
+        try {
+          const options = await fetchTransferToSubsectionOptions(item.doc_id);
+          setSubsectionOptions(options);
+          console.log(
+            "📋 Subsection options loaded:",
+            options.length,
+            "options"
+          );
+        } catch (error) {
+          console.error("❌ Failed to load subsection options:", error);
+          setApiErrors((prev) => ({ ...prev, subsection: error.message }));
+          setSubsectionOptions([]);
+        } finally {
+          setLoadingSubsectionOptions(false);
+        }
+      };
+
+      loadSubsectionOptions();
+    },
+    [localDraft.forwardOption, item?.doc_id, permissionCheck.canReply]
+  );
 
   const handleChange = (field, value) => {
     localSetDraft((prev) => {
@@ -251,6 +303,12 @@ const QueryDetails = ({
     // Clear any previous errors
     setFormError("");
     setSubmitState((prev) => ({ ...prev, error: null }));
+
+    // Check permissions first
+    if (!permissionCheck.canReply) {
+      setFormError(permissionCheck.reason);
+      return;
+    }
 
     // Validation
     if (!localDraft.replyText.trim()) {
@@ -432,7 +490,7 @@ const QueryDetails = ({
     "";
 
   const pers = item.pers;
-  
+
   const rawQueryText =
     details["Query Details"] ||
     details["Query details"] ||
@@ -560,168 +618,209 @@ const QueryDetails = ({
             )} */}
 
             <div className="query-history">
-            <h3>Previous Replies</h3>
-            {item.history && item.history.length > 0 ? (
-              item.history.map((h, i) => (
-                <div key={i} className="history-entry">
-                  <div className="history-meta">
-                    <strong>{h.by}</strong>
-                    {h.date && (
-                      <span className="small-muted">
-                        {formatDateFlexible(h.date)}
-                      </span>
-                    )}
+              <h3>Previous Replies</h3>
+              {item.history && item.history.length > 0 ? (
+                item.history.map((h, i) => (
+                  <div key={i} className="history-entry">
+                    <div className="history-meta">
+                      <strong>{h.by}</strong>
+                      {h.date && (
+                        <span className="small-muted">
+                          {formatDateFlexible(h.date)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="history-text">
+                      {renderMultiline(h.text)}
+                    </div>
+                    <hr className="separator" />
                   </div>
-                  <div className="history-text">{renderMultiline(h.text)}</div>
-                  <hr className="separator" />
-                </div>
-              ))
-            ) : (
-              <div className="panel-empty">No history available</div>
-            )}
-          </div>
+                ))
+              ) : (
+                <div className="panel-empty">No history available</div>
+              )}
+            </div>
 
-            {/* Enhanced Reply Form with Dynamic Dropdowns */}
+            {/* Enhanced Reply Form with Permission Check */}
             <div className="form-section">
-              <div className="form-group">
-                <label>Reply</label>
-                <textarea
-                  placeholder="Type your reply..."
-                  value={localDraft.replyText}
-                  onChange={(e) => handleChange("replyText", e.target.value)}
-                  rows={6}
-                  disabled={submitState.loading}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>
-                  Reply / Forward To
-                  {loadingVerifierOption && (
-                    <span className="loading-indicator"> 🔄</span>
-                  )}
-                  {apiErrors.verifier && (
-                    <span
-                      className="error-indicator"
-                      title={apiErrors.verifier}
-                    >
-                      {" "}
-                      ⚠️
-                    </span>
-                  )}
-                </label>
-                <select
-                  value={localDraft.forwardOption}
-                  onChange={(e) =>
-                    handleChange("forwardOption", e.target.value)
-                  }
-                  disabled={loadingVerifierOption || submitState.loading}
-                >
-                  <option value="">--Select--</option>
-                  {verifierOption && (
-                    <option value="Transfer to Supervisor">
-                      {verifierOption.DESCRIPTION || "Transfer to Supervisor"}
-                    </option>
-                  )}
-                  <option value="Transfer to Sub-Section">
-                    Transfer to Sub-Section
-                  </option>
-                </select>
-              </div>
-
-              {localDraft.forwardOption === "Transfer to Sub-Section" && (
-                <div className="form-group">
-                  <label>
-                    Select Sub-Section
-                    {loadingSubsectionOptions && (
-                      <span className="loading-indicator"> 🔄</span>
-                    )}
-                    {apiErrors.subsection && (
-                      <span
-                        className="error-indicator"
-                        title={apiErrors.subsection}
-                      >
-                        {" "}
-                        ⚠️
-                      </span>
-                    )}
-                  </label>
-                  <select
-                    value={localDraft.transferSection}
-                    onChange={(e) =>
-                      handleChange("transferSection", e.target.value)
-                    }
-                    disabled={loadingSubsectionOptions || submitState.loading}
-                  >
-                    <option value="">--Select Sub-Section--</option>
-                    {subsectionOptions.map((option, index) => (
-                      <option key={index} value={option.ACTIVITY}>
-                        {option.DESCRIPTION}
-                      </option>
-                    ))}
-                  </select>
-
-                  {subsectionOptions.length > 0 && (
-                    <div className="options-count">
-                      {subsectionOptions.length} subsection
-                      {subsectionOptions.length !== 1 ? "s" : ""} available
-                    </div>
-                  )}
+              {/* Permission Status Display */}
+              {permissionCheck.isLoading ? (
+                <div className="permission-loading">
+                  <div className="loading-spinner"></div>
+                  <span>Checking permissions...</span>
                 </div>
-              )}
-
-              {/* Show active role info for debugging */}
-              {process.env.NODE_ENV === "development" && (
-                <div className="debug-info">
-                  <details>
-                    <summary>Debug Info (dev only)</summary>
-                    <div>
-                      <strong>Active Role:</strong>{" "}
-                      {getCurrentActiveRole()?.PORTFOLIO_NAME || "Not found"}
-                    </div>
-                    <div>
-                      <strong>Pending With:</strong> {item.pending_with}
-                    </div>
-                    <div>
-                      <strong>Doc ID:</strong> {item.doc_id}
-                    </div>
-                  </details>
-                </div>
-              )}
-
-              <div className="form-actions">
-                {formError && <div className="form-error">{formError}</div>}
-
-                {/* ENHANCED: Show submission error separately */}
-                {submitState.error && !showConfirmDialog && (
-                  <div className="submit-error">
-                    <div className="error-icon">⚠️</div>
-                    <div className="error-text">{submitState.error}</div>
+              ) : !permissionCheck.canReply ? (
+                <div className="permission-denied">
+                  <div className="permission-icon">🔒</div>
+                  <div className="permission-message">
+                    <h4>Reply Not Available</h4>
+                    <p>{permissionCheck.reason}</p>
+                    {process.env.NODE_ENV === "development" && (
+                      <details className="debug-info">
+                        <summary>Debug Info (dev only)</summary>
+                        <div>
+                          <strong>Pending With:</strong>{" "}
+                          {permissionCheck.debug.pendingWith}
+                        </div>
+                        <div>
+                          <strong>User Role:</strong>{" "}
+                          {permissionCheck.debug.userRole}
+                        </div>
+                        <div>
+                          <strong>User Level:</strong>{" "}
+                          {permissionCheck.debug.userLevel}
+                        </div>
+                        <div>
+                          <strong>Query Level:</strong>{" "}
+                          {permissionCheck.debug.extractedLevel}
+                        </div>
+                        <div>
+                          <strong>Valid Role:</strong>{" "}
+                          {permissionCheck.debug.hasValidRole ? "Yes" : "No"}
+                        </div>
+                        <div>
+                          <strong>Valid Pending With:</strong>{" "}
+                          {permissionCheck.debug.hasValidPendingWith
+                            ? "Yes"
+                            : "No"}
+                        </div>
+                      </details>
+                    )}
                   </div>
-                )}
+                </div>
+              ) : (
+                <div className="permission-granted">
+                  <div className="permission-icon">✅</div>
+                  <div className="permission-message">
+                    <h4>Reply Available</h4>
+                    <p>{permissionCheck.reason}</p>
+                  </div>
+                </div>
+              )}
 
-                <button
-                  className="btn primary"
-                  onClick={handleSubmit}
-                  disabled={
-                    loadingVerifierOption ||
-                    loadingSubsectionOptions ||
-                    submitState.loading
-                  }
-                >
-                  {submitState.loading ? "Processing..." : "Submit"}
-                </button>
-              </div>
+              {/* Reply Form - Only show if user has permission */}
+              {permissionCheck.canReply && (
+                <>
+                  <div className="form-group">
+                    <label>Reply</label>
+                    <textarea
+                      placeholder="Type your reply..."
+                      value={localDraft.replyText}
+                      onChange={(e) =>
+                        handleChange("replyText", e.target.value)
+                      }
+                      rows="6"
+                      disabled={submitState.loading}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>
+                      Reply & Forward To
+                      {loadingVerifierOption && (
+                        <span className="loading-indicator">⏳</span>
+                      )}
+                      {apiErrors.verifier && (
+                        <span
+                          className="error-indicator"
+                          title={apiErrors.verifier}
+                        >
+                          ⚠️
+                        </span>
+                      )}
+                    </label>
+                    <select
+                      value={localDraft.forwardOption}
+                      onChange={(e) =>
+                        handleChange("forwardOption", e.target.value)
+                      }
+                      disabled={loadingVerifierOption || submitState.loading}
+                    >
+                      <option value="">--Select--</option>
+                      {verifierOption && (
+                        <option value="Transfer to Supervisor">
+                          {verifierOption.DESCRIPTION} (Transfer to Supervisor)
+                        </option>
+                      )}
+                      <option value="Transfer to Sub-Section">
+                        Transfer to Sub-Section
+                      </option>
+                    </select>
+                  </div>
+
+                  {localDraft.forwardOption === "Transfer to Sub-Section" && (
+                    <div className="form-group">
+                      <label>
+                        Select Sub-Section
+                        {loadingSubsectionOptions && (
+                          <span className="loading-indicator">⏳</span>
+                        )}
+                        {apiErrors.subsection && (
+                          <span
+                            className="error-indicator"
+                            title={apiErrors.subsection}
+                          >
+                            ⚠️
+                          </span>
+                        )}
+                      </label>
+                      <select
+                        value={localDraft.transferSection}
+                        onChange={(e) =>
+                          handleChange("transferSection", e.target.value)
+                        }
+                        disabled={
+                          loadingSubsectionOptions || submitState.loading
+                        }
+                      >
+                        <option value="">--Select Sub-Section--</option>
+                        {subsectionOptions.map((option, index) => (
+                          <option key={index} value={option.ACTIVITY}>
+                            {option.DESCRIPTION}
+                          </option>
+                        ))}
+                      </select>
+                      {subsectionOptions.length > 0 && (
+                        <div className="options-count">
+                          {subsectionOptions.length} subsection
+                          {subsectionOptions.length !== 1 ? "s" : ""} available
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="form-actions">
+                    {formError && <div className="form-error">{formError}</div>}
+
+                    {/* Enhanced: Show submission error separately */}
+                    {submitState.error && !showConfirmDialog && (
+                      <div className="submit-error">
+                        <div className="error-icon">❌</div>
+                        <div className="error-text">{submitState.error}</div>
+                      </div>
+                    )}
+
+                    <button
+                      className="btn primary"
+                      onClick={handleSubmit}
+                      disabled={
+                        loadingVerifierOption ||
+                        loadingSubsectionOptions ||
+                        submitState.loading ||
+                        !permissionCheck.canReply
+                      }
+                    >
+                      {submitState.loading ? "Processing..." : "Submit"}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
 
         {/* History Tab */}
-        {activeTab === "history" && (
-          <>
-
-          </>
-        )}
+        {activeTab === "history" && <></>}
       </div>
 
       {/* ENHANCED: Confirmation Dialog */}

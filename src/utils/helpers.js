@@ -36,7 +36,6 @@ export const fetchAllUserQueries = async (dispatch, config) => {
 
   // Import enum functions
   const {
-    generateApiCodeFromRole,
     getAllRoleLevelCodes,
     ModuleMapping,
     SubsectionMapping,
@@ -1247,4 +1246,212 @@ export const fetchQueriesForRoleNew1 = async (
     },
     onError,
   });
+};
+
+/**
+ * Role-Based Permission Validation Helpers
+ * Add these functions to your helpers.js file
+ */
+
+/**
+ * Extracts the role level digit from a PENDING_WITH string
+ * @param {string} pendingWith - The PENDING_WITH value (e.g., "U1A", "U2C", "I3O", "A2A", etc.)
+ * @returns {number|null} - The role level (1, 2, or 3) or null if invalid/not found
+ */
+export const extractRoleLevelFromPendingWith = (pendingWith) => {
+  if (!pendingWith || typeof pendingWith !== "string") {
+    console.warn("Invalid pendingWith value:", pendingWith);
+    return null;
+  }
+
+  // Extract the numeric digit from the pendingWith string
+  // Expected format: Letter + Digit + Letter (e.g., U1A, U2C, I3O, A2A, C1C)
+  const match = pendingWith.match(/[A-Z]([123])[A-Z]/i);
+
+  if (!match) {
+    console.warn("No valid role level found in pendingWith:", pendingWith);
+    return null;
+  }
+
+  const roleLevel = parseInt(match[1], 10);
+
+  // Validate that it's a valid role level
+  if (![1, 2, 3].includes(roleLevel)) {
+    console.warn(
+      "Invalid role level extracted from pendingWith:",
+      roleLevel,
+      "from",
+      pendingWith
+    );
+    return null;
+  }
+
+  return roleLevel;
+};
+
+/**
+ * Maps USER_ROLE to numeric role level
+ * @param {string} userRole - User role from active role (CREATOR, VERIFIER, APPROVER)
+ * @returns {number|null} - The numeric role level (1, 2, 3) or null if invalid
+ */
+export const mapUserRoleToLevel = (userRole) => {
+  if (!userRole || typeof userRole !== "string") {
+    console.warn("Invalid userRole:", userRole);
+    return null;
+  }
+
+  const roleMappings = {
+    CREATOR: 1,
+    VERIFIER: 2,
+    APPROVER: 3,
+  };
+
+  const normalizedRole = userRole.toUpperCase().trim();
+  const level = roleMappings[normalizedRole];
+
+  if (!level) {
+    console.warn(
+      "Unknown user role:",
+      userRole,
+      "normalized to:",
+      normalizedRole
+    );
+    return null;
+  }
+
+  return level;
+};
+
+/**
+ * Determines if the current user can take action on a query based on role permissions
+ * @param {string} pendingWith - The query's PENDING_WITH value
+ * @param {Object} activeRole - The user's active role object
+ * @returns {Object} - Permission result with canTakeAction, reason, and debug info
+ */
+export const canUserTakeActionOnQuery = (pendingWith, activeRole) => {
+  const result = {
+    canTakeAction: false,
+    reason: "",
+    debug: {
+      pendingWith,
+      activeRole: activeRole?.PORTFOLIO_NAME || "None",
+      userRole: activeRole?.USER_ROLE || "None",
+      extractedLevel: null,
+      userLevel: null,
+      hasValidRole: false,
+      hasValidPendingWith: false,
+    },
+  };
+
+  // Validate inputs
+  if (!activeRole) {
+    result.reason = "No active role found. Please select a role and try again.";
+    return result;
+  }
+
+  if (!activeRole.USER_ROLE) {
+    result.reason =
+      "User role not found in active role. Please refresh and select a role again.";
+    return result;
+  }
+
+  if (!pendingWith) {
+    result.reason = "No pending with information available for this query.";
+    result.debug.hasValidPendingWith = false;
+    return result;
+  }
+
+  // Extract role levels
+  const queryRoleLevel = extractRoleLevelFromPendingWith(pendingWith);
+  const userRoleLevel = mapUserRoleToLevel(activeRole.USER_ROLE);
+
+  // Update debug info
+  result.debug.extractedLevel = queryRoleLevel;
+  result.debug.userLevel = userRoleLevel;
+  result.debug.hasValidRole = userRoleLevel !== null;
+  result.debug.hasValidPendingWith = queryRoleLevel !== null;
+
+  // Check if we could extract valid role levels
+  if (queryRoleLevel === null) {
+    result.reason =
+      "Cannot determine query role level from pending with value. Reply not available.";
+    return result;
+  }
+
+  if (userRoleLevel === null) {
+    result.reason = `Unknown user role: "${activeRole.USER_ROLE}". Please contact support.`;
+    return result;
+  }
+
+  // Check if role levels match
+  if (queryRoleLevel === userRoleLevel) {
+    result.canTakeAction = true;
+    result.reason = `You have permission to reply as ${activeRole.USER_ROLE}.`;
+    return result;
+  }
+
+  // Role levels don't match - determine appropriate message
+  const levelNames = { 1: "Creator", 2: "Verifier", 3: "Approver" };
+  const queryLevelName = levelNames[queryRoleLevel] || "Unknown";
+  const userLevelName = levelNames[userRoleLevel] || "Unknown";
+
+  result.reason = `This query is pending at ${queryLevelName} level, but you are logged in as ${userLevelName}. You cannot reply to this query.`;
+  return result;
+};
+
+/**
+ * Validates if a user can perform reply action with detailed logging
+ * @param {Object} queryItem - The query object with pending_with information
+ * @param {Object} activeRole - The user's active role
+ * @returns {Object} - Detailed validation result
+ */
+export const validateReplyPermission = (queryItem, activeRole) => {
+  console.log("🔐 Validating reply permission...");
+  console.log("Query item:", {
+    docId: queryItem?.DOC_ID || queryItem?.docid,
+    pendingWith:
+      queryItem?.PENDING_WITH ||
+      queryItem?.pending_with ||
+      queryItem?.pendingwith,
+  });
+  console.log("Active role:", {
+    portfolio: activeRole?.PORTFOLIO_NAME,
+    userRole: activeRole?.USER_ROLE,
+  });
+
+  // Extract pending with from various possible property names
+  const pendingWith =
+    queryItem?.PENDING_WITH ||
+    queryItem?.pending_with ||
+    queryItem?.pendingwith ||
+    queryItem?.penwithcap ||
+    null;
+
+  const validation = canUserTakeActionOnQuery(pendingWith, activeRole);
+
+  console.log("🔐 Permission validation result:", validation);
+
+  return validation;
+};
+
+/**
+ * Helper function to check if reply is allowed for a query (simple version)
+ * @param {Object} queryItem - Query object
+ * @param {Object} activeRole - Active role object
+ * @returns {boolean} - True if user can reply, false otherwise
+ */
+export const canUserReply = (queryItem, activeRole) => {
+  const validation = validateReplyPermission(queryItem, activeRole);
+  return validation.canTakeAction;
+};
+
+/**
+ * Get user-friendly message for permission status
+ * @param {Object} queryItem - Query object
+ * @param {Object} activeRole - Active role object
+ * @returns {string} - User-friendly message explaining permission status
+ */
+export const getPermissionMessage = (queryItem, activeRole) => {
+  const validation = validateReplyPermission(queryItem, activeRole);
+  return validation.reason;
 };
