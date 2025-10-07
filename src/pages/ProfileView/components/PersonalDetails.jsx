@@ -136,7 +136,7 @@ const cleaned = useMemo(() => {
           'Date of Birth': cleaned.dateOfBirth,
           'Sex': cleaned.sex,
           'Marital Status': cleaned.maritalStatus,
-          'Enlistment Date': cleaned.enlistmentDate,
+          'Enrolment Date': cleaned.enlistmentDate,
         }}/>
       </div>
 
