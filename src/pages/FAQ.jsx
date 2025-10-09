@@ -466,7 +466,7 @@ export default function FAQPage() {
                     className="faq-heading"
                     id={`heading-${cssSafeId(heading)}`}
                   >
-                    <button
+                    <div
                       className="faq-heading-toggle"
                       onClick={() => handleToggleHeading(heading)}
                       aria-expanded={isExpanded}
@@ -480,7 +480,7 @@ export default function FAQPage() {
                       <div className="faq-heading-chev">
                         {isExpanded ? "▲" : "▼"}
                       </div>
-                    </button>
+                    </div>
 
                     {isExpanded && (
                       <div className="faq-questions">

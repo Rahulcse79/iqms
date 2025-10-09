@@ -1,10 +1,4 @@
-/* File: FAQ.css
-   Themed FAQ styles (light & dark supported)
-   - Uses theme CSS variables for backgrounds, text, borders
-   - Responsive and accessible
-*/
 
-/* Base */
 * { box-sizing: border-box; }
 html,body { height: 100%; }
 body {
@@ -171,11 +165,11 @@ body {
   padding:12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: var(--surface-accent);
+  background: var(--surface);
   cursor: pointer;
   transition: box-shadow var(--transition), transform var(--transition);
 }
-.faq-heading-toggle:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.faq-heading-toggle:hover {background-color: var(--bg); transform: translateY(-1px); }
 .faq-heading-title { font-weight:700; font-size:15px; color:var(--text); }
 .faq-heading-meta { font-size:13px; color:var(--muted); margin-top:3px; }
 .faq-heading-chev { font-size:14px; color:var(--muted); }
