@@ -250,6 +250,157 @@
   color: var(--text);
   letter-spacing: 0.06em;
 }
+/* Modal Stylings */
+
+/* =============================
+   THEME-BASED MODAL STYLES
+   ============================= */
+
+/* Overlay (background dim) */
+.cq-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg, #000) 40%, transparent);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: cqFadeIn 0.25s ease;
+}
+
+/* Modal Container */
+.cq-modal {
+  background: var(--surface, #fff);
+  color: var(--text, #111827);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--shadow-color, #000) 15%, transparent);
+  width: 90%;
+  max-width: 640px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: cqSlideUp 0.25s ease;
+  border: 1px solid var(--border, #e5e7eb);
+}
+
+/* Modal Header */
+.cq-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  background: var(--surface-accent, #f9fafb);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  color: var(--text-strong, #0f172a);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Close Button */
+.cq-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--muted, #6b7280);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.cq-modal-close:hover {
+  color: var(--accent, #3b82f6);
+  transform: scale(1.1);
+}
+
+/* Modal Body */
+.cq-modal-body {
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+  background: var(--surface, #fff);
+}
+
+/* Table Styling */
+.cq-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.cq-modal-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  vertical-align: top;
+  word-break: break-word;
+}
+
+/* Keys */
+.cq-modal-table .k {
+  font-weight: 600;
+  color: var(--muted, #475569);
+  width: 35%;
+  border-right: 1px solid var(--border, #e5e7eb);
+  text-transform: capitalize;
+}
+
+/* Values */
+.cq-modal-table .v {
+  color: var(--text, #111827);
+  width: 65%;
+}
+
+/* Footer */
+.cq-modal-footer {
+  padding: 0.75rem 1.25rem;
+  background: var(--surface-accent, #f9fafb);
+  border-top: 1px solid var(--border, #e5e7eb);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Button */
+.btn {
+  background: var(--primary, #0ea5a4);
+  color: var(--surface, #fff);
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+.btn:hover {
+  background: color-mix(in srgb, var(--primary, #0ea5a4) 85%, #000 5%);
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes cqFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes cqSlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .cq-modal {
+    width: 94%;
+    max-height: 80vh;
+  }
+  .cq-modal-header {
+    font-size: 0.95rem;
+  }
+  .cq-modal-table td {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+  .btn {
+    padding: 0.45rem 1rem;
+  }
+}
 
 /* ---------- Sub tables ---------- */
 .sub-table-wrap {

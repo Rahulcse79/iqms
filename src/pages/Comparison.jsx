@@ -255,7 +255,7 @@ const Comparison = () => {
                 <td>DOE</td>
                 <td>
                   {person?.enrldt
-                    ? new Date(person.enrldt).toLocaleDateString()
+                    ? person.enrldt
                     : "-"}
                 </td>
               </tr>
@@ -271,39 +271,6 @@ const Comparison = () => {
               </tr>
             </tbody>
           </table>
-
-          {/* BASIC PAY REASON */}
-          <div className="section-title">Basic Pay Reason</div>
-          {payList.length === 0 ? (
-            <p>No pay entries.</p>
-          ) : (
-            <table className="info-table">
-              <thead>
-                <tr>
-                  <th>S No.</th>
-                  <th>Description</th>
-                  <th>Rate</th>
-                  <th>WEF</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payList.map((p, i) => (
-                  <tr key={i}>
-                    <td>{i + 1}</td>
-                    <td>{p.description ?? p.desc ?? "-"}</td>
-                    <td>{p.rate ?? p.amount ?? "-"}</td>
-                    <td>
-                      {p.wef
-                        ? new Date(p.wef).toLocaleDateString()
-                        : p.hp_date
-                        ? new Date(p.hp_date).toLocaleDateString()
-                        : "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
 
           {/* RANK HISTORY */}
           <div className="section-title">Rank History</div>
@@ -327,13 +294,46 @@ const Comparison = () => {
                     <td>{r.rank ?? "-"}</td>
                     <td>
                       {r.hp_date
-                        ? new Date(r.hp_date).toLocaleDateString()
+                        ? r.hp_date
                         : r.wef
-                        ? new Date(r.wef).toLocaleDateString()
+                        ? r.wef
                         : "-"}
                     </td>
                     <td>{r.type ?? "-"}</td>
                     <td>{r.opt ?? "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          {/* BASIC PAY REASON */}
+          <div className="section-title">Basic Pay Reason</div>
+          {payList.length === 0 ? (
+            <p>No pay entries.</p>
+          ) : (
+            <table className="info-table">
+              <thead>
+                <tr>
+                  <th>S No.</th>
+                  <th>Description</th>
+                  <th>Rate</th>
+                  <th>WEF</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payList.map((p, i) => (
+                  <tr key={i}>
+                    <td>{i + 1}</td>
+                    <td>{p.description ?? p.desc ?? "-"}</td>
+                    <td>{p.rate ?? p.amount ?? "-"}</td>
+                    <td>
+                      {p.wef
+                        ? p.wef
+                        : p.hp_date
+                        ? p.hp_date
+                        : "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
