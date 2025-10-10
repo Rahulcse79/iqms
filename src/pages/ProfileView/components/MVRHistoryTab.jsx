@@ -193,8 +193,7 @@ const MvrHistoryTable = ({ sno }) => {
       <div className="mvr-header">
         <h2>MVR History - Service No: {sno}</h2>
         <div className="mvr-stats">
-          <span>Total Records: {data.length}</span>
-          <span>Page {currentPage} of {totalPages}</span>
+          <div>Total Records: {data.length}</div>
         </div>
       </div>
 
@@ -287,6 +286,8 @@ const MvrHistoryTable = ({ sno }) => {
           Last
         </button>
       </div>
+      <div>Page {currentPage} of {totalPages}</div>
+
 
       {/* Centered Popup with blurred overlay */}
       {isPopupOpen && selectedRow && (
@@ -397,6 +398,9 @@ const MvrHistoryTable = ({ sno }) => {
                   <span className="popup-value hash-check">{selectedRow.hashcheck}</span>
                 </div>
               </div>
+            </div>
+            <div className='popup-footer'>
+            <button className='popup-footer-btn' onClick={() => setIsPopupOpen(false)} style={{background:"var(--red-bg)", color:"var(--red-text)"}}>Close</button>
             </div>
           </div>
         </div>
