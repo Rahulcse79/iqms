@@ -1,302 +1,408 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import PropTypes from "prop-types";
-import axios from "axios";
+import React, { useState, useEffect, useMemo } from 'react';
 
-const DEFAULT_BASE = "http://sampoorna.cao.local/afcao/ipas/ivrs/mvrHistory";
+import './MVRHistoryTab.css';
 
-export default function MVRHistoryTab({ serviceNo, baseUrl = DEFAULT_BASE }) {
-  const [items, setItems] = useState([]);
+const MvrHistoryTable = ({ sno }) => {
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Pagination state
-  const [meta, setMeta] = useState({ offset: 0, limit: 10, count: 0 });
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({ 
+    key: 'irla', 
+    direction: 'desc' 
+  });
 
-  // UI states
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const itemsPerPage = 10;
 
-  // Sorting
-  const [sortBy, setSortBy] = useState("irla");
-  const [sortDir, setSortDir] = useState("desc");
+  // Fetch all data by handling hasMore pagination
+  const fetchAllData = async () => {
+    setLoading(true);
+    setError(null);
+    let allData = [];
+    let offset = 0;
+    let hasMore = true;
 
-  const buildDefaultUrl = useCallback(
-    (svc, offset = 0, limit = meta.limit) =>
-      `${baseUrl}/${encodeURIComponent(svc)}?offset=${offset}&limit=${limit}`,
-    [baseUrl, meta.limit]
-  );
+    try {
+      while (hasMore) {
+        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/mvrHistory/${sno}?offset=${offset}&limit=10`;
+        const response = await fetch(url);
 
-  const load = useCallback(
-    async (page = 1) => {
-      if (!serviceNo) {
-        setItems([]);
-        return;
-      }
-
-      const offset = (page - 1) * meta.limit;
-      setLoading(true);
-      setError(null);
-
-      try {
-        const url = buildDefaultUrl(serviceNo, offset, meta.limit);
-        const resp = await axios.get(url);
-        const data = resp.data || {};
-
-        const newItems = Array.isArray(data.items) ? data.items : [];
-        setItems(newItems);
-        setMeta({
-          offset: data.offset ?? offset,
-          limit: data.limit ?? 10,
-          count: data.count ?? newItems.length,
-        });
-        setCurrentPage(page);
-      } catch (err) {
-        const msg =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to fetch MVR history.";
-        setError(msg);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [serviceNo, buildDefaultUrl, meta.limit]
-  );
-
-  useEffect(() => {
-    load(1);
-  }, [serviceNo, baseUrl]);
-
-  // Debounce search input (300ms)
-  useEffect(() => {
-    const t = setTimeout(
-      () => setDebouncedSearch(search.trim().toLowerCase()),
-      300
-    );
-    return () => clearTimeout(t);
-  }, [search]);
-
-  // Helpers
-  const parseDate = (iso) => {
-    if (!iso) return null;
-    const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? null : d;
-  };
-
-  const formatDate = (iso) => {
-    const d = parseDate(iso);
-    if (!d) return "-";
-    return d.toLocaleDateString("en-GB", {
-      timeZone: "Asia/Kolkata",
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  // Derived items: search + sort
-  const displayedItems = useMemo(() => {
-    const q = debouncedSearch;
-    let list = Array.isArray(items) ? [...items] : [];
-
-    if (q) {
-      list = list.filter((it) => {
-        const hay = `${it.description ?? ""} ${it.occ_id ?? ""} ${it.porno ?? ""} ${
-          it.status ?? ""
-        } ${it.src ?? ""} ${it.pers ?? ""}`.toLowerCase();
-        return hay.includes(q);
-      });
-    }
-
-    if (sortBy) {
-      list.sort((a, b) => {
-        const dir = sortDir === "asc" ? 1 : -1;
-        if (sortBy === "irla") {
-          const na = Number(a.irla ?? -Infinity);
-          const nb = Number(b.irla ?? -Infinity);
-          return na > nb ? dir : na < nb ? -dir : 0;
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        if (sortBy === "fmdt" || sortBy === "todt") {
-          const da = parseDate(a[sortBy]);
-          const db = parseDate(b[sortBy]);
-          if (!da && !db) return 0;
-          if (!da) return 1;
-          if (!db) return -1;
-          return da > db ? dir : da < db ? -dir : 0;
+
+        const result = await response.json();
+        allData = [...allData, ...result.items];
+        hasMore = result.hasMore;
+        offset += result.limit;
+      }
+
+      setData(allData);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching MVR History:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (sno) {
+      fetchAllData();
+    }
+  }, [sno]);
+
+  // Lock scroll and enable ESC to close when popup is open
+  useEffect(() => {
+    if (!isPopupOpen) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setIsPopupOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isPopupOpen]);
+
+  // Sorting logic
+  const sortedData = useMemo(() => {
+    let sortableData = [...data];
+    if (sortConfig.key) {
+      sortableData.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Handle date sorting
+        if (sortConfig.key === 'fmdt' || sortConfig.key === 'todt') {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        }
+
+        // Handle numeric sorting
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+
+        // Handle string/date sorting
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
         }
         return 0;
       });
     }
+    return sortableData;
+  }, [data, sortConfig]);
 
-    return list;
-  }, [items, debouncedSearch, sortBy, sortDir]);
+  // Pagination logic
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
 
-  const totalPages = Math.ceil((meta.count || 0) / meta.limit) || 1;
+  // Handle sorting
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
-  const toggleSort = (field) => {
-    if (sortBy === field) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(field);
-      setSortDir("asc");
+  // Handle row click - open centered popup with overlay
+  const handleRowClick = (row) => {
+    setSelectedRow(row);
+    setIsPopupOpen(true);
+  };
+
+  // Handle pagination
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
   };
 
-  const handleLimitChange = (e) => {
-    const newLimit = Number(e.target.value);
-    setMeta((m) => ({ ...m, limit: newLimit }));
-    load(1);
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
-  if (!serviceNo) {
+  // Get sort icon
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return '↕️';
+    }
+    return sortConfig.direction === 'asc' ? '↑' : '↓';
+  };
+
+  // Generate pagination numbers
+  const getPaginationNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
+  if (loading) {
     return (
-      <div className="mvr-empty">
-        No service number provided. Pass <code>serviceNo</code> prop to fetch
-        MVR history.
+      <div className="mvr-loading">
+        <div className="loading-spinner"></div>
+        <p>Loading MVR History...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mvr-error">
+        <h3>Error Loading Data</h3>
+        <p>{error}</p>
+        <button onClick={fetchAllData} className="retry-btn">
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="mvr-root" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="mvr-history-container">
       <div className="mvr-header">
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <h3 style={{ margin: 0 }}>MVR History</h3>
-          <div className="mvr-controls">
-            <input
-              className="mvr-search"
-              placeholder="Search description, occ_id, por_no, status, src..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Search MVR records"
-            />
-          </div>
-        </div>
-
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <div className="mvr-meta">
-            {meta.count > 0 ? `Total: ${meta.count}` : "No records"}
-          </div>
-          <button className="mvr-btn" onClick={() => load(currentPage)} disabled={loading}>
-            Refresh
-          </button>
+        <h2>MVR History - Service No: {sno}</h2>
+        <div className="mvr-stats">
+          <span>Total Records: {data.length}</span>
+          <span>Page {currentPage} of {totalPages}</span>
         </div>
       </div>
 
-      {loading && items.length === 0 && <div className="mvr-no-record">Loading...</div>}
-      {error && <div style={{ color: "crimson", marginBottom: 8 }}>Error: {error}</div>}
-
-      {items.length === 0 && !loading && !error && (
-        <div className="mvr-no-record">No records found.</div>
-      )}
-
-      {items.length > 0 && (
-        <>
-          <div className="mvr-table-wrap">
-            <table className="mvr-table" role="table">
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left" }}>
-                    <div className="mvr-sortable" onClick={() => toggleSort("irla")}>
-                      IRLA
-                      {sortBy === "irla" && (
-                        <span className="mvr-sort-ind">{sortDir === "asc" ? "▲" : "▼"}</span>
-                      )}
-                    </div>
-                  </th>
-                  <th>occ_id</th>
-                  <th>description</th>
-                  <th>
-                    <div className="mvr-sortable" onClick={() => toggleSort("fmdt")}>
-                      from
-                      {sortBy === "fmdt" && (
-                        <span className="mvr-sort-ind">{sortDir === "asc" ? "▲" : "▼"}</span>
-                      )}
-                    </div>
-                  </th>
-                  <th>
-                    <div className="mvr-sortable" onClick={() => toggleSort("todt")}>
-                      to
-                      {sortBy === "todt" && (
-                        <span className="mvr-sort-ind">{sortDir === "asc" ? "▲" : "▼"}</span>
-                      )}
-                    </div>
-                  </th>
-                  <th style={{ textAlign: "right" }}>oldrate</th>
-                  <th style={{ textAlign: "right" }}>newrate</th>
-                  <th style={{ textAlign: "right" }}>amount</th>
-                  <th>status</th>
-                  <th>transtype</th>
-                  <th>por_no</th>
-                  <th>src</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {displayedItems.map((it, idx) => (
-                  <tr key={`${it.occ_id ?? idx}-${idx}`}>
-                    <td>{it.irla ?? "-"}</td>
-                    <td>{it.occ_id ?? "-"}</td>
-                    <td title={it.hashcheck ?? ""}>{it.description ?? "-"}</td>
-                    <td>{formatDate(it.fmdt)}</td>
-                    <td>{formatDate(it.todt)}</td>
-                    <td style={{ textAlign: "right" }}>{it.oldrate ?? "-"}</td>
-                    <td style={{ textAlign: "right" }}>{it.newrate ?? "-"}</td>
-                    <td style={{ textAlign: "right" }}>{it.amount ?? "-"}</td>
-                    <td>{it.status ?? "-"}</td>
-                    <td>{it.transtype ?? "-"}</td>
-                    <td>{it.porno ?? "-"}</td>
-                    <td>{it.src ?? "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mvr-footer">
-            <div className="mvr-pagination">
-              <button
-                className="mvr-btn"
-                onClick={() => load(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
+      <div className="mvr-table-container">
+        <table className="mvr-table">
+          <thead>
+            <tr>
+              <th onClick={() => handleSort('irla')} className="sortable">
+                IRLA {getSortIcon('irla')}
+              </th>
+              <th>OCC ID</th>
+              <th>Description</th>
+              <th onClick={() => handleSort('fmdt')} className="sortable">
+                From {getSortIcon('fmdt')}
+              </th>
+              <th onClick={() => handleSort('todt')} className="sortable">
+                To {getSortIcon('todt')}
+              </th>
+              <th>Old Rate</th>
+              <th>New Rate</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedData.map((row, index) => (
+              <tr 
+                key={`${row.occ_id}-${index}`}
+                onClick={() => handleRowClick(row)}
+                className="mvr-row"
               >
-                Prev
-              </button>
-              <span className="mvr-page-info">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                className="mvr-btn"
-                onClick={() => load(currentPage + 1)}
-                disabled={currentPage >= totalPages || loading}
+                <td className="irla-cell">{row.irla}</td>
+                <td>{row.occ_id}</td>
+                <td className="description-cell">{row.description}</td>
+                <td>{formatDate(row.fmdt)}</td>
+                <td>{formatDate(row.todt)}</td>
+                <td className="rate-cell">₹{row.oldrate?.toLocaleString('en-IN')}</td>
+                <td className="rate-cell">₹{row.newrate?.toLocaleString('en-IN')}</td>
+                <td className="status-cell">
+                  <span className={`status-badge ${row.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                    {row.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="mvr-pagination">
+        <button 
+          onClick={() => handlePageChange(1)}
+          disabled={currentPage === 1}
+          className="pagination-btn"
+        >
+          First
+        </button>
+
+        <button 
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="pagination-btn"
+        >
+          Previous
+        </button>
+
+        {getPaginationNumbers().map(page => (
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button 
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="pagination-btn"
+        >
+          Next
+        </button>
+
+        <button 
+          onClick={() => handlePageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="pagination-btn"
+        >
+          Last
+        </button>
+      </div>
+
+      {/* Centered Popup with blurred overlay */}
+      {isPopupOpen && selectedRow && (
+        <div className="mvr-overlay" role="dialog" aria-modal="true" onClick={() => setIsPopupOpen(false)}>
+          <div className="mvr-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="popup-header">
+              <h3>MVR Details</h3>
+              <button 
+                className="popup-close"
+                onClick={() => setIsPopupOpen(false)}
+                aria-label="Close"
               >
-                Next
+                ×
               </button>
             </div>
 
-            <div>
-              <label style={{ marginRight: 8 }}>Rows per page:</label>
-              <select
-                className="mvr-select"
-                value={meta.limit}
-                onChange={handleLimitChange}
-              >
-                {[5, 10, 20, 50].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
+            <div className="popup-content">
+              <div className="popup-section">
+                <div className="popup-section-title">Personal Information</div>
+                <div className="popup-row">
+                  <span className="popup-label">Service Number:</span>
+                  <span className="popup-value">{selectedRow.sno}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">Personnel:</span>
+                  <span className="popup-value">{selectedRow.pers}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">Category:</span>
+                  <span className="popup-value">{selectedRow.cat}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">OPPS Flag:</span>
+                  <span className="popup-value">{selectedRow.opps_flag}</span>
+                </div>
+              </div>
+
+              <div className="popup-section">
+                <div className="popup-section-title">Transaction Details</div>
+                <div className="popup-row">
+                  <span className="popup-label">IRLA:</span>
+                  <span className="popup-value">{selectedRow.irla}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">OCC ID:</span>
+                  <span className="popup-value">{selectedRow.occ_id}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">Description:</span>
+                  <span className="popup-value">{selectedRow.description}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">Transaction Type:</span>
+                  <span className="popup-value">{selectedRow.transtype}</span>
+                </div>
+              </div>
+
+              <div className="popup-section">
+                <div className="popup-section-title">Financial Details</div>
+                <div className="popup-row">
+                  <span className="popup-label">From Date:</span>
+                  <span className="popup-value">{formatDate(selectedRow.fmdt)}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">To Date:</span>
+                  <span className="popup-value">{formatDate(selectedRow.todt)}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">Old Rate:</span>
+                  <span className="popup-value">₹{selectedRow.oldrate?.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">New Rate:</span>
+                  <span className="popup-value">₹{selectedRow.newrate?.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="popup-row highlight">
+                  <span className="popup-label">Amount:</span>
+                  <span className="popup-value amount-highlight">₹{selectedRow.amount?.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+
+              <div className="popup-section">
+                <div className="popup-section-title">System Information</div>
+                <div className="popup-row">
+                  <span className="popup-label">Status:</span>
+                  <span className={`popup-value status-badge ${selectedRow.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                    {selectedRow.status}
+                  </span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">POR Number:</span>
+                  <span className="popup-value">{selectedRow.porno}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">Promotion Type:</span>
+                  <span className="popup-value">{selectedRow.prom_type}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">System Type:</span>
+                  <span className="popup-value">{selectedRow.system_type}</span>
+                </div>
+                <div className="popup-row">
+                  <span className="popup-label">Source:</span>
+                  <span className="popup-value">{selectedRow.src}</span>
+                </div>
+                <div className="popup-row full-width">
+                  <span className="popup-label">Hash Check:</span>
+                  <span className="popup-value hash-check">{selectedRow.hashcheck}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
-}
-
-MVRHistoryTab.propTypes = {
-  serviceNo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  baseUrl: PropTypes.string,
 };
+
+export default MvrHistoryTable;

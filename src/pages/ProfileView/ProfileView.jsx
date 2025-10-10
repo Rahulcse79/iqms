@@ -438,8 +438,7 @@ export default function ProfileView({
     setError(null);
     try {
       const promises = [
-        dispatch(fetchPersonalData(valueServiceNo,valueCategory,
-)),
+        dispatch(fetchPersonalData(valueServiceNo,valueCategory,)),
         dispatch(getRankHistory(valueServiceNo,valueCategory, 1)),
         dispatch(getTradeHistory(valueServiceNo,valueCategory, 1)),
       ];
@@ -714,8 +713,8 @@ export default function ProfileView({
               }
               if (id === "mvr") {
                 tabProps = {
-                  serviceNo: valueServiceNo,
-                  category: valueCategory,
+                  sno: valueServiceNo,
+                  
                 };
               }
               if (id === "form") {

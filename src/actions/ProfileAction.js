@@ -233,18 +233,17 @@ export const fetchABCCodes = () => async (dispatch) => {
 
 /* ----------------- getGCIHistory (with caching) -----------------
    serviceNo: string/number
-   category: string/number
    abc: string (selected code)
 */
 export const getGCIHistory =
-  (serviceNo, category, abc) => async (dispatch, getState) => {
+  (serviceNo, abc) => async (dispatch, getState) => {
     if (!serviceNo) {
       const msg = "Service number required to fetch GCI history";
       dispatch({ type: GCI_HISTORY_FAIL, payload: msg });
       throw new Error(msg);
     }
 
-    const cacheKey = `${serviceNo}|${category}|${abc}`;
+    const cacheKey = `${serviceNo}|${abc}`;
     // Check cache in redux first
     try {
       const cached = getState()?.profileView?.gciHistory?.cache?.[cacheKey];
@@ -267,7 +266,7 @@ export const getGCIHistory =
       serviceNo
     )}/${encodeURIComponent(abc)}`;
     log.group("getGCIHistory");
-    log.debug("GET", url, { serviceNo, category, abc });
+    log.debug("GET", url, { serviceNo, abc });
 
     try {
       const { data } = await axios.get(url, { timeout: 15000 });

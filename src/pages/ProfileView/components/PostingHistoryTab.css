@@ -1,9 +1,3 @@
-/* PostingHistoryTab.css
-   Theme-aware styles for PostingHistoryTab
-   Uses CSS variables so it will follow your app theme.
-   Required variables (examples):
-     --bg, --surface, --surface-accent, --text, --muted, --primary, --border, --shadow
-*/
 
 .posting-history {
   padding: 1.25rem;

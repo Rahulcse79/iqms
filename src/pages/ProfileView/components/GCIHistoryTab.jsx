@@ -111,7 +111,7 @@ export default function GCIHistoryTab() {
     }
 
     // dispatch and ignore rejection here to avoid unhandled promise
-    dispatch(getGCIHistory(serviceNo, category, selectedAbc)).catch(() => {});
+    dispatch(getGCIHistory(serviceNo, selectedAbc)).catch(() => {});
   };
 
   const clearSelection = () => {
