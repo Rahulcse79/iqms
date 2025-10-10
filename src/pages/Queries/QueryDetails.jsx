@@ -11,6 +11,7 @@ import {
   submitIqmsReply,
   validateReplyPermission,
 } from "../../utils/helpers";
+import QueryHistorytab from "./QueryHistorytab";
 
 const STORAGE_KEY = "queryDrafts_v2";
 
@@ -535,7 +536,7 @@ const QueryDetails = ({
         </div>
 
         {/* Query Details */}
-        {activeTab === "details" && (
+        <div style={{ display: activeTab === 'details' ? 'block' : 'none' }}>
           <div className="query-details">
             <div className="header-card">
               <h2 className="subject">{subject || "N/A"}</h2>
@@ -817,10 +818,12 @@ const QueryDetails = ({
               )}
             </div>
           </div>
-        )}
+        </div>
 
         {/* History Tab */}
-        {activeTab === "history" && <></>}
+        <div style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
+          <QueryHistorytab docId={queryId} isActive={activeTab === 'history'} />
+        </div>
       </div>
 
       {/* ENHANCED: Confirmation Dialog */}

@@ -1,0 +1,109 @@
+/* Scoped styles for the history tab panel */
+
+.qh__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+
+.qh__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qh__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.qh__controls {
+  display: flex;
+  gap: 8px;
+}
+
+.qh__btn {
+  appearance: none;
+  border: 1px solid #d0d7de;
+  background: #f6f8fa;
+  color: #24292f;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.qh__btn:hover { background: #eef1f4; }
+.qh__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.qh__btn--danger { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+.qh__btn--danger:hover { background: #fecaca; }
+
+.qh__table-wrap {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.qh__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: 13px;
+}
+
+.qh__table thead th {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+  z-index: 1;
+}
+
+.qh__table tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #111827;
+  vertical-align: top;
+}
+
+.qh__table tbody tr:nth-child(even) td {
+  background: #fcfcfd;
+}
+
+.qh__cell--wrap {
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.qh__state {
+  border: 1px dashed #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fafafa;
+}
+.qh__state--empty { color: #6b7280; }
+.qh__state--error { color: #991b1b; background: #fff1f2; border-color: #fecaca; }
+
+.qh__state-text { margin: 0 0 8px 0; }
+
+.qh__skeleton {
+  display: grid;
+  gap: 8px;
+}
+.qh__skeleton-row {
+  height: 36px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%);
+  background-size: 400% 100%;
+  animation: qhShimmer 1.4s ease infinite;
+}
+
+@keyframes qhShimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}

@@ -3,9 +3,9 @@ import { NavLink } from "react-router-dom";
 import styled from "styled-components";
 
 // A styled NavLink for actual navigation items
-// A styled NavLink for actual navigation items
 const SidebarNavLink = styled(NavLink)`
   display: flex;
+  color: #2c3e50;
   align-items: center;
   padding: 12px 10px;
   text-decoration: none;
@@ -14,23 +14,22 @@ const SidebarNavLink = styled(NavLink)`
   white-space: nowrap;
   border-left: 4px solid transparent;
 
-  color: var(--text);
-  background: var(--surface);
-
   &:hover {
-    background: var(--glass);
-    border-left: 4px solid var(--primary);
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
+    cursor: pointer;
   }
 
   &.active {
-    background: var(--bg);
-    border-left: 4px solid var(--primary);
+    background: #ecf0f1;
+    border-left: 4px solid #3498db;
   }
 `;
 
 // Styled div for toggleable menus (with subNav)
 const SidebarToggle = styled.div`
   display: flex;
+  color: #2c3e50;
   align-items: center;
   padding: 12px 10px;
   font-size: 14px;
@@ -39,17 +38,16 @@ const SidebarToggle = styled.div`
   cursor: pointer;
   border-left: 4px solid transparent;
 
-  color: var(--text);
-
   &:hover {
-    background: var(--glass);
-    border-left: 4px solid var(--primary);
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
   }
 `;
 
 // Styled button for actions like Logout
 const SidebarButton = styled.button`
   display: flex;
+  color: #2c3e50;
   align-items: center;
   padding: 12px 10px;
   font-size: 14px;
@@ -62,11 +60,9 @@ const SidebarButton = styled.button`
   cursor: pointer;
   border-left: 4px solid transparent;
 
-  color: var(--text);
-
   &:hover {
-    background: var(--glass);
-    border-left: 4px solid var(--primary);
+    background: #f5f6fa;
+    border-left: 4px solid #3498db;
   }
 `;
 
@@ -76,28 +72,26 @@ const SidebarLabel = styled.span`
 `;
 
 const DropdownLink = styled(NavLink)`
+  background: #f8f9fa;
   height: 40px;
   padding-left: 3rem;
   display: flex;
   align-items: center;
   text-decoration: none;
+  color: #555;
   font-size: 12px;
   transition: 0.3s;
 
-  background: var(--surface);
-  color: var(--muted);
-
   &:hover {
-    background: var(--glass);
-    color: var(--primary);
+    background: #e9ecef;
+    color: #3498db;
   }
 
   &.active {
-    background: var(--bg);
-    color: var(--primary);
+    background: #e9ecef;
+    color: #3498db;
   }
 `;
-
 
 const SubMenu = ({ item, isOpen, onToggle, isCollapsed }) => {
   // Function to truncate the title
