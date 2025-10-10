@@ -14,6 +14,76 @@
   color: var(--text, #111827);
   font-family: var(--font-family, Inter, system-ui, sans-serif);
 }
+.view-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.view-btn:hover {
+  background-color: #1e40af;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-box {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.detail-table td {
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.detail-table td:first-child {
+  background: #f9fafb;
+  font-weight: 600;
+  width: 35%;
+}
+
+.close-btn {
+  margin-top: 12px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.close-btn:hover {
+  background: #dc2626;
+}
 
 /* ---------- Loading Overlay ---------- */
 .loading-overlay {
