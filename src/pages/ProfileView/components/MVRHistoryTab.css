@@ -404,7 +404,6 @@
   box-shadow: var(--shadow, 0 16px 40px rgba(2, 6, 23, 0.15));
   overflow: hidden;
   z-index: 1000;
-  animation: mvrPopupIn 0.18s ease-out;
 }
 
 /* Subtle pointer caret */
@@ -421,10 +420,6 @@
   filter: drop-shadow(-1px 0 0 var(--border, #e5e7eb));
 }
 
-@keyframes mvrPopupIn {
-  from { opacity: 0; transform: translateY(-6px) scale(0.985); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 /* Header */
 .mvr-popup-header, .popup-header {
@@ -582,7 +577,6 @@
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .mvr-popup { animation: none; }
   .mvr-btn, .mvr-table tbody tr { transition: none; }
 }
 
@@ -633,7 +627,6 @@
   box-shadow: var(--shadow, 0 24px 64px rgba(2, 6, 23, 0.25));
   overflow: hidden;
   z-index: 1000;
-  animation: mvrPopupIn 0.18s ease-out;
 }
 
 /* Remove caret for centered modal */
@@ -645,21 +638,11 @@
   overflow-y: auto;
 }
 
-@keyframes mvrPopupIn {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 /* Accessibility tweaks */
 .mvr-overlay:focus-within .mvr-popup {
   outline: 2px solid var(--accent, #0b76ef);
   outline-offset: 2px;
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .mvr-overlay { backdrop-filter: none; -webkit-backdrop-filter: none; }
-  .mvr-popup { animation: none; }
 }
 
 .popup-footer{

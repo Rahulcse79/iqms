@@ -95,7 +95,6 @@
   margin-bottom: 12px;
 }
 
-.por-dt-loading,
 .por-dt-empty {
   color: var(--muted, #374151);
   margin-bottom: 12px;
@@ -255,7 +254,6 @@ body.por-dt-modal-open { overflow: hidden; }
   overflow: hidden;
   transform: translateY(8px) scale(0.985);
   opacity: 0;
-  animation: por-dt-modal-in 220ms cubic-bezier(.2,.65,.2,1) forwards;
 }
 
 /* Header / Body / Footer */
@@ -311,12 +309,6 @@ body.por-dt-modal-open { overflow: hidden; }
 /* Focus ring for any control inside modal */
 .por-dt-modal *:focus-visible { box-shadow: 0 0 0 3px rgba(11,92,255,0.35); border-radius: 8px; }
 
-/* Animations */
-@keyframes por-dt-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes por-dt-modal-in {
-  0% { opacity: 0; transform: translateY(10px) scale(0.985); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {

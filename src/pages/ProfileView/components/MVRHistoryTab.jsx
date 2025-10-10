@@ -1,49 +1,85 @@
-import React, { useState, useEffect, useMemo } from 'react';
-
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './MVRHistoryTab.css';
 
+const PAGE_SIZE = 10;
+
 const MvrHistoryTable = ({ sno }) => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]);               // grows as background pages load
+  const [loading, setLoading] = useState(false);      // initial page loading only
   const [error, setError] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ 
-    key: 'irla', 
-    direction: 'desc' 
+  const [sortConfig, setSortConfig] = useState({
+    key: 'irla',
+    direction: 'desc'
   });
 
-  const itemsPerPage = 10;
+  // Ensures stale background fetches do not overwrite new results after sno changes
+  const fetchIdRef = useRef(0);
 
-  // Fetch all data by handling hasMore pagination
+  // Fetch first page immediately; then stream remaining pages in background
   const fetchAllData = async () => {
+    const fetchId = ++fetchIdRef.current;
     setLoading(true);
     setError(null);
-    let allData = [];
+    setCurrentPage(1);
+    setData([]);
+
     let offset = 0;
-    let hasMore = true;
 
     try {
-      while (hasMore) {
-        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/mvrHistory/${sno}?offset=${offset}&limit=10`;
-        const response = await fetch(url);
+      // 1) Fetch the first page (10 records) and show immediately
+      const firstUrl = `http://sampoorna.cao.local/afcao/ipas/ivrs/mvrHistory/${sno}?offset=${offset}&limit=${PAGE_SIZE}`;
+      const firstRes = await fetch(firstUrl);
+      if (!firstRes.ok) {
+        throw new Error(`HTTP error! status: ${firstRes.status}`);
+      }
+      const firstJson = await firstRes.json();
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+      // Ignore if a newer fetch started (sno changed)
+      if (fetchId !== fetchIdRef.current) return;
+
+      const firstItems = Array.isArray(firstJson.items) ? firstJson.items : [];
+      setData(firstItems);
+      setLoading(false); // UI becomes interactive right after first page
+
+      // 2) Stream the rest in background while user can see the first page
+      let hasMore = !!firstJson.hasMore;
+      // Prefer server-provided offset/limit if present
+      offset = (typeof firstJson.offset === 'number' ? firstJson.offset : offset) +
+               (typeof firstJson.limit === 'number' ? firstJson.limit : PAGE_SIZE);
+
+      while (hasMore) {
+        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/mvrHistory/${sno}?offset=${offset}&limit=${PAGE_SIZE}`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          // Background error: do not disrupt shown data; break streaming
+          // Optionally log to console for diagnostics
+          console.error('Background fetch failed:', res.status);
+          break;
+        }
+        const json = await res.json();
+
+        if (fetchId !== fetchIdRef.current) {
+          // A newer fetch has started; stop appending
+          return;
         }
 
-        const result = await response.json();
-        allData = [...allData, ...result.items];
-        hasMore = result.hasMore;
-        offset += result.limit;
-      }
+        const nextItems = Array.isArray(json.items) ? json.items : [];
+        if (nextItems.length) {
+          setData(prev => [...prev, ...nextItems]);
+        }
 
-      setData(allData);
+        hasMore = !!json.hasMore;
+        const serverLimit = typeof json.limit === 'number' ? json.limit : PAGE_SIZE;
+        const serverOffset = typeof json.offset === 'number' ? json.offset : offset;
+        offset = serverOffset + serverLimit;
+      }
     } catch (err) {
-      setError(err.message);
+      // If first page fails, show error; if it fails during streaming, it will be caught above
       console.error('Error fetching MVR History:', err);
-    } finally {
+      setError(err.message);
       setLoading(false);
     }
   };
@@ -105,7 +141,8 @@ const MvrHistoryTable = ({ sno }) => {
   }, [data, sortConfig]);
 
   // Pagination logic
-  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
 
@@ -193,7 +230,8 @@ const MvrHistoryTable = ({ sno }) => {
       <div className="mvr-header">
         <h2>MVR History - Service No: {sno}</h2>
         <div className="mvr-stats">
-          <div>Total Records: {data.length}</div>
+          <span>Total Records: {data.length}</span>
+          <span>Page {currentPage} of {totalPages}</span>
         </div>
       </div>
 
@@ -219,7 +257,7 @@ const MvrHistoryTable = ({ sno }) => {
           </thead>
           <tbody>
             {paginatedData.map((row, index) => (
-              <tr 
+              <tr
                 key={`${row.occ_id}-${index}`}
                 onClick={() => handleRowClick(row)}
                 className="mvr-row"
@@ -227,8 +265,8 @@ const MvrHistoryTable = ({ sno }) => {
                 <td className="irla-cell">{row.irla}</td>
                 <td>{row.occ_id}</td>
                 <td className="description-cell">{row.description}</td>
-                <td>{formatDate(row.fmdt)}</td>
-                <td>{formatDate(row.todt)}</td>
+                <td>{(row.fmdt)}</td>
+                <td>{(row.todt)}</td>
                 <td className="rate-cell">₹{row.oldrate?.toLocaleString('en-IN')}</td>
                 <td className="rate-cell">₹{row.newrate?.toLocaleString('en-IN')}</td>
                 <td className="status-cell">
@@ -238,13 +276,18 @@ const MvrHistoryTable = ({ sno }) => {
                 </td>
               </tr>
             ))}
+            {paginatedData.length === 0 && (
+              <tr>
+                <td colSpan={8} className="mvr-no-record">No records found</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
       <div className="mvr-pagination">
-        <button 
+        <button
           onClick={() => handlePageChange(1)}
           disabled={currentPage === 1}
           className="pagination-btn"
@@ -252,7 +295,7 @@ const MvrHistoryTable = ({ sno }) => {
           First
         </button>
 
-        <button 
+        <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className="pagination-btn"
@@ -270,7 +313,7 @@ const MvrHistoryTable = ({ sno }) => {
           </button>
         ))}
 
-        <button 
+        <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className="pagination-btn"
@@ -278,7 +321,7 @@ const MvrHistoryTable = ({ sno }) => {
           Next
         </button>
 
-        <button 
+        <button
           onClick={() => handlePageChange(totalPages)}
           disabled={currentPage === totalPages}
           className="pagination-btn"
@@ -286,8 +329,6 @@ const MvrHistoryTable = ({ sno }) => {
           Last
         </button>
       </div>
-      <div>Page {currentPage} of {totalPages}</div>
-
 
       {/* Centered Popup with blurred overlay */}
       {isPopupOpen && selectedRow && (
@@ -295,7 +336,7 @@ const MvrHistoryTable = ({ sno }) => {
           <div className="mvr-popup" onClick={(e) => e.stopPropagation()}>
             <div className="popup-header">
               <h3>MVR Details</h3>
-              <button 
+              <button
                 className="popup-close"
                 onClick={() => setIsPopupOpen(false)}
                 aria-label="Close"
@@ -349,11 +390,11 @@ const MvrHistoryTable = ({ sno }) => {
                 <div className="popup-section-title">Financial Details</div>
                 <div className="popup-row">
                   <span className="popup-label">From Date:</span>
-                  <span className="popup-value">{formatDate(selectedRow.fmdt)}</span>
+                  <span className="popup-value">{(selectedRow.fmdt)}</span>
                 </div>
                 <div className="popup-row">
                   <span className="popup-label">To Date:</span>
-                  <span className="popup-value">{formatDate(selectedRow.todt)}</span>
+                  <span className="popup-value">{(selectedRow.todt)}</span>
                 </div>
                 <div className="popup-row">
                   <span className="popup-label">Old Rate:</span>
@@ -398,9 +439,6 @@ const MvrHistoryTable = ({ sno }) => {
                   <span className="popup-value hash-check">{selectedRow.hashcheck}</span>
                 </div>
               </div>
-            </div>
-            <div className='popup-footer'>
-            <button className='popup-footer-btn' onClick={() => setIsPopupOpen(false)} style={{background:"var(--red-bg)", color:"var(--red-text)"}}>Close</button>
             </div>
           </div>
         </div>
