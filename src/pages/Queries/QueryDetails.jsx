@@ -850,12 +850,18 @@ const QueryDetails = ({
       {/* ENHANCED: Confirmation Dialog */}
       <ConfirmDialog
         open={showConfirmDialog}
-        onConfirm={handleConfirmSubmit}
-        onCancel={handleCloseDialog}
         loading={
           submitState.step === "submitting" || submitState.step === "refreshing"
         }
-        error={submitState.error}
+        hideActions={
+          submitState.step === "submitted" ||
+          submitState.step === "refreshing" ||
+          submitState.step === "submitting" ||
+          submitState.step === "completed"
+        }
+        error={submitState.step === "error" ? submitState.error : null}
+        onConfirm={handleConfirmSubmit}
+        onCancel={handleCloseDialog}
         title={getDialogTitle()}
       >
         {getDialogContent()}

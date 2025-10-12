@@ -13,7 +13,8 @@ const ConfirmDialog = ({
   error = null,
   title = "Confirm Submission",
   children,
-  disabled = false
+  disabled = false,
+  hideActions = false
 }) => {
   // Don't render if not open
   if (!open) return null;
@@ -55,34 +56,36 @@ const ConfirmDialog = ({
         </div>
         
         {/* Actions */}
-        <div className="dialog-actions">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onCancel}
-            disabled={loading}
-          >
-            {loading ? "Please wait..." : "Cancel"}
-          </button>
-          
-          {!error && onConfirm && (
+        {!hideActions && (
+          <div className="dialog-actions">
             <button
               type="button"
-              className={`btn btn-primary ${loading ? 'btn-loading' : ''}`}
-              onClick={onConfirm}
-              disabled={loading || disabled}
+              className="btn btn-secondary"
+              onClick={onCancel}
+              disabled={loading}
             >
-              {loading ? (
-                <>
-                  <span className="loading-spinner"></span>
-                  Submitting...
-                </>
-              ) : (
-                "Confirm"
-              )}
+              {loading ? "Please wait..." : "Cancel"}
             </button>
-          )}
-        </div>
+            
+            {!error && onConfirm && (
+              <button
+                type="button"
+                className={`btn btn-primary ${loading ? 'btn-loading' : ''}`}
+                onClick={onConfirm}
+                disabled={loading || disabled}
+              >
+                {loading ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    Submitting...
+                  </>
+                ) : (
+                  "Confirm"
+                )}
+              </button>
+            )}
+          </div>
+        )}
         
         {/* Progress indicator when loading */}
         {loading && (
@@ -113,7 +116,8 @@ ConfirmDialog.propTypes = {
   error: PropTypes.string,
   title: PropTypes.string,
   children: PropTypes.node,
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  hideActions: PropTypes.bool
 };
 
 export default ConfirmDialog;
