@@ -81,9 +81,14 @@ const SidebarDataPage = () => {
       path: "/query/comparision",
       icon: <FaBalanceScale style={{ color: "#009688" }} />,
     },
-        {
+    {
       title: "FAQ's",
       path: "/FAQ",
+      icon: <FaBookOpen style={{ color: "#009688" }} />,
+    },
+    {
+      title: "Tasks",
+      path: "/interim-reply",
       icon: <FaBookOpen style={{ color: "#009688" }} />,
     },
     {
