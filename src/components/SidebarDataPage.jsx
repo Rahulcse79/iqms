@@ -11,19 +11,8 @@ import {
   FaChevronUp,
   FaBookOpen,
 } from "react-icons/fa";
-import { RiLogoutBoxRLine } from "react-icons/ri";
-import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const SidebarDataPage = () => {
-  const { logout } = React.useContext(AuthContext);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("queryDrafts_v2");
-    logout();
-    navigate("/login");
-  };
 
   const SidebarData = [
     {
@@ -90,12 +79,7 @@ const SidebarDataPage = () => {
       title: "Tasks",
       path: "/interim-reply",
       icon: <FaBookOpen style={{ color: "#009688" }} />,
-    },
-    {
-      title: "Logout",
-      icon: <RiLogoutBoxRLine style={{ color: "#009688" }} />,
-      onClick: handleLogout,
-    },
+    }
   ];
 
   return SidebarData;

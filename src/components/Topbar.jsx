@@ -10,6 +10,8 @@ import { getUserRoleLabel } from "../constants/Enum";
 import { getDesignationFlags, fetchQueriesForRoleNew } from "../utils/helpers";
 import { useDispatch } from "react-redux";
 import Loader from "./Loader";
+import { AuthContext } from "../context/AuthContext";
+import { RiLogoutBoxRLine } from "react-icons/ri";
 
 /**
  * Topbar with Enhanced Active Role Management
@@ -19,6 +21,7 @@ import Loader from "./Loader";
  * - Shows loading states during role switches
  */
 const Topbar = ({ toggleSidebar }) => {
+  const { logout } = React.useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -30,6 +33,12 @@ const Topbar = ({ toggleSidebar }) => {
   // Role switching states
   const [switchingRole, setSwitchingRole] = useState(false);
   const [switchProgress, setSwitchProgress] = useState({});
+
+  const handleLogout = () => {
+    localStorage.removeItem("queryDrafts_v2");
+    logout();
+    navigate("/login");
+  };
 
   // Use the active role hook
   const {
@@ -419,9 +428,8 @@ const Topbar = ({ toggleSidebar }) => {
 
           <select
             id="portfolioDropdown"
-            className={`control portfolio-dropdown ${
-              switchingRole ? "switching" : ""
-            }`}
+            className={`control portfolio-dropdown ${switchingRole ? "switching" : ""
+              }`}
             value={activeRole?.PORTFOLIO_NAME || ""}
             onChange={handlePortfolioChange}
             disabled={portfolios.length === 0 || switchingRole}
@@ -476,16 +484,15 @@ const Topbar = ({ toggleSidebar }) => {
         {/* Refresh Button */}
         <div className="refresh-container controls-group">
           <GrRefresh
-            className={`refresh-button-api control ${
-              isManualRefreshing || switchingRole ? "spinning" : ""
-            }`}
+            className={`refresh-button-api control ${isManualRefreshing || switchingRole ? "spinning" : ""
+              }`}
             onClick={handleRefreshScreen}
             title={
               switchingRole
                 ? "Role switching in progress..."
                 : isManualRefreshing
-                ? getRefreshIndicatorText()
-                : "Refresh data"
+                  ? getRefreshIndicatorText()
+                  : "Refresh data"
             }
             aria-label="Refresh"
             style={{
@@ -626,9 +633,7 @@ const Topbar = ({ toggleSidebar }) => {
                     marginBottom: 12,
                   }}
                 >
-                  <div
-                    style={{ display: "flex", gap: 8, alignItems: "center" }}
-                  >
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <div
                       style={{
                         width: 40,
@@ -643,8 +648,7 @@ const Topbar = ({ toggleSidebar }) => {
                         fontWeight: 700,
                       }}
                     >
-                      {(fullProfile?.LOGIN_NAME && fullProfile.LOGIN_NAME[0]) ||
-                        "U"}
+                      {(fullProfile?.LOGIN_NAME && fullProfile.LOGIN_NAME[0]) || "U"}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       <div
@@ -678,10 +682,7 @@ const Topbar = ({ toggleSidebar }) => {
 
                 {/* User Details */}
                 <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
-                  <ProfileRow
-                    label="Service No."
-                    value={fullProfile?.LOGIN_SNO}
-                  />
+                  <ProfileRow label="Service No." value={fullProfile?.LOGIN_SNO} />
                   <ProfileRow
                     label="Rank"
                     value={
@@ -700,56 +701,79 @@ const Topbar = ({ toggleSidebar }) => {
 
                 {/* Active Role Details */}
                 {activeRole && (
-                  <>
+                  <div
+                    style={{
+                      borderTop: "1px solid var(--border)",
+                      paddingTop: 8,
+                      marginTop: 8,
+                    }}
+                  >
                     <div
                       style={{
-                        borderTop: "1px solid var(--border)",
-                        paddingTop: 8,
-                        marginTop: 8,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "var(--primary)",
+                        marginBottom: 8,
                       }}
                     >
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "var(--primary)",
-                          marginBottom: 8,
-                        }}
-                      >
-                        Active Role{" "}
-                        {switchingRole && (
-                          <span style={{ color: "var(--warning)" }}>🔄</span>
-                        )}
-                      </div>
-                      <div style={{ display: "grid", gap: 6 }}>
-                        <ProfileRow
-                          label="Portfolio"
-                          value={activeRole.PORTFOLIO_NAME}
-                        />
-                        <ProfileRow label="Role" value={activeRole.USER_ROLE} />
-                        <ProfileRow
-                          label="Sub Section"
-                          value={activeRole.SUB_SECTION}
-                        />
-                        <ProfileRow label="Module" value={activeRole.MODULE} />
-                        <ProfileRow
-                          label="Level"
-                          value={activeRole.PORTFOLIO_LEVEL}
-                        />
-                        {roleInfo?.cellsAlloted &&
-                          roleInfo.cellsAlloted.length > 0 && (
-                            <ProfileRow
-                              label="Cells"
-                              value={`${roleInfo.cellsAlloted.length} assigned`}
-                            />
-                          )}
-                      </div>
+                      Active Role{" "}
+                      {switchingRole && (
+                        <span style={{ color: "var(--warning)" }}>🔄</span>
+                      )}
                     </div>
-                  </>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      <ProfileRow label="Portfolio" value={activeRole.PORTFOLIO_NAME} />
+                      <ProfileRow label="Role" value={activeRole.USER_ROLE} />
+                      <ProfileRow label="Sub Section" value={activeRole.SUB_SECTION} />
+                      <ProfileRow label="Module" value={activeRole.MODULE} />
+                      <ProfileRow label="Level" value={activeRole.PORTFOLIO_LEVEL} />
+                      {roleInfo?.cellsAlloted && roleInfo.cellsAlloted.length > 0 && (
+                        <ProfileRow
+                          label="Cells"
+                          value={`${roleInfo.cellsAlloted.length} assigned`}
+                        />
+                      )}
+                    </div>
+                  </div>
                 )}
+
+                {/* 🔴 Logout Button (added at bottom) */}
+                <button
+                  style={{
+                    marginTop: 16,
+                    width: "100%",
+                    background: "#292fe4ff",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 0",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Change password
+                </button>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    marginTop: 16,
+                    width: "100%",
+                    background: "#ff4d4f",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 0",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  <RiLogoutBoxRLine style={{ marginRight: 6, verticalAlign: "middle" }} />
+                  Logout
+                </button>
               </div>
             )}
           </div>
+
         </div>
       </div>
     </header>
