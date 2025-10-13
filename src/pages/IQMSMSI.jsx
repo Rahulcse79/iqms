@@ -147,7 +147,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
     return apiResults.map((r) => {
       if (!r?.data?.items) return r;
       const filteredItems = r.data.items.filter((item) => {
-        const dateStr = item.submit_date || item.action_date;
+        const dateStr = item.action_date || item.submit_date;
         if (!dateStr) return false;
         const d = new Date(dateStr);
         if (isNaN(d)) return false;
