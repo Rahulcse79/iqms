@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./QueryDetails.css";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import {
   getCurrentActiveRole,
@@ -10,9 +10,11 @@ import {
   fetchTransferToSubsectionOptions,
   submitIqmsReply,
   validateReplyPermission,
+  fetchQueriesForRoleNew,
+  getDesignationFlags,
 } from "../../utils/helpers";
 import QueryHistorytab from "./QueryHistorytab";
-
+import { useDispatch } from "react-redux";
 const STORAGE_KEY = "queryDrafts_v2";
 
 /**
@@ -134,11 +136,15 @@ const QueryDetails = ({
     debug: {},
   });
 
+  // State for post-submission refresh
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshProgress, setRefreshProgress] = useState({});
+
   // ENHANCED: Submission state management
   const [submitState, setSubmitState] = useState({
-    loading: false,
+    step: "idle",
     error: null,
-    success: false,
+    progress: {},
   });
 
   // API-driven dropdown states
@@ -160,6 +166,10 @@ const QueryDetails = ({
 
   const localDraft = enableCache ? draft : internalDraft;
   const localSetDraft = enableCache ? setDraft : setInternalDraft;
+  const activeRole = getCurrentActiveRole();
+  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (enableCache && queryId) {
@@ -183,114 +193,62 @@ const QueryDetails = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  // NEW: Permission validation effect
   useEffect(() => {
-    const checkPermissions = () => {
-      setPermissionCheck({
-        canReply: false,
-        reason: "",
-        isLoading: true,
-        debug: {},
-      });
+    if (!item) return;
+    const validation = validateReplyPermission(item, activeRole);
+    setPermissionCheck({
+      canReply: validation.canTakeAction,
+      reason: validation.reason,
+      isLoading: false,
+      debug: validation.debug,
+    });
+  }, [item, activeRole]);
 
-      if (!item) {
-        setPermissionCheck({
-          canReply: false,
-          reason: "Query data not loaded yet...",
-          isLoading: true,
-          debug: {},
-        });
+  useEffect(() => {
+    const loadVerifierOption = async () => {
+      if (!item?.pending_with || !permissionCheck.canReply) return;
+      setLoadingVerifierOption(true);
+      try {
+        const option = await fetchTransferToVerifierOption(item.pending_with);
+        setVerifierOption(option);
+      } catch (err) {
+        setApiErrors((prev) => ({ ...prev, verifier: err.message }));
+      } finally {
+        setLoadingVerifierOption(false);
+      }
+    };
+    loadVerifierOption();
+  }, [item?.pending_with, permissionCheck.canReply]);
+
+  useEffect(() => {
+    const loadSubsectionOptions = async () => {
+      if (
+        localDraft.forwardOption !== "Transfer to Sub-Section" ||
+        !item?.doc_id ||
+        !permissionCheck.canReply
+      ) {
+        setSubsectionOptions([]);
         return;
       }
-
-      const activeRole = getCurrentActiveRole();
-      const validation = validateReplyPermission(item, activeRole);
-
-      setPermissionCheck({
-        canReply: validation.canTakeAction,
-        reason: validation.reason,
-        isLoading: false,
-        debug: validation.debug,
-      });
+      setLoadingSubsectionOptions(true);
+      try {
+        const options = await fetchTransferToSubsectionOptions(item.doc_id);
+        setSubsectionOptions(options);
+      } catch (err) {
+        setApiErrors((prev) => ({ ...prev, subsection: err.message }));
+      } finally {
+        setLoadingSubsectionOptions(false);
+      }
     };
-
-    checkPermissions();
-  }, [item]);
-
-  // Load verifier option when query data is available
-  useEffect(
-    () => {
-      const loadVerifierOption = async () => {
-        if (!item?.pending_with || !permissionCheck.canReply) return;
-
-        setLoadingVerifierOption(true);
-        setApiErrors((prev) => ({ ...prev, verifier: null }));
-
-        try {
-          const option = await fetchTransferToVerifierOption(item.pending_with);
-          setVerifierOption(option);
-          console.log("📋 Verifier option loaded:", option.DESCRIPTION);
-        } catch (error) {
-          console.error("❌ Failed to load verifier option:", error);
-          setApiErrors((prev) => ({ ...prev, verifier: error.message }));
-          setVerifierOption(null);
-        } finally {
-          setLoadingVerifierOption(false);
-        }
-      };
-
-      loadVerifierOption();
-    },
-    [item?.pending_with, permissionCheck.canReply]
-  );
-
-  // Load subsection options when Transfer to Sub-Section is selected AND user has permission
-  useEffect(
-    () => {
-      const loadSubsectionOptions = async () => {
-        if (
-          localDraft.forwardOption !== "Transfer to Sub-Section" ||
-          !item?.doc_id ||
-          !permissionCheck.canReply
-        ) {
-          setSubsectionOptions([]);
-          return;
-        }
-
-        setLoadingSubsectionOptions(true);
-        setApiErrors((prev) => ({ ...prev, subsection: null }));
-
-        try {
-          const options = await fetchTransferToSubsectionOptions(item.doc_id);
-          setSubsectionOptions(options);
-          console.log(
-            "📋 Subsection options loaded:",
-            options.length,
-            "options"
-          );
-        } catch (error) {
-          console.error("❌ Failed to load subsection options:", error);
-          setApiErrors((prev) => ({ ...prev, subsection: error.message }));
-          setSubsectionOptions([]);
-        } finally {
-          setLoadingSubsectionOptions(false);
-        }
-      };
-
-      loadSubsectionOptions();
-    },
-    [localDraft.forwardOption, item?.doc_id, permissionCheck.canReply]
-  );
+    loadSubsectionOptions();
+  }, [localDraft.forwardOption, item?.doc_id, permissionCheck.canReply]);
 
   const handleChange = (field, value) => {
     localSetDraft((prev) => {
       const newDraft = { ...prev, [field]: value };
-
-      // Reset transfer section when forward option changes
       if (field === "forwardOption" && value !== "Transfer to Sub-Section") {
         newDraft.transferSection = "";
       }
-
       if (enableCache) {
         const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
         allDrafts[queryId] = newDraft;
@@ -301,17 +259,11 @@ const QueryDetails = ({
   };
 
   const handleSubmit = () => {
-    // Clear any previous errors
     setFormError("");
-    setSubmitState((prev) => ({ ...prev, error: null }));
-
-    // Check permissions first
     if (!permissionCheck.canReply) {
       setFormError(permissionCheck.reason);
       return;
     }
-
-    // Validation
     if (!localDraft.replyText.trim()) {
       setFormError("Reply cannot be empty.");
       return;
@@ -327,25 +279,14 @@ const QueryDetails = ({
       setFormError("Please select a sub-section.");
       return;
     }
-
-    // All validation passed - show confirmation dialog
     setShowConfirmDialog(true);
   };
 
-  // ENHANCED: Actual submission handler
   const handleConfirmSubmit = async () => {
-    console.log("🚀 Starting submission process...");
-
-    // Set loading state
-    setSubmitState({
-      loading: true,
-      error: null,
-      success: false,
-    });
-
+    setSubmitState({ step: "submitting", error: null, progress: {} });
     try {
-      // Prepare submission data
-      const submitData = {
+      // Step 1: Submit the reply
+      const result = await submitIqmsReply({
         queryId: item.doc_id,
         replyText: localDraft.replyText,
         forwardOption: localDraft.forwardOption,
@@ -353,90 +294,203 @@ const QueryDetails = ({
         pendingWith: item.pending_with,
         verifierOption: verifierOption,
         subsectionOptions: subsectionOptions,
-      };
-      // Call our dedicated submit service
-      const result = await submitIqmsReply(submitData);
+      });
+      if (!result.success)
+        throw new Error(result.error.message || "Submission failed.");
 
-      if (result.success) {
-        console.log("🎉 Submission successful!", result);
-
-        // Clear form data
-        if (enableCache) {
-          const allDrafts = JSON.parse(
-            localStorage.getItem(STORAGE_KEY) || "{}"
-          );
-          delete allDrafts[queryId];
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(allDrafts));
-        }
-
-        // Reset form
-        localSetDraft({
-          replyText: "",
-          forwardOption: "",
-          transferSection: "",
-        });
-
-        // Set success state
-        setSubmitState({
-          loading: false,
-          error: null,
-          success: true,
-        });
-
-        // Close dialog after brief success indication
-        setTimeout(() => {
-          setShowConfirmDialog(false);
-
-          // Call onBack to close query details (same as close button)
-          if (onBack) {
-            onBack();
-          }
-        }, 1500);
-      } else {
-        // Handle submission failure
-        console.error("❌ Submission failed:", result.error);
-
-        setSubmitState({
-          loading: false,
-          error: result.error.message,
-          success: false,
-        });
+      // Step 2: Mark as submitted and clear draft
+      setSubmitState({ step: "submitted", error: null, progress: {} });
+      if (enableCache) {
+        const allDrafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        delete allDrafts[queryId];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(allDrafts));
       }
-    } catch (error) {
-      // Handle unexpected errors
-      console.error("❌ Unexpected error during submission:", error);
+      localSetDraft({ replyText: "", forwardOption: "", transferSection: "" });
 
-      setSubmitState({
-        loading: false,
-        error: "An unexpected error occurred. Please try again.",
-        success: false,
-      });
+      // Step 3: Wait for user to see the success message
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Step 4: Refresh all user queries
+      setSubmitState((prev) => ({ ...prev, step: "refreshing" }));
+      const flags = await getDesignationFlags(activeRole);
+      await fetchQueriesForRoleNew(
+        dispatch,
+        activeRole,
+        flags,
+        (progress) => setSubmitState((prev) => ({ ...prev, progress })),
+        (error) => console.warn("Non-critical refresh error:", error)
+      );
+
+      // Step 5: Mark as completed
+      setSubmitState((prev) => ({ ...prev, step: "completed" }));
+      queryClient.invalidateQueries({ queryKey: ["query", queryId] });
+
+      // Step 6: Wait and navigate back
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      navigate(-1);
+    } catch (err) {
+      console.error("❌ Submission or Refresh process failed:", err);
+      setSubmitState({ step: "error", error: err.message, progress: {} });
     }
   };
 
-  // ENHANCED: Handle dialog close
   const handleCloseDialog = () => {
-    if (!submitState.loading) {
+    if (
+      submitState.step !== "submitting" &&
+      submitState.step !== "refreshing"
+    ) {
       setShowConfirmDialog(false);
-      setSubmitState({
-        loading: false,
-        error: null,
-        success: false,
-      });
+      setSubmitState({ step: "idle", error: null, progress: {} });
     }
   };
 
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (submitState.success) {
-      const timeout = setTimeout(() => {
-        navigate(-1); // Go back after 1 second
-      }, 1000);
-
-      return () => clearTimeout(timeout); // cleanup
+  const getDialogTitle = () => {
+    switch (submitState.step) {
+      case "submitting":
+        return "Submitting...";
+      case "submitted":
+      case "refreshing":
+        return "Refreshing Data...";
+      case "completed":
+        return "Success!";
+      case "error":
+        return "Submission Failed";
+      default:
+        return "Confirm Submission";
     }
-  }, [submitState.success, navigate]);
+  };
+
+  // This effect handles the post-submission flow
+  useEffect(() => {
+    if (!submitState.success) return;
+
+    const handlePostSubmit = async () => {
+      // 1. Wait 2 seconds to show success message
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // 2. Start refreshing
+      setIsRefreshing(true);
+      console.log("🔄 Starting post-submission data refresh...");
+
+      try {
+        setRefreshProgress({ step: "fetching", taskName: "designation flags" });
+        const flags = await getDesignationFlags(activeRole);
+
+        const fetchResult = await fetchQueriesForRoleNew(
+          dispatch,
+          activeRole,
+          flags,
+          (progress) => {
+            setRefreshProgress({
+              step: "fetching",
+              ...progress,
+            });
+          },
+          (error) => {
+            console.warn(
+              "Non-critical error during post-submit refresh:",
+              error
+            );
+          }
+        );
+
+        if (fetchResult.success) {
+          setRefreshProgress({
+            step: "completed",
+            successful: fetchResult.successful,
+            total: fetchResult.total,
+          });
+          console.log(`✅ Post-submit refresh complete.`);
+        } else {
+          throw new Error("Query refresh failed with some errors.");
+        }
+      } catch (error) {
+        console.error("❌ Critical error during post-submit refresh:", error);
+        setRefreshProgress({ step: "error", error: error.message });
+      } finally {
+        // 3. Wait a bit to show final status, then close dialog and navigate back
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setIsRefreshing(false);
+        setShowConfirmDialog(false);
+        navigate(-1);
+      }
+    };
+
+    handlePostSubmit();
+  }, [submitState.success, dispatch, activeRole, onBack, navigate]);
+
+  const getDialogContent = () => {
+    switch (submitState.step) {
+      case "submitting":
+        return (
+          <div className="dialog-content-centered">
+            Submitting your reply... Please wait.
+          </div>
+        );
+      case "submitted":
+      case "refreshing":
+        const {
+          taskName = "tasks",
+          current = 0,
+          total = 0,
+        } = submitState.progress;
+        return (
+          <div className="success-message">
+            ✅ Reply submitted! Refreshing {taskName} ({current}/{total})...
+          </div>
+        );
+      case "completed":
+        return (
+          <div className="success-message">
+            ✅ Refresh complete! Navigating back...
+          </div>
+        );
+      case "error":
+        return (
+          <div className="error-details">
+            <p>The submission failed:</p>
+            <div className="error-detail">{submitState.error}</div>
+            <button
+              className="btn btn-secondary"
+              onClick={handleCloseDialog}
+              style={{ marginTop: "1rem" }}
+            >
+              Close
+            </button>
+          </div>
+        );
+      default:
+        // This is the initial view of the dialog before submission starts.
+        return (
+          <div className="confirmation-details">
+            <p>
+              <strong>Are you sure you want to submit this reply?</strong>
+            </p>
+            <div className="submission-summary">
+              <div className="summary-item">
+                <strong>Action:</strong>{" "}
+                {localDraft.forwardOption === "Transfer to Supervisor" &&
+                verifierOption
+                  ? verifierOption.DESCRIPTION
+                  : localDraft.forwardOption === "Transfer to Sub-Section" &&
+                    localDraft.transferSection
+                  ? subsectionOptions.find(
+                      (opt) => opt.ACTIVITY === localDraft.transferSection
+                    )?.DESCRIPTION
+                  : localDraft.forwardOption}
+              </div>
+              <div className="summary-item">
+                <strong>Reply Length:</strong>{" "}
+                {localDraft.replyText.trim().length} characters
+              </div>
+            </div>
+            <div className="warning-note">
+              <small>⚠️ This action cannot be undone.</small>
+            </div>
+          </div>
+        );
+    }
+  };
 
   if (isLoading)
     return (
@@ -584,39 +638,6 @@ const QueryDetails = ({
               <h3>Query</h3>
               <div className="query-body">{renderMultiline(rawQueryText)}</div>
             </div>
-
-            {/* Wings Reply */}
-            {/* {details.wings_reply && (
-              <div className="wings-card">
-                <h4>Wings Replies</h4>
-                {Object.keys(details.wings_reply).length === 0 ? (
-                  <div className="panel-empty">No wings replies</div>
-                ) : (
-                  Object.keys(details.wings_reply)
-                    .filter((k) => !/\bdate$/i.test(k))
-                    .map((k, idx) => {
-                      const dateKey = `${k} Date`;
-                      const dateVal =
-                        details.wings_reply[dateKey] ||
-                        details.wings_reply[`${k} Date`] ||
-                        null;
-                      return (
-                        <div key={idx} className="wings-entry">
-                          <strong>{k}:</strong>
-                          <div className="wings-reply">
-                            {renderMultiline(details.wings_reply[k])}
-                          </div>
-                          {dateVal && (
-                            <div className="wings-date">
-                              <em>{formatDateFlexible(dateVal)}</em>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                )}
-              </div>
-            )} */}
 
             <div className="query-history">
               <h3>Previous Replies</h3>
@@ -829,61 +850,21 @@ const QueryDetails = ({
       {/* ENHANCED: Confirmation Dialog */}
       <ConfirmDialog
         open={showConfirmDialog}
+        loading={
+          submitState.step === "submitting" || submitState.step === "refreshing"
+        }
+        hideActions={
+          submitState.step === "submitted" ||
+          submitState.step === "refreshing" ||
+          submitState.step === "submitting" ||
+          submitState.step === "completed"
+        }
+        error={submitState.step === "error" ? submitState.error : null}
         onConfirm={handleConfirmSubmit}
         onCancel={handleCloseDialog}
-        loading={submitState.loading}
-        error={submitState.error}
-        title={
-          submitState.success
-            ? "Success!"
-            : submitState.loading
-            ? "Submitting..."
-            : "Confirm Submission"
-        }
+        title={getDialogTitle()}
       >
-        {submitState.success ? (
-          <div className="success-message">
-            <div className="success-icon">✅</div>
-            <div>Query submitted successfully! Closing...</div>
-          </div>
-        ) : submitState.error ? (
-          <div className="error-details">
-            <p>The submission failed due to the following error:</p>
-            <div className="error-detail">{submitState.error}</div>
-            <p>
-              <small>
-                Please try again or contact support if the problem persists.
-              </small>
-            </p>
-          </div>
-        ) : (
-          <div className="confirmation-details">
-            <p>
-              <strong>Are you sure you want to submit this reply?</strong>
-            </p>
-            <div className="submission-summary">
-              <div className="summary-item">
-                <strong>Action:</strong>{" "}
-                {localDraft.forwardOption === "Transfer to Supervisor" &&
-                verifierOption
-                  ? verifierOption.DESCRIPTION
-                  : localDraft.forwardOption === "Transfer to Sub-Section" &&
-                    localDraft.transferSection
-                  ? subsectionOptions.find(
-                      (opt) => opt.ACTIVITY === localDraft.transferSection
-                    )?.DESCRIPTION
-                  : localDraft.forwardOption}
-              </div>
-              <div className="summary-item">
-                <strong>Reply Length:</strong>{" "}
-                {localDraft.replyText.trim().length} characters
-              </div>
-            </div>
-            <div className="warning-note">
-              <small>⚠️ This action cannot be undone.</small>
-            </div>
-          </div>
-        )}
+        {getDialogContent()}
       </ConfirmDialog>
     </div>
   );

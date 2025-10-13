@@ -207,7 +207,6 @@ const MvrHistoryTable = ({ sno }) => {
   if (loading) {
     return (
       <div className="mvr-loading">
-        <div className="loading-spinner"></div>
         <p>Loading MVR History...</p>
       </div>
     );
