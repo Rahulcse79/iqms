@@ -194,11 +194,20 @@ export default function SearchResults() {
 
   const handleView = (row) => {
     const key = `${type}|${category}|${String(queryValue)}`;
-  
+
+    // Extract the service number from the 'pers' field.
+    // It's expected to be the leading numeric value.
+    const persValue = row.pers || "";
+    const match = persValue.match(/^\d+/);
+    // Fallback to the original queryValue if no number is found in 'pers'.
+    const serviceNumber = match ? match[0] : queryValue;
+
     navigate(
-      `/view/query/${encodeURIComponent(row.doc_id)}?category=${encodeURIComponent(
-        category
-      )}&type=${encodeURIComponent(type)}&q=${encodeURIComponent(queryValue)}`,
+      `/view/query/${encodeURIComponent(
+        row.doc_id
+      )}?category=${encodeURIComponent(category)}&type=${encodeURIComponent(
+        type
+      )}&q=${encodeURIComponent(serviceNumber)}`,
       { state: { row, key } }
     );
   };
