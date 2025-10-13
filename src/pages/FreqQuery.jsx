@@ -17,12 +17,6 @@ function trimPers(persValue) {
   return String(persValue).trim();
 }
 
-/* extract leading service number from start of pers */
-function extractLeadingServiceNumber(pers) {
-  const s = trimPers(pers);
-  const m = s.match(/^\d+/);
-  return m ? m[0] : null;
-}
 
 /* small utility to build compact page range with ellipses */
 function buildPageRange(current, total) {
@@ -200,16 +194,11 @@ export default function FreqQuery() {
   };
 
   const handleFreqView = (row) => {
-    const serviceNumber = extractLeadingServiceNumber(row?.pers);
-    if (!serviceNumber) {
-      setLocalError("No service number found in 'pers'.");
-      return;
-    }
     const categoryRaw = getUserRoleLabel(selectedRole);
     const category = String(categoryRaw ?? "").trim().toUpperCase() || String(selectedRole);
     const search = `?category=${encodeURIComponent(category)}&type=${encodeURIComponent(
       "Service"
-    )}&q=${encodeURIComponent(serviceNumber)}`;
+    )}&q=${encodeURIComponent(row?.sno)}`;
     // Navigate to: /search-results?category=<CATEGORY>&type=Service&q=<SERVICE_NUMBER>
     navigate({ pathname: "/search-results", search });
   };

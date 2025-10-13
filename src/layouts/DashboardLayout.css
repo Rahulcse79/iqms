@@ -2,20 +2,18 @@
   --font-family: "Inter", "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   --sidebar-width: 220px;
   --sidebar-collapsed-width: 80px;
+  --topbar-height: 94px;
   --footer-height: 60px;
   --radius-lg: 16px;
   --radius-sm: 8px;
   --transition-fast: 0.18s;
+  --transition-medium: 0.28s;
 }
 
-/* ---------- Global box sizing (prevents many overflow issues) ---------- */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* ---------- Global box sizing ---------- */
+*, *::before, *::after { box-sizing: border-box; }
 
-/* ---------------- LIGHT / DARK theme tokens ---------------- */
+/* ---------------- LIGHT / DARK THEMES ---------------- */
 .theme-light {
   /* Backgrounds */
   --bg: #f9fafb;
@@ -107,141 +105,193 @@
   --glass: #1e293b88;
 }
 
-/* ---------------- Data table theming (kept) ---------------- */
-.themed-data-table .rdt_Table {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-.themed-data-table .rdt_TableHead,
-.themed-data-table .rdt_TableHeadRow { background: var(--surface-accent); color: var(--text); }
-.themed-data-table .rdt_TableHeadCell { color: var(--text); font-weight: 600; }
-.themed-data-table .rdt_TableRow { background: var(--surface); color: var(--text); transition: background 0.18s ease; }
-.themed-data-table .rdt_TableRow:hover { background: var(--surface-accent); cursor: pointer; }
-.themed-data-table .rdt_TableRow:nth-child(even) {
-  background: color-mix(in srgb, var(--surface) 85%, var(--glass) 15%);
-}
-.themed-data-table .rdt_TableCell { padding: 12px 10px; color: var(--text); }
-.themed-data-table .rdt_NoData,
-.themed-data-table .rdt_Progress { color: var(--muted); background: transparent; }
-.themed-data-table .rdt_Pagination { display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--border); background:var(--surface); }
-.themed-data-table .rdt_Pagination .rdt_PaginationButton { background:transparent; color:var(--text); border:1px solid var(--border); padding:6px 10px; border-radius:8px; }
-.themed-data-table .rdt_Pagination .rdt_PaginationButton:hover { background:var(--surface-accent); color:var(--text); }
-.themed-data-table .rdt_TableToolbar { background: transparent; border-bottom: 1px solid var(--border); }
-.themed-data-table { width: 100%; }
-@media (max-width: 720px) {
-  .themed-data-table .rdt_TableCell { padding: 10px 8px; font-size: 13px; }
+.button-text-color {
+  color: var(--button-text) !important;
+  background: var(--button-bg) !important;
 }
 
-/* ---------------- Page skeleton ---------------- */
+/* ---------------- BASE PAGE STYLES ---------------- */
 html, body {
-  height: 100%;
   margin: 0;
+  height: 100%;
   font-family: var(--font-family);
   background: var(--bg);
   color: var(--text);
   transition: background 0.25s ease, color 0.25s ease;
-  overscroll-behavior-y: none;
+  overflow-x: hidden;
 }
 
-/* Dashboard layout container */
 .dashboard-layout {
-  display: block; /* changed to block because sidebar is expected to be positioned independently (fixed/absolute) */
   min-height: 100vh;
   background: var(--bg);
   position: relative;
 }
 
-/* Make sure topbar inside main-content remains sticky */
-.topbar {
-  position: sticky !important ;
+/* ---------- SIDEBAR ---------- */
+.sidebar {
+  position: fixed;
   top: 0;
-  z-index: 1000;
-}
-
-/* ---------- Main content that sits to the right of the sidebar ---------- */
-/* We assume sidebar is positioned (fixed/absolute) and we must offset main-content by the sidebar width */
-.main-content {
-  /* Align to the right of the sidebar */
-  margin-left: var(--sidebar-width);
-  /* Ensure the main area uses the remaining width and doesn't overflow */
-  width: calc(100% - var(--sidebar-width));
-  transition: margin-left 0.28s ease-in-out, width 0.28s ease-in-out;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  z-index: 1100;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  transition: width var(--transition-medium) ease, transform var(--transition-medium) ease;
+}
+
+.dashboard-layout.sidebar-collapsed .sidebar {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* ---------- TOPBAR ---------- */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+  z-index: 1200;
+  transition: left var(--transition-medium) ease, width var(--transition-medium) ease, background var(--transition-fast);
+}
+
+/* Adjust topbar when sidebar collapses */
+.dashboard-layout.sidebar-collapsed .topbar {
+  left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+/* ---------- MAIN CONTENT ---------- */
+.main-content {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
   min-height: 100vh;
-  padding-bottom: calc(var(--footer-height) + 12px); /* make room for fixed footer */
+  display: flex;
+  flex-direction: column;
+  transition: margin-left var(--transition-medium) ease, width var(--transition-medium) ease;
+  padding-top: calc(var(--topbar-height) + 16px);
+  padding-bottom: var(--footer-height);
   box-sizing: border-box;
-  /* horizontal overflow should be handled per component; this prevents accidental body overflow */
   overflow-x: hidden;
 }
 
-/* When the sidebar is collapsed, shift the content accordingly */
 .dashboard-layout.sidebar-collapsed .main-content {
   margin-left: var(--sidebar-collapsed-width);
   width: calc(100% - var(--sidebar-collapsed-width));
 }
 
-/* Content area inside main-content where pages render */
 .content {
-  padding: 24px;
-  /* use padding-right instead of margin-right to avoid extra box width causing overflow */
-  padding-right: 20px;
   flex-grow: 1;
+  padding: 24px 20px;
+  overflow: auto;
   box-sizing: border-box;
-  overflow: auto; /* allow content to scroll if tall/wide without breaking layout */
   -webkit-overflow-scrolling: touch;
 }
 
-/* ---------- Footer (fixed) aligned to the right of sidebar ---------- */
+/* ---------- FOOTER (optional) ---------- */
 .footer {
   position: fixed;
   bottom: 0;
-  left: var(--sidebar-width); /* align to sidebar edge */
-  right: 0;
+  left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
   height: var(--footer-height);
-  padding: 12px 24px;
-  text-align: center;
-  border-top: 1px solid rgba(0,0,0,0.04);
   background: var(--surface);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 12px 24px;
   z-index: 999;
-  transition: left 0.28s ease-in-out, width 0.28s ease-in-out;
-  box-sizing: border-box;
+  transition: left var(--transition-medium) ease, width var(--transition-medium) ease;
 }
 
-/* Footer when sidebar collapsed */
 .dashboard-layout.sidebar-collapsed .footer {
   left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
 }
 
-/* ---------- Responsiveness & small-screen behavior ---------- */
-/* On narrow screens, we usually overlay the sidebar rather than push content.
-   This prevents content shrinking to unusable widths and avoids horizontal overflow. */
+/* ---------- RESPONSIVE BEHAVIOR ---------- */
 @media (max-width: 920px) {
+  /* Sidebar becomes overlay */
+  .sidebar {
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  }
+
+  .dashboard-layout.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  /* Add backdrop when sidebar open */
+  .dashboard-layout.sidebar-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1090;
+  }
+
+  /* Topbar spans full width */
+  .topbar {
+    left: 0;
+    width: 100%;
+  }
+
+  /* Main content takes full width */
   .main-content {
     margin-left: 0;
     width: 100%;
-    transition: margin-left 0.18s ease-in-out, width 0.18s ease-in-out;
+    padding-top: calc(var(--topbar-height) + 16px);
   }
+
   .footer {
     left: 0;
+    width: 100%;
   }
-  /* If your Sidebar toggles to overlay mode on small screens, ensure it z-index is higher than .main-content */
+
+  .dashboard-layout.sidebar-open .main-content {
+    pointer-events: none;
+  }
 }
 
-/* Very small screens: give content comfortable padding */
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .content {
     padding: 12px;
-    padding-bottom: calc(var(--footer-height) + 12px);
+  }
+  .topbar {
+    padding: 0 12px;
   }
 }
 
-/* ---------- Small helpers (prevent long text from pushing layout) ---------- */
+/* ---------- UTILITIES ---------- */
 .ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sidebar .nav-item:focus {
+  outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: 2px;
+}
+
+.topbar button {
+  border: none;
+  background: var(--button-bg);
+  cursor: pointer;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
 }
