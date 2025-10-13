@@ -10,6 +10,7 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaBookOpen,
+  FaPhoneAlt
 } from "react-icons/fa";
 
 const SidebarDataPage = () => {
@@ -79,6 +80,11 @@ const SidebarDataPage = () => {
       title: "Tasks",
       path: "/interim-reply",
       icon: <FaBookOpen style={{ color: "#009688" }} />,
+    },
+    {
+      title: "CDR",
+      path: "/cdr",
+      icon: <FaPhoneAlt style={{ color: "#009688" }} />,
     }
   ];
 

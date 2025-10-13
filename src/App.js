@@ -23,13 +23,12 @@ import SearchResults from "./pages/Queries/SearchResults";
 import DavHome from "./Dav/QueryRegistration";
 import { CallProvider } from "./context/CallContext";
 import QueryComparision from "./pages/Queries/QueryComparison";
-
+import CDR from "./pages/CDR";
 import NewQuery from "./Dav/NewQuery";
 import DavQuery from "./Dav/QueryView";
 import FAQPage from "./pages/FAQ";
 import Inauguration from "./pages/Inauguration";
 import InterimPopup from "./components/InterimPopup";
-
 
 const queryClient = new QueryClient();
 
@@ -66,6 +65,7 @@ function AppRoutes() {
         <Route path="search-results" element={<SearchResults />} />
         <Route path="query/comparision" element={<QueryComparision />} />
         <Route path="FAQ" element={<FAQPage />} />
+        <Route path="cdr" element={<CDR />} />
         <Route path="interim-reply" element={<InterimPopup/>} />
 
 

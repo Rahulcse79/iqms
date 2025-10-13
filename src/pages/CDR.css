@@ -1,0 +1,158 @@
+/* =============================
+   CDR.css — Theme Consistent Version
+   ============================= */
+
+.cdr-container {
+  min-height: 100vh;
+  width: 100%;
+  padding: 1.5rem;
+  background: var(--bg, #0ea5a4);
+  font-family: var(--font-family, 'Inter', system-ui, sans-serif);
+  color: var(--text, white);
+}
+
+/* ---------- Header ---------- */
+.cdr-container h1 {
+  color: var(--primary, #f3f4f6);
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.25rem;
+}
+
+/* ---------- Tabs ---------- */
+.cdr-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.cdr-tabs button {
+  padding: 0.6rem 1.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border, #f3f4f6);
+  background: var(--surface-accent, #f3f4f6);
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text, #111827);
+  transition: all 0.25s ease;
+}
+
+.cdr-tabs button.active {
+  background: var(--primary, #0ea5a4);
+  color: var(--button-text, #fff);
+  border-color: transparent;
+  box-shadow: 0 4px 10px rgba(14,165,164,0.25);
+}
+
+.cdr-tabs button:hover {
+  background: color-mix(in srgb, var(--primary, #0ea5a4) 20%, #fff);
+  color: var(--text-strong, #0f172a);
+}
+
+/* ---------- Table Wrapper ---------- */
+.cdr-table-wrapper {
+  overflow-x: auto;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow, 0 2px 6px rgba(0,0,0,0.04));
+}
+
+/* ---------- Table ---------- */
+.cdr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 700px;
+}
+
+.cdr-table th,
+.cdr-table td {
+  padding: 0.75rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.cdr-table th {
+  background: linear-gradient(180deg, var(--surface-accent, #0ea5a4), var(--surface, #fff));
+  color: var(--text-strong, #0f172a);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.85rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.cdr-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface, #ffffff) 92%, var(--surface-accent, #f9fafb) 8%);
+}
+
+.cdr-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent, #6366f1) 6%, var(--surface, #fff) 94%);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+/* ---------- Type Badges ---------- */
+.badge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Color Variants */
+.received {
+  background: #ecfeff;
+  color: #0e7490;
+}
+.dialed {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.answered {
+  background: #ecfdf5;
+  color: #047857;
+}
+.missed {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* ---------- Status Badges ---------- */
+.completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .cdr-table th,
+  .cdr-table td {
+    padding: 0.55rem 0.65rem;
+    font-size: 0.82rem;
+  }
+  .cdr-table {
+    min-width: 650px;
+  }
+}
+
+@media (max-width: 520px) {
+  .cdr-table th,
+  .cdr-table td {
+    padding: 0.45rem 0.55rem;
+    font-size: 0.78rem;
+  }
+  .cdr-table {
+    min-width: 520px;
+  }
+}
