@@ -739,6 +739,21 @@ const Topbar = ({ toggleSidebar }) => {
 
                 {/* 🔴 Logout Button (added at bottom) */}
                 <button
+                  style={{
+                    marginTop: 16,
+                    width: "100%",
+                    background: "#292fe4ff",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 0",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Change password
+                </button>
+                <button
                   onClick={handleLogout}
                   style={{
                     marginTop: 16,

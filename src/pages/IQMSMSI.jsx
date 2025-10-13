@@ -53,17 +53,8 @@ const ENDPOINTS = {
   ],
 };
 
-/**
- * STATIC_SUBSECTION_MAP:
- * keep as an optional fallback if you want to hardcode ranges for some sections.
- * Leave empty if you want everything built dynamically.
- */
 const STATIC_SUBSECTION_MAP = {
-  // Example (kept empty to prefer dynamic building)
-  // CQC: [
-  //   { name: "CQC 1", from: 100, to: 199 },
-  //   { name: "CQC 2", from: 200, to: 299 },
-  // ],
+  // keep empty unless you want static hardcoded subsections
 };
 
 function formatNumber(n) {
@@ -77,14 +68,20 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
   const [applyFilter, setApplyFilter] = useState(false);
   const [expanded, setExpanded] = useState({});
   const [expandedSub, setExpandedSub] = useState({});
+  const [expandedGroups, setExpandedGroups] = useState({}); // per-subsection per-category open state
   const [loading, setLoading] = useState(false);
-  const [apiResults, setApiResults] = useState([]); // entries: { section, id, data } or { section, id, error }
+  const [apiResults, setApiResults] = useState([]);
   const [globalError, setGlobalError] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const navigate = useNavigate();
   const type = ROLE_TYPE_MAP[role] || ROLE_TYPE_MAP.OFFICER;
 
-  // navigate to search-results for a doc
+  // group toggle
+  const toggleGroup = useCallback((groupKey) => {
+    setExpandedGroups((p) => ({ ...p, [groupKey]: !p[groupKey] }));
+  }, []);
+
+  // Navigate to search-results for a doc
   const handleDocClick = useCallback(
     (docId) => {
       if (!docId) return;
@@ -94,7 +91,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
     [navigate, role]
   );
 
-  // Fetch
+  // Fetch endpoints when `type` changes
   useEffect(() => {
     let mounted = true;
     const endpoints = ENDPOINTS[type] || [];
@@ -127,22 +124,24 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
     };
   }, [type]);
 
-  // Apply filter handler
   const handleApplyFilter = useCallback(() => setApplyFilter(true), []);
 
-  // Date filter memo — toDate is inclusive (end of day)
+  // local-date helper: construct a Date anchored to local timezone for "YYYY-MM-DD"
+  const toLocalDate = useCallback((yyyy_mm_dd, endOfDay = false) => {
+    if (!yyyy_mm_dd) return null;
+    const parts = yyyy_mm_dd.split("-");
+    if (parts.length < 3) return null;
+    const [y, m, d] = parts.map((p) => Number(p));
+    if ([y, m, d].some((v) => Number.isNaN(v))) return null;
+    const dt = new Date(y, m - 1, d, endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, endOfDay ? 999 : 0);
+    return isNaN(dt) ? null : dt;
+  }, []);
+
+  // Filtered results memo (date inclusive for toDate)
   const filteredResults = useMemo(() => {
     if (!applyFilter) return apiResults;
-    const fd = fromDate ? new Date(fromDate) : null;
-    let td = null;
-    if (toDate) {
-      td = new Date(toDate);
-      td.setHours(23, 59, 59, 999); // inclusive
-    }
-
-    // If fd/td are invalid, treat them as null
-    const fdValid = fd && !isNaN(fd) ? fd : null;
-    const tdValid = td && !isNaN(td) ? td : null;
+    const fd = fromDate ? toLocalDate(fromDate, false) : null;
+    const td = toDate ? toLocalDate(toDate, true) : null;
 
     return apiResults.map((r) => {
       if (!r?.data?.items) return r;
@@ -151,32 +150,24 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
         if (!dateStr) return false;
         const d = new Date(dateStr);
         if (isNaN(d)) return false;
-        if (fdValid && d < fdValid) return false;
-        if (tdValid && d > tdValid) return false;
+        if (fd && d < fd) return false;
+        if (td && d > td) return false;
         return true;
       });
       return { ...r, data: { ...r.data, items: filteredItems } };
     });
-  }, [apiResults, fromDate, toDate, applyFilter]);
+  }, [apiResults, fromDate, toDate, applyFilter, toLocalDate]);
 
-  /**
-   * Build a dynamic subsection map from the filteredResults.
-   * For each SECTION (normalized uppercase), we look at numeric `cell` values across all rows
-   * and create 100-wide buckets:
-   *  start..start+99, next 100.., etc. Each bucket gets a name like "SECTION 1", "SECTION 2"...
-   */
+  // dynamic subsection map (100-wide buckets from numeric cell / apw_sub_section / cpw_sub_section)
   const dynamicSubsectionMap = useMemo(() => {
-    // helper to get numeric cell from a row
     const getNumericCell = (it) => {
       if (!it) return NaN;
-      // prefer it.cell; fallback to apw_sub_section / cpw_sub_section if they store numeric codes
       const raw = it.cell ?? it.apw_sub_section ?? it.cpw_sub_section ?? "";
       const s = String(raw).trim();
       const n = Number(s);
       return Number.isFinite(n) ? Math.floor(n) : NaN;
     };
 
-    // aggregate items per normalized section
     const sectionItems = {};
     filteredResults.forEach((r) => {
       const rawSection = (r?.section ?? "UNKNOWN").toString().trim();
@@ -189,27 +180,21 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
 
     const result = {};
     Object.entries(sectionItems).forEach(([norm, items]) => {
-      // extract numeric cells
       const nums = items
         .map(getNumericCell)
         .filter((n) => !Number.isNaN(n) && n !== null && n !== undefined);
 
-      if (!nums.length) {
-        // no numeric cells - no dynamic subsections for this section
-        return;
-      }
+      if (!nums.length) return;
 
       const min = Math.min(...nums);
       const max = Math.max(...nums);
 
-      // bucket by 100 ranges, starting at floor(min / 100) * 100
       const bucketSize = 100;
       const startHundred = Math.floor(min / bucketSize) * bucketSize;
       const endHundred = Math.floor(max / bucketSize) * bucketSize;
 
       const ranges = [];
       for (let h = startHundred; h <= endHundred; h += bucketSize) {
-        // label index relative to startHundred so first bucket is "SECTION 1"
         const idx = Math.floor(h / bucketSize) - Math.floor(startHundred / bucketSize) + 1;
         ranges.push({
           name: `${norm} ${idx}`,
@@ -217,38 +202,33 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
           to: h + bucketSize - 1,
         });
       }
-
-      // attach ranges only if found
       if (ranges.length) result[norm] = ranges;
     });
 
     return result;
   }, [filteredResults]);
 
-  // Helper: map cell to subsection name (uses dynamicSubsectionMap first, then STATIC_SUBSECTION_MAP)
+  // helper: map numeric cell to subsection name
   const getSubsectionName = useCallback(
     (sectionNormalized, cellValue) => {
       if (cellValue === undefined || cellValue === null) return "Unassigned";
       const num = Number(cellValue);
       if (Number.isNaN(num)) return "Unassigned";
-
       const dynamicMap = dynamicSubsectionMap[sectionNormalized];
       const staticMap = STATIC_SUBSECTION_MAP[sectionNormalized];
-
       const mapToCheck = dynamicMap ?? staticMap;
-      if (!mapToCheck) return null; // no configured subsections for this section
-
+      if (!mapToCheck) return null;
       const found = mapToCheck.find((r) => num >= r.from && num <= r.to);
       return found ? found.name : "Other";
     },
     [dynamicSubsectionMap]
   );
 
-  // Build summary: grouped by section and subsection
+  // Build summary by section and subsections
   const summaryBySection = useMemo(() => {
     const map = {};
 
-    // Pre-seed sections from fetched endpoints (keeps consistent keys)
+    // pre-seed sections from fetched endpoints (keeps consistent keys)
     filteredResults.forEach((r) => {
       const rawSection = (r?.section ?? "UNKNOWN").toString().trim();
       const sectionKey = rawSection;
@@ -256,13 +236,11 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
         const norm = sectionKey.toUpperCase();
         const subsections = {};
 
-        // prefer dynamic map when available, else fallback to static config
         const configured = dynamicSubsectionMap[norm] ?? STATIC_SUBSECTION_MAP[norm] ?? [];
         configured.forEach((s) => {
           subsections[s.name] = { name: s.name, rows: [], received: 0, replied: 0, pending: 0 };
         });
 
-        // always include Other + Unassigned
         subsections["Other"] = { name: "Other", rows: [], received: 0, replied: 0, pending: 0 };
         subsections["Unassigned"] = { name: "Unassigned", rows: [], received: 0, replied: 0, pending: 0 };
 
@@ -275,7 +253,6 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
       const sectionKey = (r?.section ?? "UNKNOWN").toString().trim();
       const sectionNorm = sectionKey.toUpperCase();
       if (!map[sectionKey]) {
-        // create entry if somehow missed above
         const subsections = {};
         const configured = dynamicSubsectionMap[sectionNorm] ?? STATIC_SUBSECTION_MAP[sectionNorm] ?? [];
         configured.forEach((s) => {
@@ -286,7 +263,6 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
         map[sectionKey] = { received: 0, replied: 0, pending: 0, rows: [], subsections, fetchErrors: 0 };
       }
 
-      // Mark if this endpoint had error
       if (r?.error) {
         map[sectionKey].fetchErrors = (map[sectionKey].fetchErrors || 0) + 1;
       }
@@ -338,22 +314,46 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
       return { ...p, [k]: !p[k] };
     }), []);
 
-  // Modal component for showing full details of a row
+  // Map pending_with codes to Creator / Verifier / Approver / Replied
+  const PENDING_ROLE_MAP = { "1": "Creator", "2": "Verifier", "3": "Approver" };
+  const mapPendingToCategory = useCallback((it) => {
+    const pw = String(it?.pending_with ?? "").trim();
+    const cap = String(it?.pending_with_cap ?? "").toLowerCase();
+    // If you want pending_with_cap to override and mark 'Replied' when it contains 'replied', uncomment:
+    // if (cap.includes("replied")) return "Replied";
+    return PENDING_ROLE_MAP[pw] ?? "Replied";
+  }, []);
+
+  // Modal component improved with focus trap
   const Modal = ({ item, onClose }) => {
     const closeBtnRef = useRef(null);
     const previousActive = useRef(null);
+    const modalRef = useRef(null);
 
     useEffect(() => {
       previousActive.current = document.activeElement;
       const onKey = (e) => {
         if (e.key === "Escape") onClose();
+        if (e.key === "Tab" && modalRef.current) {
+          const focusable = modalRef.current.querySelectorAll(
+            'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
+          );
+          if (focusable.length === 0) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       };
       document.addEventListener("keydown", onKey);
-      // focus close button when modal opens
       setTimeout(() => closeBtnRef.current?.focus?.(), 0);
       return () => {
         document.removeEventListener("keydown", onKey);
-        // return focus
         try {
           previousActive.current?.focus?.();
         } catch (e) {}
@@ -363,7 +363,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
     if (!item) return null;
     return (
       <div className="cq-modal-overlay" role="dialog" aria-modal="true" aria-label="Row details">
-        <div className="cq-modal" role="document">
+        <div className="cq-modal" role="document" ref={modalRef}>
           <div className="cq-modal-header">
             <strong style={{ color: "var(--text)" }}>Query details: {item.doc_id || item.queryId}</strong>
             <button
@@ -502,7 +502,6 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
                             </tr>
                           </thead>
                           <tbody>
-                            {/* Show subsections: keep the configured order if available, else object order */}
                             {(() => {
                               const norm = section.toUpperCase();
                               const configured = (dynamicSubsectionMap[norm] ?? STATIC_SUBSECTION_MAP[norm] ?? []);
@@ -533,65 +532,105 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
                                       <td className="num pending">{formatNumber(sub.pending)}</td>
                                     </tr>
 
+                                    {/* --- grouped vertical layout with per-group toggles --- */}
                                     {expandedSub[subKey] && (
                                       <tr id={`sub-${subKey}`}>
                                         <td colSpan="5">
-                                          <div className="sub-sub-table-wrap">
-                                            <table className="sub-sub-table">
-                                              <thead>
-                                                <tr>
-                                                  <th>doc_id</th>
-                                                  <th>pers</th>
-                                                  <th>cell</th>
-                                                  <th>submit_date</th>
-                                                  <th>action_date</th>
-                                                  <th>querytype</th>
-                                                  <th>pending_with</th>
-                                                  <th>apw_sub_section / cpw_sub_section</th>
-                                                  <th>Action</th>
-                                                </tr>
-                                              </thead>
-                                              <tbody>
-                                                {sub.rows.length ? (
-                                                  sub.rows.map((it) => {
-                                                    const rowKey = it.doc_id ?? `${section}-${sub.name}-${it.sno ?? "no-sno"}`;
+                                          <div className="sub-sub-grid-wrap">
+                                            {(() => {
+                                              const groups = { Creator: [], Verifier: [], Approver: [], Replied: [] };
+                                              (sub.rows || []).forEach((it) => {
+                                                const cat = mapPendingToCategory(it);
+                                                groups[cat] = groups[cat] || [];
+                                                groups[cat].push(it);
+                                              });
+                                              const order = ["Creator", "Verifier", "Approver", "Replied"];
+
+                                              return (
+                                                <div className="four-column-grid">
+                                                  {order.map((cat) => {
+                                                    const groupKey = `${subKey}__${cat}`;
+                                                    // default open: true if not set (change if you want closed by default)
+                                                    const isOpen = expandedGroups[groupKey] === undefined ? true : !!expandedGroups[groupKey];
                                                     return (
-                                                      <tr key={rowKey}>
-                                                        <td
-                                                          className="cursor-pointer"
-                                                          onClick={() => handleDocClick(it.doc_id)}
-                                                          style={{ textDecoration: "underline", color: "var(--link)" }}
+                                                      <div
+                                                        key={`${subKey}__grp__${cat}`}
+                                                        className={`group-col group-${cat.toLowerCase()}`}
+                                                      >
+                                                        <div className="group-header">
+                                                          <div className="group-title-wrap">
+                                                            <button
+                                                              className={`group-toggle ${!isOpen ? "open" : "closed"}`}
+                                                              aria-expanded={!isOpen}
+                                                              aria-controls={`grp-body-${groupKey}`}
+                                                              onClick={() => toggleGroup(groupKey)}
+                                                              title={!isOpen ? `Collapse ${cat}` : `Expand ${cat}`}
+                                                            >
+                                                              <span className="chev" aria-hidden="true">{!isOpen ? "-" : "+"}</span>
+                                                            </button>
+                                                            <span className="group-title">{cat}</span>
+                                                          </div>
+                                                          <span className="group-count">({groups[cat]?.length ?? 0})</span>
+                                                        </div>
+
+                                                        <div
+                                                          id={`grp-body-${groupKey}`}
+                                                          className={`group-body ${!isOpen ? "expanded" : "collapsed"}`}
+                                                          role="region"
+                                                          aria-hidden={!isOpen}
                                                         >
-                                                          {it.doc_id}
-                                                        </td>
-                                                        <td>{it.pers}</td>
-                                                        <td>{it.cell}</td>
-                                                        <td>{it.submit_date}</td>
-                                                        <td>{it.action_date}</td>
-                                                        <td>{it.querytype}</td>
-                                                        <td>{it.pending_with_cap || it.pending_with}</td>
-                                                        <td>{it.apw_sub_section || it.cpw_sub_section}</td>
-                                                        <td>
-                                                          <button
-                                                            className="secondary-btn"
-                                                            onClick={() => setSelectedRow(it)}
-                                                            aria-label={`View details for ${it.doc_id}`}
-                                                          >
-                                                            View
-                                                          </button>
-                                                        </td>
-                                                      </tr>
+                                                          {groups[cat] && groups[cat].length ? (
+                                                            <table className="group-table">
+                                                              <thead>
+                                                                <tr>
+                                                                  <th>doc_id</th>
+                                                                  <th>pers</th>
+                                                                  <th>cell</th>
+                                                                  <th>submit</th>
+                                                                  <th>action</th>
+                                                                  <th>Action</th>
+                                                                </tr>
+                                                              </thead>
+                                                              <tbody>
+                                                                {groups[cat].map((it) => {
+                                                                  const rowKey = it.doc_id ?? `${section}-${sub.name}-${it.sno ?? "no-sno"}`;
+                                                                  return (
+                                                                    <tr key={rowKey}>
+                                                                      <td
+                                                                        className="cursor-pointer"
+                                                                        onClick={() => handleDocClick(it.doc_id)}
+                                                                        style={{ textDecoration: "underline", color: "var(--link)" }}
+                                                                      >
+                                                                        {it.doc_id}
+                                                                      </td>
+                                                                      <td>{it.pers}</td>
+                                                                      <td>{it.cell}</td>
+                                                                      <td>{it.submit_date}</td>
+                                                                      <td>{it.action_date}</td>
+                                                                      <td>
+                                                                        <button
+                                                                          className="secondary-btn"
+                                                                          onClick={() => setSelectedRow(it)}
+                                                                          aria-label={`View details for ${it.doc_id}`}
+                                                                        >
+                                                                          View
+                                                                        </button>
+                                                                      </td>
+                                                                    </tr>
+                                                                  );
+                                                                })}
+                                                              </tbody>
+                                                            </table>
+                                                          ) : (
+                                                            <div className="no-data small">No rows</div>
+                                                          )}
+                                                        </div>
+                                                      </div>
                                                     );
-                                                  })
-                                                ) : (
-                                                  <tr>
-                                                    <td colSpan="9" className="no-data">
-                                                      No data in this sub-section
-                                                    </td>
-                                                  </tr>
-                                                )}
-                                              </tbody>
-                                            </table>
+                                                  })}
+                                                </div>
+                                              );
+                                            })()}
                                           </div>
                                         </td>
                                       </tr>
