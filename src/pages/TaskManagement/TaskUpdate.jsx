@@ -110,7 +110,11 @@ export default function TaskUpdate({ task, onClose, onUpdated }) {
       setLoading(true);
       setError(null);
 
+      // include task id in payload; coerce to number if numeric
+      const idValue = /^\d+$/.test(String(formData.id)) ? Number(formData.id) : formData.id;
+
       const payload = {
+        id: idValue,
         tasksName: formData.tasksName.trim(),
         changedCompletionOn:
           fromLocalInputToApi(formData.changedCompletionOn) || "",

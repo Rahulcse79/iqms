@@ -1,0 +1,119 @@
+/* TaskHistory.css – Namespaced popup modal (.thistory) */
+
+/* Root wrapper to scope styles */
+.thistory { isolation: isolate; }
+
+/* Overlay */
+.thistory .th-overlay {
+  position: fixed;
+  top: var(--topbar-height, 0);
+  left: 0; right: 0; bottom: 0;
+  background: color-mix(in oklab, var(--glass) 88%, transparent);
+  display: grid; place-items: center;
+  padding: 16px; z-index: 1100;
+  backdrop-filter: saturate(120%) blur(10px);
+}
+
+/* Modal shell */
+.thistory .th-modal {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-lg);
+  width: 100%; max-width: 900px;
+  max-height: calc(100vh - var(--topbar-height, 0px) - 32px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+  animation: th-modal-pop var(--transition-medium) ease-out;
+}
+
+@keyframes th-modal-pop { from { opacity: 0; transform: translateY(8px) scale(0.985);} to { opacity: 1; transform: translateY(0) scale(1);} }
+
+/* Header */
+.thistory .th-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--surface-accent) 80%, transparent), var(--surface));
+  border-bottom: 1px solid var(--border);
+}
+.thistory .th-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.thistory .th-title h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.2px; color: var(--text); }
+.thistory .th-task-chip { background: color-mix(in oklab, var(--surface-accent) 80%, var(--surface)); color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-weight: 700; font-size: 12px; }
+.thistory .th-sub { color: var(--muted); font-size: 12px; padding: 2px 8px; border: 1px dashed var(--border); border-radius: 999px; }
+.thistory .th-mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+.thistory .th-actions { display: flex; align-items: center; gap: 8px; }
+.thistory .th-search-box { position: relative; display: flex; align-items: center; }
+.thistory .th-search-input { width: 260px; max-width: 42vw; padding: 10px 12px 10px 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.thistory .th-search-input::placeholder { color: var(--muted); }
+.thistory .th-search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent); }
+.thistory .th-search-icon { position: absolute; left: 10px; color: var(--muted); font-size: 14px; pointer-events: none; }
+
+.thistory .th-btn { appearance: none; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--button-bg); color: var(--button-text); padding: 10px 14px; font-size: 13px; cursor: pointer; transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast); }
+.thistory .th-btn:hover { background: var(--button-hover); box-shadow: 0 4px 10px color-mix(in oklab, var(--button-bg) 18%, transparent); }
+.thistory .th-btn:active { transform: translateY(1px); }
+.thistory .th-btn--ghost { background: var(--surface); color: var(--text); }
+.thistory .th-btn--ghost:hover { background: var(--surface-accent); box-shadow: none; }
+
+/* Scrollable content */
+.thistory .th-content { flex: 1 1 auto; min-height: 0; overflow: auto; -webkit-overflow-scrolling: touch; padding: 14px 16px; background: var(--surface); }
+
+/* Loading skeleton */
+.thistory .th-loading { display: grid; gap: 8px; padding: 12px 4px; }
+.thistory .th-skel { height: 16px; border-radius: 8px; background: linear-gradient(90deg, color-mix(in oklab, var(--surface-accent) 60%, transparent), var(--surface), color-mix(in oklab, var(--surface-accent) 60%, transparent)); background-size: 200% 100%; animation: th-shimmer 1.2s linear infinite; }
+@keyframes th-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Error and empty */
+.thistory .th-error { padding: 12px; border: 1px solid var(--red-hover); background: var(--red-bg); color: var(--red-text); border-radius: var(--radius-lg); }
+.thistory .th-empty { padding: 18px; color: var(--muted); border: 1px dashed var(--border); border-radius: var(--radius-lg); background: var(--surface); text-align: center; }
+
+/* Timeline */
+.thistory .th-timeline { position: relative; padding: 8px 2px; }
+.thistory .th-tl { list-style: none; margin: 0; padding: 0 0 0 18px; position: relative; }
+.thistory .th-tl::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--accent), color-mix(in oklab, var(--primary) 50%, transparent)); border-radius: 2px; }
+.thistory .th-tl-item { position: relative; margin: 14px 0; }
+.thistory .th-dot { position: absolute; left: 2px; top: 18px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent); }
+
+.thistory .th-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 12px; box-shadow: var(--shadow); }
+.thistory .th-row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.thistory .th-when { color: var(--muted); font-size: 12px; }
+
+.thistory .th-row-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; color: var(--text); font-size: 13px; margin-bottom: 8px; }
+.thistory .th-by .th-mono { color: var(--text); }
+.thistory .th-desig { color: var(--muted); }
+.thistory .th-cc { color: var(--text); }
+
+.thistory .th-remarks { border: 1px dashed var(--border); background: color-mix(in oklab, var(--surface-accent) 55%, transparent); border-radius: var(--radius-sm); padding: 8px; }
+.thistory .th-remark-title { font-weight: 800; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.thistory .th-remark-body { font-size: 14px; color: var(--text); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+
+/* Chips */
+.thistory .th-chip { display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border); font-weight: 700; font-size: 11px; letter-spacing: 0.3px; }
+.thistory .th-chip--status { background: var(--surface); color: var(--text); }
+.thistory .th-chip--status[data-status="completed"],
+.thistory .th-chip--status[data-status="closed"] { background: var(--green-bg); color: var(--green-text); border-color: var(--green-hover); }
+.thistory .th-chip--status[data-status="new"] { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-hover); }
+.thistory .th-chip--status[data-status="in-progress"],
+.thistory .th-chip--status[data-status="in"] { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-hover); }
+.thistory .th-chip--status[data-status="cancelled"],
+.thistory .th-chip--status[data-status="canceled"] { background: var(--red-bg); color: var(--red-text); border-color: var(--red-hover); }
+
+.thistory .th-chip--delay { background: var(--red-bg); color: var(--red-text); border-color: var(--red-hover); }
+
+/* Footer (optional) */
+.thistory .th-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; background: linear-gradient(180deg, var(--surface), color-mix(in oklab, var(--surface-accent) 80%, transparent)); border-top: 1px solid var(--border); }
+
+/* Scrollbars */
+.thistory .th-content::-webkit-scrollbar { width: 8px; height: 8px; }
+.thistory .th-content::-webkit-scrollbar-track { background: color-mix(in oklab, var(--surface-accent) 60%, transparent); }
+.thistory .th-content::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--accent) 45%, transparent); border-radius: 8px; }
+.thistory .th-content::-webkit-scrollbar-thumb:hover { background: color-mix(in oklab, var(--accent) 65%, transparent); }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .thistory .th-search-input { width: 48vw; }
+  .thistory .th-row-top { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) { .thistory .th-skel { animation: none; } }

@@ -68,7 +68,6 @@ function AppRoutes() {
         <Route path="FAQ" element={<FAQPage />} />
 
         <Route path="cdr" element={<CDR />} />
-        <Route path="interim-reply" element={<InterimPopup/>} />
 
         <Route path="interim-reply" element={<TaskDetails/>} />
         <Route path="task-create" element={<CreateTask/>} />
