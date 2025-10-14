@@ -53,11 +53,11 @@ const Login = () => {
         return;
       }
       // As per new API response structure
-      const baseUser = response.data.data;
-      const serviceNo = baseUser.userName;
-      const categoryStr = baseUser.designation;
+      const baseData = response.data.data;
+      const serviceNo = baseData.userName;
+      const categoryStr = baseData.designation;
       const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
-      const userDept = baseUser.department;
+      const userDept = baseData.department;
       const deptConfig = DepartmentMapping[userDept];
 
       if (!serviceNo || categoryCode === null) {
@@ -105,10 +105,11 @@ const Login = () => {
       }
 
       // Enrich login response
-      response.data.userDetails = userDetails;
+      baseData.userDetails = userDetails;
+      console.log("Fetched user base data :", baseData);
 
       // Save in context & cookies
-      login({ data: response.data, status: response.status }); // Adjust according to how login context expects it
+      login({ data: baseData, status: response.status });
 
       setInitProgress({ step: "setting-active-role", current: 2, total: 4 });
 
