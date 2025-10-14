@@ -7,8 +7,9 @@ import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/Loader";
 import { UserRole, DepartmentMapping } from "../constants/Enum";
-import users from "../utils/users.json";
+import { loginAPI } from "../services/api";
 import { fetchAllUserQueriesNew, getDesignationFlags } from "../utils/helpers";
+import CryptoJS from "crypto-js";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -41,20 +42,30 @@ const Login = () => {
     setInitProgress({ step: "authenticating", current: 0, total: 1 });
 
     try {
-      const response = await fakeLoginAPI(username, password);
+      console.log(
+        "🔐 Encrypting credentials for secure transmission. " +
+          username +
+          " " +
+          password
+      );
+      const encryptedUsername = encryptData(username);
+      const encryptedPassword = encryptData(password);
+      console.log("Encrypted Username: ", encryptedUsername);
+      console.log("Encrypted Password: ", encryptedPassword);
+      const response = await loginAPI(encryptedUsername, encryptedPassword);
+      console.log("Login API response:", response);
 
       if (response.status !== "OK") {
         setInitializing(false);
-        setError("Invalid username or password");
+        setError(response.messageDetail || "Invalid username or password");
         return;
       }
-
-      const baseUser = response.data.airForceUserDetails;
-      const serviceNo = baseUser.airForceServiceNumber;
-      const categoryStr = baseUser.airForceCategory;
+      // As per new API response structure
+      const baseUser = response.data;
+      const serviceNo = baseUser.userName;
+      const categoryStr = baseUser.designation;
       const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
-      const userDept =
-        response.data.airForceUserDetails?.airForceDepartment?.[0];
+      const userDept = baseUser.department;
       const deptConfig = DepartmentMapping[userDept];
 
       if (!serviceNo || categoryCode === null) {
@@ -69,9 +80,12 @@ const Login = () => {
         return;
       }
 
+      console.log("User category code:", categoryCode);
+      console.log("User department config:", deptConfig); 
+      console.log("User Category string:" + categoryStr + "and user Category code is" + categoryCode);
+
       setInitProgress({ step: "fetching-user-details", current: 1, total: 4 });
 
-      // Fetch user details from API
       let userDetails = null;
       try {
         const res = await fetch(
@@ -102,7 +116,7 @@ const Login = () => {
       response.data.userDetails = userDetails;
 
       // Save in context & cookies
-      login(response);
+      login({ data: response.data, status: response.status }); // Adjust according to how login context expects it
 
       setInitProgress({ step: "setting-active-role", current: 2, total: 4 });
 
@@ -188,7 +202,22 @@ const Login = () => {
     } catch (err) {
       console.error("Login error:", err);
       setInitializing(false);
-      setError("Something went wrong. Please try again.");
+
+      if (err.response) {
+        // Handle API errors (like 400 Bad Request)
+        const apiError = err.response.data;
+        setError(
+          apiError.messageDetail ||
+            apiError.message ||
+            "Login failed. Please check your credentials."
+        );
+      } else if (err.request) {
+        // Handle network errors (request made but no response received)
+        setError("Network error. Please check your connection and try again.");
+      } else {
+        // Handle other errors
+        setError("Something went wrong. Please try again.");
+      }
     }
   };
 
@@ -295,19 +324,30 @@ const Login = () => {
 };
 
 async function fakeLoginAPI(username, password) {
+  // This function is no longer used but kept for reference if needed.
   return new Promise((resolve) => {
     setTimeout(() => {
-      const user = users.find(
-        (u) => u.username === username && u.password === password
-      );
-
-      if (user) {
-        resolve(user);
-      } else {
-        resolve({ status: "ERROR", message: "Invalid credentials" });
-      }
-    }, 1000);
+      resolve({
+        status: "ERROR",
+        message: "This is a fake API and should not be used.",
+      });
+    }, 500);
   });
 }
+
+const encryptData = (data) => {
+  const iv = CryptoJS.lib.WordArray.random(16);
+  const ciphertext = CryptoJS.AES.encrypt(
+    data,
+    CryptoJS.enc.Utf8.parse(window.secretKey),
+    {
+      iv: iv,
+      mode: CryptoJS.mode.CFB,
+      padding: CryptoJS.pad.Pkcs7,
+    }
+  );
+
+  return iv.concat(ciphertext.ciphertext).toString(CryptoJS.enc.Base64);
+};
 
 export default Login;
