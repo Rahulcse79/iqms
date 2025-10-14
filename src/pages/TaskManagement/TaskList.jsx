@@ -5,7 +5,7 @@ import { IoEyeSharp } from "react-icons/io5";
 import { IoIosBook } from "react-icons/io";
 import { FaPen, FaSearch, FaFilter, FaCalendarAlt } from "react-icons/fa";
 import TaskHistory from "./TaskHistory";
-import "./TaskList.css";
+import { application } from "../../utils/endpoints";
 
 export default function TaskList() {
   const [tasks, setTasks] = useState([]);
@@ -21,10 +21,6 @@ export default function TaskList() {
   const [priorityFilter, setPriorityFilter] = useState("all"); // all, critical, urgent, normal
   const [userFilter, setUserFilter] = useState("all");
   const [dateRangeFilter, setDateRangeFilter] = useState("all"); // all, today, week, month, overdue
-
-  // API configuration from environment variables
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-  const BEARER_TOKEN = process.env.REACT_APP_BEARER_TOKEN;
 
   // API payload
   const apiPayload = useMemo(
@@ -62,45 +58,91 @@ export default function TaskList() {
   // Get priority level and color for a task based on expected completion date
   const getTaskPriority = (expectedCompletionDate) => {
     if (!expectedCompletionDate) {
-      return { priority: "unknown", color: "#666666", label: "No Date", urgencyScore: 999 };
+      return {
+        priority: "unknown",
+        color: "#666666",
+        label: "No Date",
+        urgencyScore: 999,
+      };
     }
 
     try {
       let dateStr = expectedCompletionDate;
-      if (typeof dateStr === "string" && dateStr.includes(" ") && !dateStr.includes("T")) {
+      if (
+        typeof dateStr === "string" &&
+        dateStr.includes(" ") &&
+        !dateStr.includes("T")
+      ) {
         dateStr = dateStr.replace(" ", "T");
       }
 
       const expectedDate = new Date(dateStr);
       const currentDate = new Date();
-      const today = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-      const expectedDateOnly = new Date(expectedDate.getFullYear(), expectedDate.getMonth(), expectedDate.getDate());
+      const today = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        currentDate.getDate()
+      );
+      const expectedDateOnly = new Date(
+        expectedDate.getFullYear(),
+        expectedDate.getMonth(),
+        expectedDate.getDate()
+      );
 
       // Calculate business days difference
-      const businessDaysLeft = getBusinessDaysDifference(today, expectedDateOnly);
-      const totalDaysLeft = Math.ceil((expectedDateOnly - today) / (1000 * 60 * 60 * 24));
+      const businessDaysLeft = getBusinessDaysDifference(
+        today,
+        expectedDateOnly
+      );
+      const totalDaysLeft = Math.ceil(
+        (expectedDateOnly - today) / (1000 * 60 * 60 * 24)
+      );
 
       // If the expected date has passed
       if (totalDaysLeft < 0) {
-        return { priority: "overdue", color: "#DC2626", label: "Overdue", urgencyScore: 0 };
+        return {
+          priority: "overdue",
+          color: "#DC2626",
+          label: "Overdue",
+          urgencyScore: 0,
+        };
       }
 
       // Critical: Due today or business days <= 1
       if (totalDaysLeft === 0 || businessDaysLeft <= 1) {
-        return { priority: "critical", color: "#DC2626", label: "Critical", urgencyScore: 1 };
+        return {
+          priority: "critical",
+          color: "#DC2626",
+          label: "Critical",
+          urgencyScore: 1,
+        };
       }
 
       // Urgent: Due within 1 week (7 days) or business days <= 5
       if (totalDaysLeft <= 7 || businessDaysLeft <= 5) {
-        return { priority: "urgent", color: "#F59E0B", label: "Urgent", urgencyScore: 2 };
+        return {
+          priority: "urgent",
+          color: "#F59E0B",
+          label: "Urgent",
+          urgencyScore: 2,
+        };
       }
 
       // Normal: More than 1 week
-      return { priority: "normal", color: "#10B981", label: "Normal", urgencyScore: 3 };
-
+      return {
+        priority: "normal",
+        color: "#10B981",
+        label: "Normal",
+        urgencyScore: 3,
+      };
     } catch (error) {
       console.error("Error parsing date:", expectedCompletionDate, error);
-      return { priority: "unknown", color: "#666666", label: "Invalid Date", urgencyScore: 999 };
+      return {
+        priority: "unknown",
+        color: "#666666",
+        label: "Invalid Date",
+        urgencyScore: 999,
+      };
     }
   };
 
@@ -125,7 +167,11 @@ export default function TaskList() {
       }
       const d = new Date(v);
       if (isNaN(d.getTime())) return String(value);
-      return d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      return (
+        d.toLocaleDateString() +
+        " " +
+        d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      );
     } catch (_) {
       return String(value);
     }
@@ -166,7 +212,9 @@ export default function TaskList() {
 
   // Get unique users for filter dropdown
   const uniqueUsers = useMemo(() => {
-    const users = [...new Set(tasks.map(task => task.assignedUser).filter(Boolean))];
+    const users = [
+      ...new Set(tasks.map((task) => task.assignedUser).filter(Boolean)),
+    ];
     return users.sort();
   }, [tasks]);
 
@@ -177,16 +225,17 @@ export default function TaskList() {
     // Search filter
     if (searchTerm.trim()) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(task => 
-        (task.tasksName?.toLowerCase().includes(search)) ||
-        (task.assignedUser?.toLowerCase().includes(search)) ||
-        (task.remarks?.toLowerCase().includes(search))
+      filtered = filtered.filter(
+        (task) =>
+          task.tasksName?.toLowerCase().includes(search) ||
+          task.assignedUser?.toLowerCase().includes(search) ||
+          task.remarks?.toLowerCase().includes(search)
       );
     }
 
     // Priority filter
     if (priorityFilter !== "all") {
-      filtered = filtered.filter(task => {
+      filtered = filtered.filter((task) => {
         const priority = getTaskPriority(task.expectedCompletionDate);
         return priority.priority === priorityFilter;
       });
@@ -194,24 +243,36 @@ export default function TaskList() {
 
     // User filter
     if (userFilter !== "all") {
-      filtered = filtered.filter(task => task.assignedUser === userFilter);
+      filtered = filtered.filter((task) => task.assignedUser === userFilter);
     }
 
     // Date range filter
     if (dateRangeFilter !== "all") {
       const today = new Date();
-      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const todayStart = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      );
 
-      filtered = filtered.filter(task => {
+      filtered = filtered.filter((task) => {
         if (!task.expectedCompletionDate) return dateRangeFilter === "all";
 
         try {
           let dateStr = task.expectedCompletionDate;
-          if (typeof dateStr === "string" && dateStr.includes(" ") && !dateStr.includes("T")) {
+          if (
+            typeof dateStr === "string" &&
+            dateStr.includes(" ") &&
+            !dateStr.includes("T")
+          ) {
             dateStr = dateStr.replace(" ", "T");
           }
           const taskDate = new Date(dateStr);
-          const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+          const taskDateOnly = new Date(
+            taskDate.getFullYear(),
+            taskDate.getMonth(),
+            taskDate.getDate()
+          );
 
           switch (dateRangeFilter) {
             case "today":
@@ -263,36 +324,22 @@ export default function TaskList() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(
-        `${API_BASE_URL}/services/api/v2/task/listAll`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${BEARER_TOKEN}`,
-          },
-          body: JSON.stringify(apiPayload),
-        }
-      );
+      const response = await application.post("/task/listAll", apiPayload);
 
-      if (!response.ok) {
-        const txt = await response.text();
-        throw new Error(
-          `HTTP ${response.status}: ${txt || response.statusText}`
-        );
-      }
-
-      const result = await response.json();
-      if (result?.status === "OK") {
-        const arr = normalizeTasks(result?.data);
+      if (response.data?.status === "OK") {
+        const arr = normalizeTasks(response.data?.data);
         setTasks(arr);
       } else {
-        throw new Error(result?.message || "Failed to fetch tasks");
+        throw new Error(response.data?.message || "Failed to fetch tasks");
       }
     } catch (err) {
       console.error("Error fetching tasks:", err);
       setTasks([]); // ensure array to avoid map errors
-      setError(err.message || "Unknown error");
+      if (err.response) {
+        setError(err.response.data.message || "An error occurred");
+      } else {
+        setError(err.message || "An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
@@ -348,7 +395,7 @@ export default function TaskList() {
   // Priority statistics
   const priorityStats = useMemo(() => {
     const stats = { overdue: 0, critical: 0, urgent: 0, normal: 0, unknown: 0 };
-    tasks.forEach(task => {
+    tasks.forEach((task) => {
       const priority = getTaskPriority(task.expectedCompletionDate);
       stats[priority.priority]++;
     });
@@ -358,8 +405,7 @@ export default function TaskList() {
   if (loading) {
     return (
       <div className="task-list-container">
-
-          <p>Loading tasks...</p>
+        <p>Loading tasks...</p>
       </div>
     );
   }
@@ -385,8 +431,12 @@ export default function TaskList() {
         <div>
           <h2>Interim Reply</h2>
           <div className="priority-stats">
-            <span className="stat overdue">Overdue: {priorityStats.overdue}</span>
-            <span className="stat critical">Critical: {priorityStats.critical}</span>
+            <span className="stat overdue">
+              Overdue: {priorityStats.overdue}
+            </span>
+            <span className="stat critical">
+              Critical: {priorityStats.critical}
+            </span>
             <span className="stat urgent">Urgent: {priorityStats.urgent}</span>
             <span className="stat normal">Normal: {priorityStats.normal}</span>
           </div>
@@ -411,7 +461,7 @@ export default function TaskList() {
           />
         </div>
         <div className="toolbar-actions">
-          <select 
+          <select
             className="filter-select"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
@@ -423,18 +473,20 @@ export default function TaskList() {
             <option value="normal">Normal</option>
           </select>
 
-          <select 
+          <select
             className="filter-select"
             value={userFilter}
             onChange={(e) => setUserFilter(e.target.value)}
           >
             <option value="all">All Users</option>
-            {uniqueUsers.map(user => (
-              <option key={user} value={user}>{user}</option>
+            {uniqueUsers.map((user) => (
+              <option key={user} value={user}>
+                {user}
+              </option>
             ))}
           </select>
 
-          <select 
+          <select
             className="filter-select"
             value={dateRangeFilter}
             onChange={(e) => setDateRangeFilter(e.target.value)}
@@ -480,11 +532,14 @@ export default function TaskList() {
               {filteredAndSortedTasks.map((task, index) => {
                 const priority = getTaskPriority(task.expectedCompletionDate);
                 return (
-                  <tr key={task.id || index} className={`priority-${priority.priority}`}>
+                  <tr
+                    key={task.id || index}
+                    className={`priority-${priority.priority}`}
+                  >
                     <td>
                       <div className="priority-indicator">
-                        <div 
-                          className="priority-dot" 
+                        <div
+                          className="priority-dot"
                           style={{ backgroundColor: priority.color }}
                           title={`${priority.label} Priority`}
                         ></div>
@@ -495,11 +550,15 @@ export default function TaskList() {
                     <td className="completion-date">
                       {formatExpectedDate(task?.expectedCompletionDate)}
                     </td>
-                    <td className="assigned-user">{task?.assignedUser || "N/A"}</td>
+                    <td className="assigned-user">
+                      {task?.assignedUser || "N/A"}
+                    </td>
                     <td className="remarks" title={task?.remarks || "N/A"}>
                       {task?.remarks || "N/A"}
                     </td>
-                    <td className="assigned-on">{formatDate(task?.assignedOn)}</td>
+                    <td className="assigned-on">
+                      {formatDate(task?.assignedOn)}
+                    </td>
                     <td>
                       <div className="action-buttons">
                         <button
@@ -538,8 +597,8 @@ export default function TaskList() {
         <TaskDetails task={selectedTask} onClose={handleCloseDetails} />
       )}
       {showUpdate && selectedTask && (
-        <TaskUpdate 
-          task={selectedTask} 
+        <TaskUpdate
+          task={selectedTask}
           onClose={handleCloseUpdate}
           onRefresh={handleRefresh}
         />
