@@ -1,0 +1,98 @@
+/* UpdateTask.css - theme-based, accessible, and scroll-friendly */
+
+.update-task-overlay {
+  position: fixed;
+  top: var(--topbar-height, 94px);
+  left: 0; right: 0; bottom: 0;
+  background: color-mix(in oklab, var(--glass) 88%, transparent);
+  display: flex; justify-content: center; align-items: center;
+  padding: 16px; z-index: 1100;
+  backdrop-filter: saturate(120%) blur(8px);
+}
+
+.update-task-modal {
+  background: var(--surface); color: var(--text);
+  border-radius: var(--radius-lg);
+  width: 100%; max-width: 680px;
+  max-height: calc(100vh - var(--topbar-height, 94px) - 32px);
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+  animation: modal-pop var(--transition-medium) ease-out;
+}
+
+@keyframes modal-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.update-task-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--surface-accent) 80%, transparent), var(--surface));
+}
+
+.update-task-header h2 { margin: 0; font-family: var(--font-family); font-size: 18px; font-weight: 700; color: var(--text); }
+
+.close-button { background: transparent; border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: var(--radius-sm); cursor: pointer; display: inline-grid; place-items: center; transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast); }
+.close-button:hover { background: var(--surface-accent); }
+.close-button:active { transform: scale(0.96); }
+.close-button:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent); }
+
+.update-task-form { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+
+.form-content { flex: 1 1 auto; min-height: 0; padding: 16px; overflow: auto; -webkit-overflow-scrolling: touch; background: var(--surface); }
+
+.form-group { margin-bottom: 16px; }
+.form-group.inline { display: flex; align-items: center; justify-content: space-between; }
+
+.form-label { display: block; margin-bottom: 6px; font-family: var(--font-family); font-size: 13px; font-weight: 600; color: var(--text); }
+.required { color: var(--red); }
+
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-family: var(--font-family); font-size: 14px; color: var(--text); background: var(--surface);
+  transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.form-input:hover, .form-textarea:hover, .form-select:hover { background: color-mix(in oklab, var(--surface-accent) 30%, var(--surface)); }
+.form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent); }
+.form-input.error, .form-textarea.error, .form-select.error { border-color: var(--red); box-shadow: 0 0 0 3px color-mix(in oklab, var(--red) 20%, transparent); }
+.form-textarea { resize: vertical; min-height: 104px; line-height: 1.55; }
+
+.error-message { display: block; color: var(--red-text, var(--red)); font-size: 12px; margin-top: 6px; }
+.error-banner { background: var(--red-bg); border: 1px solid var(--red-hover); color: var(--red-text); padding: 10px 12px; border-radius: var(--radius-sm); }
+
+/* Switch control */
+.switch { position: relative; display: inline-block; width: 48px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--surface-accent); border: 1px solid var(--border); transition: var(--transition-fast); border-radius: 999px; }
+.slider:before { content: ''; position: absolute; height: 22px; width: 22px; left: 3px; top: 50%; transform: translateY(-50%); background: var(--surface); border: 1px solid var(--border); transition: var(--transition-fast); border-radius: 50%; }
+.switch input:checked + .slider { background: color-mix(in oklab, var(--button-bg) 35%, var(--surface-accent)); border-color: color-mix(in oklab, var(--button-bg) 50%, var(--border)); }
+.switch input:checked + .slider:before { transform: translate(20px, -50%); background: var(--button-text); border-color: transparent; }
+
+.form-footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 10px; padding: 12px 16px; background: linear-gradient(180deg, var(--surface), color-mix(in oklab, var(--surface-accent) 80%, transparent)); border-top: 1px solid var(--border); }
+
+.btn { appearance: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 16px; font-family: var(--font-family); font-size: 14px; cursor: pointer; transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast); will-change: transform; }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-primary { background: var(--button-bg); color: var(--button-text); border-color: transparent; }
+.btn-primary:hover { background: var(--button-hover); box-shadow: 0 4px 10px color-mix(in oklab, var(--button-bg) 20%, transparent); }
+.btn-secondary { background: var(--surface); color: var(--text); }
+.btn-secondary:hover { background: var(--surface-accent); }
+
+.button-spinner { width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 8px; }
+.muted { color: var(--muted); font-size: 14px; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Scrollbars */
+.form-content::-webkit-scrollbar { width: 8px; height: 8px; }
+.form-content::-webkit-scrollbar-track { background: color-mix(in oklab, var(--surface-accent) 60%, transparent); }
+.form-content::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--accent) 45%, transparent); border-radius: 8px; }
+.form-content::-webkit-scrollbar-thumb:hover { background: color-mix(in oklab, var(--accent) 65%, transparent); }
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .update-task-modal { animation: none; }
+  .button-spinner, .spinner { animation-duration: 2s; }
+}
+
+/* Responsive */
+@media (max-width: 720px) { .update-task-modal { max-width: 100%; } }

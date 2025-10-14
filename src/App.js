@@ -28,7 +28,8 @@ import NewQuery from "./Dav/NewQuery";
 import DavQuery from "./Dav/QueryView";
 import FAQPage from "./pages/FAQ";
 import Inauguration from "./pages/Inauguration";
-import InterimPopup from "./components/InterimPopup";
+import TaskDetails from "./pages/TaskManagement/TaskList";
+import CreateTask from "./pages/TaskManagement/TaskCreate";
 
 const queryClient = new QueryClient();
 
@@ -65,8 +66,12 @@ function AppRoutes() {
         <Route path="search-results" element={<SearchResults />} />
         <Route path="query/comparision" element={<QueryComparision />} />
         <Route path="FAQ" element={<FAQPage />} />
+
         <Route path="cdr" element={<CDR />} />
         <Route path="interim-reply" element={<InterimPopup/>} />
+
+        <Route path="interim-reply" element={<TaskDetails/>} />
+        <Route path="task-create" element={<CreateTask/>} />
 
 
         {/* DAV */}
