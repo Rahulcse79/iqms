@@ -57,8 +57,8 @@ export const AuthProvider = ({ children }) => {
             JSON.stringify(loginResponse.data.userDetails)
           );
           localStorage.setItem(
-            "airForceUserDetails",
-            JSON.stringify(loginResponse.data.airForceUserDetails)
+            "baseUserData",
+            JSON.stringify(loginResponse.data)
           );
         } catch (err) {
           console.warn(
