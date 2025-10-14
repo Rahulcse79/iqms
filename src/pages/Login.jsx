@@ -7,7 +7,7 @@ import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/Loader";
 import { UserRole, DepartmentMapping } from "../constants/Enum";
-import { loginAPI } from "../services/api";
+import { loginAPI } from "../utils/endpoints";
 import { fetchAllUserQueriesNew, getDesignationFlags } from "../utils/helpers";
 import CryptoJS from "crypto-js";
 
@@ -42,26 +42,18 @@ const Login = () => {
     setInitProgress({ step: "authenticating", current: 0, total: 1 });
 
     try {
-      console.log(
-        "🔐 Encrypting credentials for secure transmission. " +
-          username +
-          " " +
-          password
-      );
       const encryptedUsername = encryptData(username);
       const encryptedPassword = encryptData(password);
-      console.log("Encrypted Username: ", encryptedUsername);
-      console.log("Encrypted Password: ", encryptedPassword);
       const response = await loginAPI(encryptedUsername, encryptedPassword);
-      console.log("Login API response:", response);
+      console.log("Login API response:", response.data);
 
-      if (response.status !== "OK") {
+      if (response.data.status !== "OK") {
         setInitializing(false);
-        setError(response.messageDetail || "Invalid username or password");
+        setError(response.data.messageDetail || "Invalid username or password");
         return;
       }
       // As per new API response structure
-      const baseUser = response.data;
+      const baseUser = response.data.data;
       const serviceNo = baseUser.userName;
       const categoryStr = baseUser.designation;
       const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
@@ -322,18 +314,6 @@ const Login = () => {
     </>
   );
 };
-
-async function fakeLoginAPI(username, password) {
-  // This function is no longer used but kept for reference if needed.
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        status: "ERROR",
-        message: "This is a fake API and should not be used.",
-      });
-    }, 500);
-  });
-}
 
 const encryptData = (data) => {
   const iv = CryptoJS.lib.WordArray.random(16);

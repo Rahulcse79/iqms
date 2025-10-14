@@ -1,8 +1,6 @@
 // src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
-import { clearRepliedQueries } from "../utils/cache";
-
 export const AuthContext = createContext();
 
 /**
@@ -16,8 +14,10 @@ export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  const eightHoursFromNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+
   const persistOptions = {
-    expires: 7,
+    expires: eightHoursFromNow,
     path: "/",
     secure: window.location.protocol === "https:", // only set secure on https
     sameSite: "Lax",
@@ -34,6 +34,7 @@ export const AuthProvider = ({ children }) => {
       // Build a minimal auth object for the cookie (keep it small)
       const minimalAuth = {
         token: loginResponse.data.token,
+        refreshToken: loginResponse.data.refreshToken,
         user: {
           userId: loginResponse.data.userId,
           username: loginResponse.data.userName,
@@ -60,7 +61,10 @@ export const AuthProvider = ({ children }) => {
             JSON.stringify(loginResponse.data.airForceUserDetails)
           );
         } catch (err) {
-          console.warn("Could not persist userDetails and airForceUserDetails to localStorage:", err);
+          console.warn(
+            "Could not persist userDetails and airForceUserDetails to localStorage:",
+            err
+          );
         }
       }
     } catch (err) {

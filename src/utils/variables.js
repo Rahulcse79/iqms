@@ -2,13 +2,14 @@ const getVariables = () => {
   if (window.overrideURLS) {
     return {
       api: {
-        services: BASE_URL_API,
+        services: "BASE_URL_API",
       },
       app: {
-        services: BASE_URL_APP,
+        services: "BASE_URL_APP",
       },
     };
   } else {
+    console.log("REACT_APP_MODE:", process.env.REACT_APP_MODE);
     if (process.env.REACT_APP_MODE === "ui-dev") {
       return {
         api: {
