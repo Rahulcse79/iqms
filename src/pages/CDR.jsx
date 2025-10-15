@@ -158,8 +158,8 @@ const CDR = () => {
         if (tabKey === "all") {
           const [rRec, rMiss, rDial] = await Promise.allSettled([
             application.post("/receivedCall/list" , payload),
-            missedCallListAPI(payload),
-            dialedCallListAPI(payload),
+            application.post("/missedCall/list" ,payload),
+            application.post("/dialedCall/list" , payload),
           ]);
 
           if (thisReq !== reqCounterRef.current) return;
@@ -221,16 +221,15 @@ const CDR = () => {
             pageSize: PAGE_SIZE,
           });
         } else {
-          // per-type paging: request just PAGE_SIZE from the correct endpoint using offset
           let resp = null;
-          const p = { ...payload }; // offset, pageSize etc.
+          const p = { ...payload }; 
 
           if (tabKey === "received") {
             resp = await application.post("/receivedCall/list", p);
           } else if (tabKey === "missed") {
-            resp = await missedCallListAPI(p);
+            resp = await application.post("/missedCall/list", p);
           } else if (tabKey === "dialed") {
-            resp = await dialedCallListAPI(p);
+            resp = await application.post("/dialedCall/list", p);
           } else {
             resp = { items: [] };
           }
