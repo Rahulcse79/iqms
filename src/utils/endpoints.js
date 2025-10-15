@@ -173,16 +173,6 @@ export const loginAPI = (encryptedUsername, encryptedPassword) => {
   });
 };
 
-// ---------- New API Helpers ----------
-export const missedCallListAPI = (payload) =>
-  application.post(variables.api.missedCall, payload);
-export const receivedCallListAPI = (payload) =>
-  application.post(variables.api.receivedCall, payload);
-export const dialedCallListAPI = (payload) =>
-  application.post(variables.api.dialedCall, payload);
-export const mvrHistoryAPI = (agentId) =>
-  application.post(`${variables.api.mvrHistory}/${agentId}`);
-
 // ---------- Exports ----------
 export const logoutAPI = () => {
   return appServices.post(variables.app.services + "agentStatus/create", {
