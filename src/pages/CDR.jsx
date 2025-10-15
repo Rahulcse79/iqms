@@ -2,11 +2,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import "./CDR.css";
 import {
-  receivedCallListAPI,
   missedCallListAPI,
   dialedCallListAPI,
   application,
 } from "../utils/endpoints";
+import { getCookieData } from "../utils/helpers";
 
 const TABS = [
   {
@@ -117,18 +117,11 @@ const CDR = () => {
 
   const fetchTotals = useCallback(async () => {
     try {
-      const payload = {
-        currentPage: 0,
-        pageSize: 10,
-        sortDirection: "desc",
-        sortBy: "callerId",
-        search: "",
-        sortDataType: "integer",
-        advancedFilters: [],
-      };
+      const cookieData = getCookieData();
+      const username = cookieData.user.username || "unknown";
 
-      const resp = await application.post("/callbackReport/list", {
-        payload,
+      const resp = await application.post(`agent/${username}`, {
+        offset: 0,
       });
       const data = resp?.data?.data ?? resp?.data ?? resp;
       if (data) {
@@ -164,7 +157,7 @@ const CDR = () => {
 
         if (tabKey === "all") {
           const [rRec, rMiss, rDial] = await Promise.allSettled([
-            receivedCallListAPI(payload),
+            application.post("/receivedCall/list" , payload),
             missedCallListAPI(payload),
             dialedCallListAPI(payload),
           ]);
@@ -233,7 +226,7 @@ const CDR = () => {
           const p = { ...payload }; // offset, pageSize etc.
 
           if (tabKey === "received") {
-            resp = await receivedCallListAPI(p);
+            resp = await application.post("/receivedCall/list", p);
           } else if (tabKey === "missed") {
             resp = await missedCallListAPI(p);
           } else if (tabKey === "dialed") {

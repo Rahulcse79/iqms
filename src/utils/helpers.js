@@ -1,5 +1,6 @@
 // Helper functions can be placed here
 import CryptoJS from "crypto-js";
+import Cookies from "js-cookie";
 
 export const formatDate = (date) => {
   return new Date(date).toLocaleDateString();
@@ -1436,4 +1437,17 @@ export const encryptData = (data) => {
   );
 
   return iv.concat(ciphertext.ciphertext).toString(CryptoJS.enc.Base64);
+};
+
+export const getCookieData = () => {
+  const storedAuth = Cookies.get("authData");
+  if (!storedAuth) return null;
+
+  try {
+    const authData = JSON.parse(storedAuth);
+    return authData;
+  } catch (error) {
+    console.error("Error parsing authData cookie:", error);
+    return null;
+  }
 };
