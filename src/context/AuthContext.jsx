@@ -40,6 +40,8 @@ export const AuthProvider = ({ children }) => {
           username: loginResponse.data.userName,
           fullName: loginResponse.data.fullName,
           roles: loginResponse.data.roles || [],
+          extension: loginResponse.data.extension || null,
+          extensionName: loginResponse.data.extensionName || null,
         },
       };
 
