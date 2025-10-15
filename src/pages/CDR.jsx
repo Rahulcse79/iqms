@@ -1,78 +1,363 @@
-import React, { useState } from "react";
+// CDR.jsx
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import "./CDR.css";
+import {
+  receivedCallListAPI,
+  missedCallListAPI,
+  dialedCallListAPI,
+  mvrHistoryAPI,
+} from "../utils/endpoints";
 
-const dummyData = {
-  received: [
-    { name: "Alice", number: "+91 9876543210", time: "10:00 AM", duration: "2m 30s", status: "Completed" },
-    { name: "Bob", number: "+91 9123456780", time: "11:30 AM", duration: "1m 15s", status: "Completed" },
-    { name: "Carol", number: "+91 9988776655", time: "12:00 PM", duration: "5m 00s", status: "Completed" },
-  ],
-  dialed: [
-    { name: "Charlie", number: "+91 9876501234", time: "09:45 AM", duration: "3m 20s", status: "Completed" },
-    { name: "David", number: "+91 9123405678", time: "02:15 PM", duration: "0m 45s", status: "Completed" },
-    { name: "Eva", number: "+91 9988123456", time: "03:30 PM", duration: "1m 50s", status: "Completed" },
-  ],
-  answered: [
-    { name: "Eve", number: "+91 9988771122", time: "01:00 PM", duration: "4m 10s", status: "Completed" },
-    { name: "Frank", number: "+91 9876112233", time: "03:30 PM", duration: "2m 05s", status: "Completed" },
-  ],
-  missed: [
-    { name: "Grace", number: "+91 9123987654", time: "04:00 PM", duration: "0m 00s", status: "Missed" },
-    { name: "Heidi", number: "+91 9876541122", time: "05:20 PM", duration: "0m 00s", status: "Missed" },
-  ],
-  all: [
-    { name: "Alice", number: "+91 9876543210", time: "10:00 AM", duration: "2m 30s", type: "Received", status: "Completed" },
-    { name: "Charlie", number: "+91 9876501234", time: "09:45 AM", duration: "3m 20s", type: "Dialed", status: "Completed" },
-    { name: "Grace", number: "+91 9123987654", time: "04:00 PM", duration: "0m 00s", type: "Missed", status: "Missed" },
-    { name: "Bob", number: "+91 9123456780", time: "11:30 AM", duration: "1m 15s", type: "Received", status: "Completed" },
-  ],
+const TABS = [
+  { key: "received", label: "Received", badgeKey: "totalAnswered", badgeClass: "received", color: "#16a34a" },
+  { key: "dialed",   label: "Dialed",   badgeKey: "totalDialed",   badgeClass: "dialed",   color: "#2563eb" },
+  { key: "missed",   label: "Missed",   badgeKey: "totalNoAnswered",badgeClass: "missed",   color: "#dc2626" },
+  { key: "all",      label: "All call", badgeKey: "totalOffered",  badgeClass: "answered", color: "#f97316" },
+];
+
+const PAGE_SIZE = 10;
+
+const safeParseDate = (s) => {
+  if (!s) return null;
+  const iso = typeof s === "string" && s.includes(" ") && !s.includes("T") ? s.replace(" ", "T") : s;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
 };
 
-const CDR = () => {
-  const [activeTab, setActiveTab] = useState("received");
+const formatDate = (s) => {
+  const d = safeParseDate(s);
+  return d ? d.toLocaleString() : "-";
+};
 
-  const renderData = () => {
-    const data = dummyData[activeTab] || [];
-    return data.map((item, index) => (
-      <tr key={index}>
-        <td>{item.name}</td>
-        <td>{item.number}</td>
-        <td>{item.time}</td>
-        <td>{item.duration}</td>
-        <td className={item.type ? item.type.toLowerCase() : ""}>{item.type || "-"}</td>
-        <td className={item.status.toLowerCase()}>{item.status}</td>
-      </tr>
-    ));
+const normalizeResponse = (resp) => {
+  if (!resp) return { items: [], meta: {} };
+  const data = resp.data ?? resp;
+  if (data.data && data.data.currentPageData) {
+    return {
+      items: data.data.currentPageData || [],
+      meta: {
+        currentPage: data.data.currentPage ?? 0,
+        totalRecords: data.data.totalRecords ?? null,
+        pageSize: data.data.pageSize ?? PAGE_SIZE,
+      },
+    };
+  }
+  if (data.items) {
+    return {
+      items: data.items || [],
+      meta: {
+        currentPage: data.currentPage ?? 0,
+        totalRecords: data.totalRecords ?? null,
+        pageSize: data.pageSize ?? PAGE_SIZE,
+      },
+    };
+  }
+  if (Array.isArray(data)) {
+    return { items: data, meta: { currentPage: 0, totalRecords: data.length, pageSize: PAGE_SIZE } };
+  }
+  return { items: [], meta: {} };
+};
+
+const dedupeByUuid = (arr) => {
+  const map = new Map();
+  arr.forEach(item => {
+    const id = item.uuid ?? `${item.agentName}-${item.startTime}-${item.customerNumber}`;
+    if (!map.has(id)) map.set(id, item);
+  });
+  return Array.from(map.values());
+};
+
+const CDR = ({ agentId = 920222 }) => {
+  const [activeTab, setActiveTab] = useState("all");
+  const [page, setPage] = useState(0);
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [totals, setTotals] = useState({
+    totalOffered: 0,
+    totalAnswered: 0,
+    totalNoAnswered: 0,
+    totalDialed: 0,
+  });
+  const [error, setError] = useState(null);
+
+  // request counter protects from race conditions when responses arrive out-of-order
+  const reqCounterRef = useRef(0);
+
+  const fetchTotals = useCallback(async () => {
+    if (!agentId) return;
+    try {
+      const resp = await mvrHistoryAPI(agentId, 0);
+      const payload = resp?.data?.data ?? resp?.data ?? resp;
+      if (payload) {
+        setTotals({
+          totalOffered: payload.totalOffered ?? 0,
+          totalAnswered: payload.totalAnswered ?? 0,
+          totalNoAnswered: payload.totalNoAnswered ?? 0,
+          totalDialed: payload.totalDialed ?? 0,
+        });
+      }
+    } catch (err) {
+      console.error("fetchTotals error:", err);
+    }
+  }, [agentId]);
+
+  const fetchDataForTab = useCallback(
+    async (tabKey, pageIndex) => {
+      const thisReq = ++reqCounterRef.current;
+      setLoading(true);
+      setError(null);
+
+      try {
+        // offset-based paging
+        const offset = pageIndex * PAGE_SIZE;
+        const payload = {
+          offset,
+          currentPage: pageIndex,
+          pageSize: PAGE_SIZE,
+          sortDirection: "desc",
+          sortBy: "startTime",
+          search: "",
+        };
+
+        if (tabKey === "all") {
+          // pragmatic client-side merge:
+          // call each endpoint with the same offset/pageSize, merge, sort and slice to PAGE_SIZE.
+          // Note: for perfectly correct combined pagination the server should expose a combined endpoint.
+          const [rRec, rMiss, rDial] = await Promise.allSettled([
+            receivedCallListAPI(payload),
+            missedCallListAPI(payload),
+            dialedCallListAPI(payload),
+          ]);
+
+          if (thisReq !== reqCounterRef.current) return;
+
+          const nr = rRec.status === "fulfilled" ? normalizeResponse(rRec.value) : { items: [], meta: {} };
+          const nm = rMiss.status === "fulfilled" ? normalizeResponse(rMiss.value) : { items: [], meta: {} };
+          const nd = rDial.status === "fulfilled" ? normalizeResponse(rDial.value) : { items: [], meta: {} };
+
+          // map to unified shape and keep original raw for future use
+          const unified = [
+            ...nr.items,
+            ...nm.items,
+            ...nd.items,
+          ].map(it => ({
+            uuid: it.uuid,
+            agentName: it.agentName,
+            customerNumber: it.customerNumber,
+            startTime: it.startTime,
+            queue: it.queue,
+            queueName: it.queueName,
+            talkDuration: it.talkDuration,
+            recordingFile: it.recordingFile,
+            direction: it.direction,
+            agentTalkedTo: it.agentTalkedTo,
+            raw: it,
+          }));
+
+          // dedupe and sort by startTime desc
+          const combinedUnique = dedupeByUuid(unified);
+          combinedUnique.sort((a, b) => {
+            const da = safeParseDate(a.startTime);
+            const db = safeParseDate(b.startTime);
+            if (!da && !db) return 0;
+            if (!da) return 1;
+            if (!db) return -1;
+            return db - da;
+          });
+
+          // compute totalRecords as sum of available meta totals when present (fallback to combined length)
+          const totalRecords =
+            (nr.meta.totalRecords ?? 0) +
+            (nm.meta.totalRecords ?? 0) +
+            (nd.meta.totalRecords ?? 0) ||
+            combinedUnique.length;
+
+          // slice the combined sorted array to the requested page
+          const start = pageIndex * PAGE_SIZE;
+          const pageItems = combinedUnique.slice(start, start + PAGE_SIZE);
+
+          if (thisReq !== reqCounterRef.current) return;
+          setItems(pageItems);
+          setMeta({ currentPage: pageIndex, totalRecords, pageSize: PAGE_SIZE });
+        } else {
+          // per-type paging: request just PAGE_SIZE from the correct endpoint using offset
+          let resp = null;
+          const p = { ...payload }; // offset, pageSize etc.
+
+          if (tabKey === "received") {
+            resp = await receivedCallListAPI(p);
+          } else if (tabKey === "missed") {
+            resp = await missedCallListAPI(p);
+          } else if (tabKey === "dialed") {
+            resp = await dialedCallListAPI(p);
+          } else {
+            resp = { items: [] };
+          }
+
+          if (thisReq !== reqCounterRef.current) return;
+
+          const { items: newItems, meta: newMeta } = normalizeResponse(resp);
+          const safeItems = (newItems || []).map(it => ({
+            uuid: it.uuid,
+            agentName: it.agentName,
+            customerNumber: it.customerNumber,
+            startTime: it.startTime,
+            queue: it.queue,
+            queueName: it.queueName,
+            talkDuration: it.talkDuration,
+            recordingFile: it.recordingFile,
+            direction: it.direction,
+            agentTalkedTo: it.agentTalkedTo,
+            raw: it,
+          }));
+
+          if (thisReq !== reqCounterRef.current) return;
+          setItems(safeItems);
+          setMeta({
+            currentPage: newMeta.currentPage ?? pageIndex,
+            totalRecords: Number.isInteger(newMeta.totalRecords) ? newMeta.totalRecords : safeItems.length,
+            pageSize: newMeta.pageSize ?? PAGE_SIZE,
+          });
+        }
+      } catch (err) {
+        if (thisReq !== reqCounterRef.current) return;
+        console.error("fetchDataForTab error:", err);
+        setError("Failed to load records.");
+        setItems([]);
+        setMeta({});
+      } finally {
+        if (thisReq === reqCounterRef.current) setLoading(false);
+      }
+    },
+    [] // stable: uses only constants and imported functions
+  );
+
+  useEffect(() => {
+    fetchTotals();
+  }, [fetchTotals]);
+
+  useEffect(() => {
+    fetchDataForTab(activeTab, page);
+  }, [activeTab, page, fetchDataForTab]);
+
+  // compute hasNext using meta.totalRecords when available
+  const hasNext = typeof meta.totalRecords === "number"
+    ? (page + 1) * PAGE_SIZE < meta.totalRecords
+    : items.length === PAGE_SIZE;
+
+  const onTabClick = (key) => {
+    setActiveTab(key);
+    setPage(0);
   };
 
   return (
     <div className="cdr-container">
-      <h1>CALL  DETAILS  RECORDS</h1>
-      <div className="cdr-tabs">
-        {["received", "dialed", "answered", "missed", "all"].map((tab) => (
-          <button
-            key={tab}
-            className={activeTab === tab ? "active" : ""}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
+      <h1 className="cdr-title">Call Detail Records</h1>
+
+      <div className="cdr-tabs" role="tablist" aria-label="Call types">
+        {TABS.map(t => {
+          const badgeValue = totals[t.badgeKey] ?? 0;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === t.key}
+              className={`cdr-tab ${activeTab === t.key ? "active" : ""}`}
+              onClick={() => onTabClick(t.key)}
+            >
+              <span>{t.label}</span>
+              <span
+                className={`cdr-badge ${t.badgeClass}`}
+                style={{ backgroundColor: t.color }}
+              >
+                {badgeValue}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
       <div className="cdr-table-wrapper">
         <table className="cdr-table">
           <thead>
             <tr>
-              <th>Name</th>
+              <th>S.no.</th>
+              <th>Agent Name</th>
               <th>Number</th>
-              <th>Time</th>
+              <th>Start Time</th>
+              <th>Queue</th>
+              <th>Queue Name</th>
               <th>Duration</th>
-              <th>Type</th>
-              <th>Status</th>
+              <th>Direction</th>
+              <th>Agent Talked To</th>
+              <th>Recording</th>
             </tr>
           </thead>
-          <tbody>{renderData()}</tbody>
+
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="10" className="loading">Loading...</td></tr>
+            ) : error ? (
+              <tr><td colSpan="10" className="error">{error}</td></tr>
+            ) : items.length === 0 ? (
+              <tr><td colSpan="10" className="no-data">No records found</td></tr>
+            ) : (
+              items.map((item, index) => {
+                const key = item.uuid || `${item.agentName}-${item.startTime}-${item.customerNumber}-${index}`;
+                return (
+                  <tr key={key}>
+                    <td>{page * PAGE_SIZE + index + 1}</td>
+                    <td>{item.agentName ?? "-"}</td>
+                    <td>{item.customerNumber ?? "-"}</td>
+                    <td>{formatDate(item.startTime)}</td>
+                    <td>{item.queue ?? "-"}</td>
+                    <td>{item.queueName ?? "-"}</td>
+                    <td>{item.talkDuration ?? "-"}</td>
+                    <td className={`direction ${item.direction ? item.direction.toLowerCase() : ""}`}>{item.direction ?? "-"}</td>
+                    <td>{item.agentTalkedTo ?? "-"}</td>
+                    <td>
+                      {item.recordingFile ? (
+                        <div className="recording-wrap">
+                          <audio controls preload="none" src={item.recordingFile}>
+                            Your browser does not support the audio element.
+                          </audio>
+                          <a className="record-download" href={item.recordingFile} target="_blank" rel="noreferrer">Open</a>
+                        </div>
+                      ) : (
+                        <span className="no-record">-</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
         </table>
+      </div>
+
+      <div className="cdr-pagination" aria-label="Pagination controls">
+        <button
+          type="button"
+          onClick={() => setPage(Math.max(0, page - 1))}
+          disabled={page === 0 || loading}
+          aria-label="Previous page"
+        >
+          Prev
+        </button>
+        <span>
+          Page {page + 1}
+          {meta.totalRecords ? ` of ${Math.max(1, Math.ceil(meta.totalRecords / PAGE_SIZE))}` : ""}
+        </span>
+        <button
+          type="button"
+          onClick={() => setPage(page + 1)}
+          disabled={!hasNext || loading}
+          aria-label="Next page"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

@@ -63,6 +63,7 @@
 }
 
 /* ---------- Table ---------- */
+/* ---------- Table ---------- */
 .cdr-table {
   width: 100%;
   border-collapse: collapse;
@@ -75,11 +76,12 @@
   padding: 0.75rem 0.9rem;
   text-align: left;
   border-bottom: 1px solid var(--border, #e5e7eb);
+  color: var(--text, #111827);
 }
 
 .cdr-table th {
-  background: linear-gradient(180deg, var(--surface-accent, #0ea5a4), var(--surface, #fff));
-  color: var(--text-strong, #0f172a);
+  background: linear-gradient(180deg, var(--surface-accent, #0ea5a4), var(--surface, #059393));
+  color: black;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -154,5 +156,146 @@
   }
   .cdr-table {
     min-width: 520px;
+  }
+}
+.cdr-container {
+  padding: 1rem;
+  background: var(--surface-accent, #f3f4f6);
+  color: #111;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.cdr-title {
+  margin: 0 0 1rem 0;
+  background: var(--surface-accent, #f3f4f6);
+  font-size: 1.25rem;
+}
+
+.cdr-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.cdr-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: #f6f8fa;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.cdr-tab.active {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.recording-wrap {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Make the audio player smaller */
+.recording-wrap audio {
+  width: 120px;   /* reduce width */
+  height: 25px;   /* optional: reduce height */
+}
+
+/* Optional: smaller font for download link */
+.record-download {
+  font-size: 0.75rem;
+  text-decoration: none;
+  color: #555;
+}
+
+/* Optional: style when no recording */
+.no-record {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+
+.cdr-badge {
+  display: inline-block;
+  min-width: 28px;
+  padding: 0.15rem 0.4rem;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-left: 0.35rem;
+}
+
+.cdr-table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.cdr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.cdr-table th,
+.cdr-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+}
+
+.cdr-table thead th {
+  background: #fafafa;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.loading, .error, .no-data {
+  text-align: center;
+  padding: 1rem;
+  color: #666;
+}
+
+.direction.in { color: #2e7d32; }   /* example styling for IN */
+.direction.out { color: #1565c0; }  /* example styling for OUT */
+
+.recording-wrap {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.record-download {
+  font-size: 0.8rem;
+  text-decoration: none;
+  color: #555;
+}
+
+.cdr-pagination {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 0;
+}
+
+/* small responsive tweaks */
+@media (max-width: 720px) {
+  .cdr-table th:nth-child(4), .cdr-table td:nth-child(4),
+  .cdr-table th:nth-child(5), .cdr-table td:nth-child(5),
+  .cdr-table th:nth-child(8), .cdr-table td:nth-child(8) {
+    display: none;
   }
 }

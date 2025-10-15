@@ -2,26 +2,14 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import variables from "./variables";
 
-const application = axios.create({
-  baseURL: variables.api.services,
-});
+// ---------- Axios Instances ----------
+const application = axios.create({ baseURL: variables.api.services });
+const telemetry = axios.create({ baseURL: variables.api.telemetry });
+const appServices = axios.create({ baseURL: variables.app.services });
+const appTelemetry = axios.create({ baseURL: variables.app.telemetry });
+const mcx = axios.create({ baseURL: variables.api.mcx });
 
-const telemetry = axios.create({
-  baseURL: variables.api.telemetry,
-});
-
-const appServices = axios.create({
-  baseURL: variables.app.services,
-});
-
-const appTelemetry = axios.create({
-  baseURL: variables.app.telemetry,
-});
-
-const mcx = axios.create({
-  baseURL: variables.api.mcx,
-});
-
+// ---------- Token Refresh & Queue Handling ----------
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -36,15 +24,14 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// ---------- Request Interceptor ----------
 const requestHandler = (request) => {
   const authData = Cookies.get("authData");
   if (authData) {
     try {
       const parsedAuth = JSON.parse(authData);
       const token = parsedAuth?.token;
-      if (token) {
-        request.headers["Authorization"] = `Bearer ${token}`;
-      }
+      if (token) request.headers["Authorization"] = `Bearer ${token}`;
     } catch (e) {
       console.error("Could not parse auth data from cookie", e);
       processQueue(e, null);
@@ -57,9 +44,8 @@ const requestHandler = (request) => {
   return request;
 };
 
-const responseHandler = (response) => {
-  return response;
-};
+// ---------- Response / Error Handler ----------
+const responseHandler = (response) => response;
 
 const errorHandler = async (error) => {
   const originalRequest = error.config;
@@ -102,6 +88,7 @@ const errorHandler = async (error) => {
   return Promise.reject(error);
 };
 
+// ---------- Refresh Token ----------
 const refreshTokenRequest = () => {
   return new Promise((resolve, reject) => {
     const authData = Cookies.get("authData");
@@ -159,43 +146,22 @@ instances.forEach((instance) => {
   instance.interceptors.response.use(responseHandler, errorHandler);
 });
 
+// ---------- Generate Dynamic Endpoints ----------
 const generateServicesEndPoint = (urlScheme, ipAddress) => {
-  let baseURL = `${urlScheme}//${ipAddress}/services/api/v2/`;
-  const endPoint = axios.create({
-    baseURL: baseURL,
-  });
-
-  endPoint.interceptors.request.use(
-    (request) => requestHandler(request),
-    (error) => errorHandler(error)
-  );
-
-  endPoint.interceptors.response.use(
-    (response) => responseHandler(response),
-    (error) => errorHandler(error)
-  );
-
+  const endPoint = axios.create({ baseURL: `${urlScheme}//${ipAddress}/services/api/v2/` });
+  endPoint.interceptors.request.use(requestHandler, errorHandler);
+  endPoint.interceptors.response.use(responseHandler, errorHandler);
   return endPoint;
 };
 
 const generateTelemetryEndPoint = (urlScheme, ipAddress) => {
-  const endPoint = axios.create({
-    baseURL: `${urlScheme}//${ipAddress}/telemetry/api/v2/`,
-  });
-
-  endPoint.interceptors.request.use(
-    (request) => requestHandler(request),
-    (error) => errorHandler(error)
-  );
-
-  endPoint.interceptors.response.use(
-    (response) => responseHandler(response),
-    (error) => errorHandler(error)
-  );
-
+  const endPoint = axios.create({ baseURL: `${urlScheme}//${ipAddress}/telemetry/api/v2/` });
+  endPoint.interceptors.request.use(requestHandler, errorHandler);
+  endPoint.interceptors.response.use(responseHandler, errorHandler);
   return endPoint;
 };
 
+// ---------- Auth API ----------
 export const loginAPI = (encryptedUsername, encryptedPassword) => {
   return appServices.post(variables.app.services + "auth/login", {
     username: encryptedUsername,
@@ -203,6 +169,13 @@ export const loginAPI = (encryptedUsername, encryptedPassword) => {
   });
 };
 
+// ---------- New API Helpers ----------
+export const missedCallListAPI = (payload) => application.post(variables.api.missedCall, payload);
+export const receivedCallListAPI = (payload) => application.post(variables.api.receivedCall, payload);
+export const dialedCallListAPI = (payload) => application.post(variables.api.dialedCall, payload);
+export const mvrHistoryAPI = (agentId) => application.post(`${variables.api.mvrHistory}/${agentId}`);
+
+// ---------- Exports ----------
 export {
   application,
   telemetry,
