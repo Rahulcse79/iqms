@@ -6,6 +6,7 @@ import { IoIosBook } from "react-icons/io";
 import { FaPen, FaSearch, FaFilter, FaCalendarAlt } from "react-icons/fa";
 import TaskHistory from "./TaskHistory";
 import { application } from "../../utils/endpoints";
+import "./TaskList.css";
 
 export default function TaskList() {
   const [tasks, setTasks] = useState([]);
@@ -349,7 +350,7 @@ export default function TaskList() {
   useEffect(() => {
     fetchTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [5000]);
 
   const handleViewTask = (task) => {
     setSelectedTask(task);

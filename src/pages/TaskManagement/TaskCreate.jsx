@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { application } from '../../utils/endpoints';
 import './TaskCreate.css';
 
 export default function CreateTask({ onClose, onTaskCreated }) {
@@ -20,10 +21,6 @@ export default function CreateTask({ onClose, onTaskCreated }) {
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
 
-  // API configuration from environment variables
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-  const BEARER_TOKEN = process.env.REACT_APP_BEARER_TOKEN;
-
   useEffect(() => {
     fetchDropdownData();
   }, []);
@@ -44,44 +41,38 @@ export default function CreateTask({ onClose, onTaskCreated }) {
   const localInputToDate = (value) => (value ? new Date(value) : null);
 
   // Fetch priorities and types from APIs
-  const fetchDropdownData = async () => {
-    try {
-      setDropdownLoading(true);
-      setError(null);
+// Axios-based dropdown fetch using your application.post("endpoint") pattern
+const fetchDropdownData = async () => {
+  try {
+    setDropdownLoading(true);
+    setError(null);
 
-      const [prioritiesResponse, typesResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/services/api/v2/taskPriority/listAll`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${BEARER_TOKEN}`,
-          },
-        }),
-        fetch(`${API_BASE_URL}/services/api/v2/taskType/listAll`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${BEARER_TOKEN}`,
-          },
-        }),
-      ]);
+    const [prioritiesRes, typesRes] = await Promise.all([
+      application.post("taskPriority/listAll"),
+      application.post("taskType/listAll"),
+    ]);
 
-      if (!prioritiesResponse.ok || !typesResponse.ok) throw new Error('Failed to fetch dropdown data');
+    const prioritiesData = prioritiesRes?.data;
+    const typesData = typesRes?.data;
 
-      const prioritiesData = await prioritiesResponse.json();
-      const typesData = await typesResponse.json();
-
-      if (prioritiesData.status === 'OK' && typesData.status === 'OK') {
-        setDropdownData({ priorities: prioritiesData.data || [], types: typesData.data || [] });
-      } else {
-        throw new Error('Invalid response from dropdown APIs');
-      }
-    } catch (err) {
-      setError(`Error loading form data: ${err.message}`);
-      // eslint-disable-next-line no-console
-      console.error('Error fetching dropdown data:', err);
-    } finally {
-      setDropdownLoading(false);
+    if (prioritiesData?.status === 'OK' && typesData?.status === 'OK') {
+      setDropdownData({
+        priorities: Array.isArray(prioritiesData.data) ? prioritiesData.data : [],
+        types: Array.isArray(typesData.data) ? typesData.data : [],
+      });
+    } else {
+      const msg = prioritiesData?.message || typesData?.message || 'Invalid response from dropdown APIs';
+      throw new Error(msg);
     }
-  };
+  } catch (err) {
+    setError(`Error loading form data: ${err.message}`);
+    // eslint-disable-next-line no-console
+    console.error('Error fetching dropdown data:', err);
+  } finally {
+    setDropdownLoading(false);
+  }
+};
+
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -127,54 +118,64 @@ export default function CreateTask({ onClose, onTaskCreated }) {
   };
 
   // Submit handler
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      const payload = {
-        id: 0,
-        tasksName: formData.tasksName.trim(),
-        assignedOn: nowToApi(), // current time at submit
-        expectedCompletionDate: localInputToApi(formData.expectedCompletionDate), // exact format
-        taskPriority: formData.taskPriority,
-        taskType: formData.taskType,
-        assignedTo: 2, // fixed
-        assignedUser: '936547', // hardcoded for now
-        taskDescription: formData.taskDescription.trim(),
-        currentStats: 'New', // always New
-      };
-
-      const response = await fetch(`${API_BASE_URL}/services/api/v2/task/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${BEARER_TOKEN}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const result = await response.json();
-
-      if (result.status === 'OK') {
-        onTaskCreated && onTaskCreated(result);
-        setFormData({ tasksName: '', taskDescription: '', expectedCompletionDate: '', taskPriority: '', taskType: '' });
-        onClose && onClose();
-      } else {
-        throw new Error(result.message || 'Failed to create task');
-      }
-    } catch (err) {
-      setError(`Error creating task: ${err.message}`);
-      // eslint-disable-next-line no-console
-      console.error('Error creating task:', err);
-    } finally {
-      setLoading(false);
+    // Get LOGIN_SNO from userDetails in localStorage
+    const userDetailsString = localStorage.getItem('userDetails');
+    if (!userDetailsString) {
+      throw new Error('User details not found. Please log in again.');
     }
-  };
+    const userDetails = JSON.parse(userDetailsString);
+    const assignedUser = userDetails?.LOGIN_SNO;
+
+    if (!assignedUser) {
+      throw new Error('LOGIN_SNO not found in user details. Please log in again.');
+    }
+
+    const payload = {
+      tasksName: formData.tasksName.trim(),
+      assignedOn: nowToApi(), // current time at submit
+      expectedCompletionDate: localInputToApi(formData.expectedCompletionDate), // exact format
+      taskPriority: formData.taskPriority,
+      taskType: formData.taskType,
+      assignedTo: 2, // fixed
+      assignedUser: String(assignedUser), // Use LOGIN_SNO from localStorage
+      taskDescription: formData.taskDescription.trim(),
+      currentStats: 'New', // always New
+    };
+
+    // Axios version using your application instance
+    const res = await application.post("task/create", payload);
+    const data = res?.data;
+
+    if (data?.status === 'OK') {
+      onTaskCreated && onTaskCreated(data);
+      setFormData({
+        tasksName: '',
+        taskDescription: '',
+        expectedCompletionDate: '',
+        taskPriority: '',
+        taskType: ''
+      });
+      onClose && onClose();
+    } else {
+      throw new Error(data?.message || 'Failed to create task');
+    }
+  } catch (err) {
+    setError(`Error creating task: ${err.message}`);
+    // eslint-disable-next-line no-console
+    console.error('Error creating task:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Min attribute for datetime-local (current local date-time, rounded to minutes)
   const getMinDateTimeLocal = () => {

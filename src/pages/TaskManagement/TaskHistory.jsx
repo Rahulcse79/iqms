@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './TaskHistory.css';
+import { application } from '../../utils/endpoints';
 
 /**
  * TaskHistory – Popup modal timeline for a task's status changes
@@ -20,8 +21,7 @@ export default function TaskHistory({ task, taskId: taskIdProp, onClose }) {
   const [search, setSearch] = useState('');
 
   const ENV_BASE = process.env.REACT_APP_API_BASE_URL;
-  const API_BASE_URL = ENV_BASE || 'http://192.168.1.191';
-  const BEARER_TOKEN = process.env.REACT_APP_BEARER_TOKEN;
+
 
   // Parse strings like "2025-10-13 17:12:11 pm"
   const parseWhen = (value) => {
@@ -66,46 +66,42 @@ export default function TaskHistory({ task, taskId: taskIdProp, onClose }) {
     return [];
   };
 
-  const fetchHistory = async () => {
-    if (taskId === undefined || taskId === null || taskId === '') return;
-    try {
-      setLoading(true);
-      setError(null);
-      const url = `${API_BASE_URL}/services/api/v2/taskDetails/listAll/${taskId}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
-      });
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`HTTP ${res.status}: ${txt || res.statusText}`);
-      }
-      const result = await res.json();
-      if (result?.status === 'OK') {
-        const arr = normalizeArray(result?.data);
-        arr.sort((a, b) => {
-          const da = parseWhen(a?.statusUpdatedOn)?.getTime() || 0;
-          const db = parseWhen(b?.statusUpdatedOn)?.getTime() || 0;
-          return db - da;
-        });
-        setItems(arr);
-      } else {
-        throw new Error(result?.message || 'Failed to fetch history');
-      }
-    } catch (err) {
-      setError(err.message || 'Unknown error');
-      setItems([]);
-      // eslint-disable-next-line no-console
-      console.error('History fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
+  // Axios-based, correct endpoint and response handling
+const fetchHistory = async () => {
+  if (taskId === undefined || taskId === null || taskId === '') return;
+  try {
+    setLoading(true);
+    setError(null);
+
+    // Use correct endpoint ("listAll/:taskId"); avoid fetch-style res.ok/json()
+    const res = await application.post(`taskDetails/listAll/${taskId}`);
+    const data = res?.data;
+
+    if (data?.status === 'OK') {
+      const arr = normalizeArray(data.data);
+      arr.sort((a, b) => {
+        const da = parseWhen(a?.statusUpdatedOn)?.getTime() || 0;
+        const db = parseWhen(b?.statusUpdatedOn)?.getTime() || 0;
+        return db - da;
+      });
+      setItems(arr);
+    } else {
+      throw new Error(data?.message || 'Failed to fetch history');
+    }
+  } catch (err) {
+    setError(err.message || 'Unknown error');
+    setItems([]);
+    // eslint-disable-next-line no-console
+    console.error('History fetch error:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
     fetchHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taskId]);
+  }, [taskId], 5000);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return items;
