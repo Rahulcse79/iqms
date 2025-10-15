@@ -7,7 +7,7 @@ import Loader from "../components/Loader";
 import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { getAllTransferredCountsForRole } from "../actions/transferredQueryActionNew";
 import { getDesignationFlags } from "../utils/helpers";
-
+import { getAgentStatus } from "../utils/endpoints";
 // --- CSS Styles (can remain the same) ---
 const styles = `
     .dashboard-section { padding: 2rem; background-color: var(--bg); font-family: var(--font-family, sans-serif); color: var(--text); }
@@ -99,7 +99,17 @@ const Dashboard = () => {
           total: 0,
         };
         try {
-          const designationFlags = await getDesignationFlags(activeRole);
+          let designationFlags;
+          const storedFlags = localStorage.getItem(
+            "activeRoleDesignationFlags"
+          );
+
+          if (storedFlags) {
+            designationFlags = JSON.parse(storedFlags);
+          } else {
+            designationFlags = await getDesignationFlags(activeRole);
+          }
+
           transferredCounts = getAllTransferredCountsForRole(
             activeRole,
             designationFlags
@@ -133,7 +143,11 @@ const Dashboard = () => {
 
     // Cleanup on component unmount
     return () => clearInterval(interval);
-  }, [loading]); // Only re-run the effect if `loading` state changes (which it won't after the first time)
+  }, [loading]);
+
+  useEffect(() => {
+    getAgentStatus();
+  });
 
   const pendingQueriesData = useMemo(
     () => [

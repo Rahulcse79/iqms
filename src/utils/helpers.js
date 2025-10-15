@@ -1,4 +1,6 @@
 // Helper functions can be placed here
+import CryptoJS from "crypto-js";
+
 export const formatDate = (date) => {
   return new Date(date).toLocaleDateString();
 };
@@ -35,11 +37,8 @@ export const fetchAllUserQueries = async (dispatch, config) => {
   );
 
   // Import enum functions
-  const {
-    getAllRoleLevelCodes,
-    ModuleMapping,
-    SubsectionMapping,
-  } = await import("../constants/Enum");
+  const { getAllRoleLevelCodes, ModuleMapping, SubsectionMapping } =
+    await import("../constants/Enum");
 
   try {
     let finalCat, finalPrefix, finalSuffix, pendingTabs;
@@ -940,7 +939,7 @@ export const fetchAllUserQueriesNew = async (dispatch, config) => {
             moduleCat: String(activeRole.MODULE_CAT),
             subSection: activeRole.SUB_SECTION,
             cell: cellAllotedString,
-            activeRole: activeRole
+            activeRole: activeRole,
           })
         ),
         description: "Fetch replied queries",
@@ -1176,7 +1175,10 @@ export const getDesignationFlags = async (activeRole) => {
     } else {
       console.log("✅ Valid designation flags:", validFlags);
     }
-
+    localStorage.setItem(
+      "activeRoleDesignationFlags",
+      JSON.stringify(validFlags)
+    );
     return validFlags;
   } catch (error) {
     console.error("❌ Failed to fetch designation flags:", error);
@@ -1419,4 +1421,19 @@ export const canUserReply = (queryItem, activeRole) => {
 export const getPermissionMessage = (queryItem, activeRole) => {
   const validation = validateReplyPermission(queryItem, activeRole);
   return validation.reason;
+};
+
+export const encryptData = (data) => {
+  const iv = CryptoJS.lib.WordArray.random(16);
+  const ciphertext = CryptoJS.AES.encrypt(
+    data,
+    CryptoJS.enc.Utf8.parse(window.secretKey),
+    {
+      iv: iv,
+      mode: CryptoJS.mode.CFB,
+      padding: CryptoJS.pad.Pkcs7,
+    }
+  );
+
+  return iv.concat(ciphertext.ciphertext).toString(CryptoJS.enc.Base64);
 };

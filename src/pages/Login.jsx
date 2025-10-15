@@ -9,7 +9,7 @@ import Loader from "../components/Loader";
 import { UserRole, DepartmentMapping } from "../constants/Enum";
 import { loginAPI } from "../utils/endpoints";
 import { fetchAllUserQueriesNew, getDesignationFlags } from "../utils/helpers";
-import CryptoJS from "crypto-js";
+import { encryptData } from "../utils/helpers";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -314,21 +314,6 @@ const Login = () => {
       </div>
     </>
   );
-};
-
-const encryptData = (data) => {
-  const iv = CryptoJS.lib.WordArray.random(16);
-  const ciphertext = CryptoJS.AES.encrypt(
-    data,
-    CryptoJS.enc.Utf8.parse(window.secretKey),
-    {
-      iv: iv,
-      mode: CryptoJS.mode.CFB,
-      padding: CryptoJS.pad.Pkcs7,
-    }
-  );
-
-  return iv.concat(ciphertext.ciphertext).toString(CryptoJS.enc.Base64);
 };
 
 export default Login;

@@ -148,14 +148,18 @@ instances.forEach((instance) => {
 
 // ---------- Generate Dynamic Endpoints ----------
 const generateServicesEndPoint = (urlScheme, ipAddress) => {
-  const endPoint = axios.create({ baseURL: `${urlScheme}//${ipAddress}/services/api/v2/` });
+  const endPoint = axios.create({
+    baseURL: `${urlScheme}//${ipAddress}/services/api/v2/`,
+  });
   endPoint.interceptors.request.use(requestHandler, errorHandler);
   endPoint.interceptors.response.use(responseHandler, errorHandler);
   return endPoint;
 };
 
 const generateTelemetryEndPoint = (urlScheme, ipAddress) => {
-  const endPoint = axios.create({ baseURL: `${urlScheme}//${ipAddress}/telemetry/api/v2/` });
+  const endPoint = axios.create({
+    baseURL: `${urlScheme}//${ipAddress}/telemetry/api/v2/`,
+  });
   endPoint.interceptors.request.use(requestHandler, errorHandler);
   endPoint.interceptors.response.use(responseHandler, errorHandler);
   return endPoint;
@@ -170,12 +174,60 @@ export const loginAPI = (encryptedUsername, encryptedPassword) => {
 };
 
 // ---------- New API Helpers ----------
-export const missedCallListAPI = (payload) => application.post(variables.api.missedCall, payload);
-export const receivedCallListAPI = (payload) => application.post(variables.api.receivedCall, payload);
-export const dialedCallListAPI = (payload) => application.post(variables.api.dialedCall, payload);
-export const mvrHistoryAPI = (agentId) => application.post(`${variables.api.mvrHistory}/${agentId}`);
+export const missedCallListAPI = (payload) =>
+  application.post(variables.api.missedCall, payload);
+export const receivedCallListAPI = (payload) =>
+  application.post(variables.api.receivedCall, payload);
+export const dialedCallListAPI = (payload) =>
+  application.post(variables.api.dialedCall, payload);
+export const mvrHistoryAPI = (agentId) =>
+  application.post(`${variables.api.mvrHistory}/${agentId}`);
 
 // ---------- Exports ----------
+export const logoutAPI = () => {
+  return appServices.post(variables.app.services + "agentStatus/create", {
+    status: "Logout",
+  });
+};
+
+export const getAgentStatus = () => {
+  try {
+    const authData = JSON.parse(Cookies.get("authData"));
+    const username = authData?.user?.username;
+
+    if (!username) {
+      Cookies.remove("authData", { path: "/" });
+      localStorage.clear();
+      window.location = "/app2/login";
+      throw new Error("Username not found in cookie");
+    }
+
+    console.log("Username from cookie:", username);
+
+    application
+      .post(`/agent/${username}`)
+      .then((response) => {
+        const data = response.data.data;
+        if (data.status === "Logged In") {
+          console.log("Agent is logged in.");
+        } else if (data.status === "Logout") {
+          logoutAPI();
+          Cookies.remove("authData", { path: "/" });
+          localStorage.clear();
+          window.location = "/app2/login";
+        } else {
+          console.log("Agent status:", data.status);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching agent status:", error);
+      });
+  } catch (err) {
+    console.error("Failed to get username from cookie:", err);
+    window.location = "/app2/login"; // fallback redirect if cookie is broken
+  }
+};
+
 export {
   application,
   telemetry,
