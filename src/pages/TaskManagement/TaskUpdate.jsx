@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./TaskUpdate.css";
+import { application } from "../../utils/endpoints";
 
 /**
  * TaskUpdate component - accepts full task object
@@ -13,8 +14,12 @@ export default function TaskUpdate({ task, onClose, onUpdated }) {
   // helpers
   const toLocalInput = (value) =>
     value ? String(value).replace(" ", "T") : "";
+  // Keep ISO "T" for backend parsing; do NOT replace with space
   const fromLocalInputToApi = (value) =>
-    value ? String(value).replace("T", " ") : "";
+    value ? String(value) : "";
+  // Normalize any task props that may have " " to ISO "T"
+  const toIsoDateTime = (value) =>
+    value ? String(value).replace(" ", "T") : "";
 
   // initial form data from task object
   const [formData, setFormData] = useState({
@@ -32,10 +37,6 @@ export default function TaskUpdate({ task, onClose, onUpdated }) {
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
 
-  // API config
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-  const BEARER_TOKEN = process.env.REACT_APP_BEARER_TOKEN;
-
   useEffect(() => {
     // hydrate when task prop changes
     setFormData({
@@ -49,36 +50,34 @@ export default function TaskUpdate({ task, onClose, onUpdated }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task?.id]);
 
+  const fetchStatuses = async () => {
+    try {
+      setDropdownLoading(true);
+      setError(null);
+
+      // Axios automatically parses JSON and returns response.data
+      const res = await application.post("taskStatus/listAll");
+
+      console.log("Axios Response:", res.data); // Debug log
+
+      // With axios, the parsed JSON is in res.data
+      if (res.data?.status === "OK") {
+        setStatusOptions(Array.isArray(res.data.data) ? res.data.data : []);
+      } else {
+        throw new Error(res.data?.message || "Failed to load statuses");
+      }
+    } catch (err) {
+      setError(`Error loading statuses: ${err.message}`);
+      console.error("Status dropdown error:", err);
+    } finally {
+      setDropdownLoading(false);
+    }
+  };
+
   // fetch statuses
   useEffect(() => {
-    const fetchStatuses = async () => {
-      try {
-        setDropdownLoading(true);
-        setError(null);
-        const res = await fetch(
-          `${API_BASE_URL}/services/api/v2/taskStatus/listAll`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
-          }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (data?.status === "OK") {
-          setStatusOptions(Array.isArray(data.data) ? data.data : []);
-        } else {
-          throw new Error(data?.message || "Failed to load statuses");
-        }
-      } catch (err) {
-        setError(`Error loading statuses: ${err.message}`);
-        // eslint-disable-next-line no-console
-        console.error("Status dropdown error:", err);
-      } finally {
-        setDropdownLoading(false);
-      }
-    };
     fetchStatuses();
-  }, [API_BASE_URL, BEARER_TOKEN]);
+  }, [, ]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -111,39 +110,50 @@ export default function TaskUpdate({ task, onClose, onUpdated }) {
       setError(null);
 
       // include task id in payload; coerce to number if numeric
-      const idValue = /^\d+$/.test(String(formData.id)) ? Number(formData.id) : formData.id;
+      const idValue = formData.id;
+
+      // Default unchanged fields from incoming `task` prop but normalize date-times to ISO "T"
+      const base = task || {};
 
       const payload = {
+        // Always include id and name from formData
         id: idValue,
         tasksName: formData.tasksName.trim(),
-        changedCompletionOn:
-          fromLocalInputToApi(formData.changedCompletionOn) || "",
+
+        // Defaults from the original task (unchanged fields), normalized to ISO "T"
+        assignedOn: toIsoDateTime(base.assignedOn || ""),
+        expectedCompletionDate: toIsoDateTime(base.expectedCompletionDate || ""),
+        taskPriority: base.taskPriority || "",
+        taskType: base.taskType || "",
+        assignedTo: base.assignedTo ?? "",
+        assignedUser: base.assignedUser ?? "",
+        reviewer: base.reviewer ?? "",
+        taskDescription: base.taskDescription || "",
+        filePath: base.filePath ?? "",
+        taskCompletedOn: toIsoDateTime(base.taskCompletedOn ?? ""),
+
+        // Editable fields from the form
         currentStats: formData.currentStats || "",
         isDelay: !!formData.isDelay,
-        remarks: formData.remarks?.trim() || "",
+        changedCompletionOn:
+          fromLocalInputToApi(formData.changedCompletionOn) || "",
+        remarks: formData.remarks?.trim() || "Status Updated",
       };
 
-      const res = await fetch(`${API_BASE_URL}/services/api/v2/task/update`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${BEARER_TOKEN}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      console.log("submitting payload", payload);
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const result = await res.json();
+      // Axios: parsed body is in res.data
+      const res = await application.post("taskDetails/update", payload);
+      const data = res?.data;
 
-      if (result?.status === "OK") {
-        onUpdated && onUpdated(result);
+      if (data?.status === "OK") {
+        onUpdated && onUpdated(data);
         onClose && onClose();
       } else {
-        throw new Error(result?.message || "Update failed");
+        throw new Error(data?.message || "Update failed");
       }
     } catch (err) {
       setError(`Error updating task: ${err.message}`);
-      // eslint-disable-next-line no-console
       console.error("Update error:", err);
     } finally {
       setLoading(false);

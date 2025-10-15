@@ -52,24 +52,42 @@ const SidebarDataPage = () => {
       icon: <FaUserCircle style={{ color: "#9C27B0" }} />,
     },
     {
-      title: "IQMS MIS",
-      path: "/iqms-mis",
-      icon: <FaChartBar style={{ color: "#673AB7" }} />,
+      title: "MIS",
+      icon: <FaInbox style={{ color: "#106425ff" }} />,
+      iconClosed: <FaChevronDown />,
+      iconOpened: <FaChevronUp />,
+      subNav: [
+        {
+          title: "IQMS MIS",
+          path: "/iqms-mis",
+        },
+        {
+          title: "CDR",
+          path: "/cdr",
+        },
+      ],
+    },
+
+     {
+      title: "Comparision",
+      icon: <FaBalanceScale style={{ color: "#2196F3" }} />,
+      iconClosed: <FaChevronDown />,
+      iconOpened: <FaChevronUp />,
+      subNav: [
+        {
+          title: "Query Comparision",
+          path: "/query/comparision",
+        },
+        {
+          title: "Sr./Jr. Comparision",
+          path: "/comparision",
+        },
+      ],
     },
     {
       title: "Freq. Query Count",
       path: "/freq-query",
       icon: <FaChartLine style={{ color: "#E91E63" }} />,
-    },
-    {
-      title: "Senior/Junior Comparision",
-      path: "/comparision",
-      icon: <FaBalanceScale style={{ color: "#009688" }} />,
-    },
-    {
-      title: "Query Comparision",
-      path: "/query/comparision",
-      icon: <FaBalanceScale style={{ color: "#009688" }} />,
     },
     {
       title: "FAQ's",
@@ -81,11 +99,7 @@ const SidebarDataPage = () => {
       path: "/interim-reply",
       icon: <FaBookOpen style={{ color: "#009688" }} />,
     },
-    {
-      title: "CDR",
-      path: "/cdr",
-      icon: <FaPhoneAlt style={{ color: "#009688" }} />,
-    }
+
   ];
 
   return SidebarData;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { application } from '../../utils/endpoints';
 import './TaskCreate.css';
 
-export default function CreateTask({ onClose, onTaskCreated }) {
+export default function CreateTask({ TaskName,onClose, onTaskCreated }) {
   // Form state
   const [formData, setFormData] = useState({
     tasksName: '',
@@ -139,7 +139,7 @@ const handleSubmit = async (e) => {
     }
 
     const payload = {
-      tasksName: formData.tasksName.trim(),
+      tasksName: TaskName,
       assignedOn: nowToApi(), // current time at submit
       expectedCompletionDate: localInputToApi(formData.expectedCompletionDate), // exact format
       taskPriority: formData.taskPriority,
