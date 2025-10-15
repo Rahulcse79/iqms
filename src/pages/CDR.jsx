@@ -10,9 +10,9 @@ import {
 
 const TABS = [
   { key: "received", label: "Received", badgeKey: "totalAnswered", badgeClass: "received", color: "#16a34a" },
-  { key: "dialed",   label: "Dialed",   badgeKey: "totalDialed",   badgeClass: "dialed",   color: "#2563eb" },
-  { key: "missed",   label: "Missed",   badgeKey: "totalNoAnswered",badgeClass: "missed",   color: "#dc2626" },
-  { key: "all",      label: "All call", badgeKey: "totalOffered",  badgeClass: "answered", color: "#f97316" },
+  { key: "dialed", label: "Dialed", badgeKey: "totalDialed", badgeClass: "dialed", color: "#2563eb" },
+  { key: "missed", label: "Missed", badgeKey: "totalNoAnswered", badgeClass: "missed", color: "#dc2626" },
+  { key: "all", label: "All call", badgeKey: "totalOffered", badgeClass: "answered", color: "#f97316" },
 ];
 
 const PAGE_SIZE = 10;
@@ -121,9 +121,6 @@ const CDR = ({ agentId = 920222 }) => {
         };
 
         if (tabKey === "all") {
-          // pragmatic client-side merge:
-          // call each endpoint with the same offset/pageSize, merge, sort and slice to PAGE_SIZE.
-          // Note: for perfectly correct combined pagination the server should expose a combined endpoint.
           const [rRec, rMiss, rDial] = await Promise.allSettled([
             receivedCallListAPI(payload),
             missedCallListAPI(payload),
@@ -298,11 +295,11 @@ const CDR = ({ agentId = 920222 }) => {
 
           <tbody>
             {loading ? (
-              <tr><td colSpan="10" className="loading">Loading...</td></tr>
+              <tr><td colSpan="10" className="cdr-loading">Loading...</td></tr>
             ) : error ? (
-              <tr><td colSpan="10" className="error">{error}</td></tr>
+              <tr><td colSpan="10" className="cdr-error">{error}</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan="10" className="no-data">No records found</td></tr>
+              <tr><td colSpan="10" className="cdr-no-data">No records found</td></tr>
             ) : (
               items.map((item, index) => {
                 const key = item.uuid || `${item.agentName}-${item.startTime}-${item.customerNumber}-${index}`;
@@ -315,18 +312,17 @@ const CDR = ({ agentId = 920222 }) => {
                     <td>{item.queue ?? "-"}</td>
                     <td>{item.queueName ?? "-"}</td>
                     <td>{item.talkDuration ?? "-"}</td>
-                    <td className={`direction ${item.direction ? item.direction.toLowerCase() : ""}`}>{item.direction ?? "-"}</td>
+                    <td className={`cdr-direction ${item.direction ? item.direction.toLowerCase() : ""}`}>{item.direction ?? "-"}</td>
                     <td>{item.agentTalkedTo ?? "-"}</td>
                     <td>
                       {item.recordingFile ? (
-                        <div className="recording-wrap">
+                        <div className="cdr-recording-wrap">
                           <audio controls preload="none" src={item.recordingFile}>
                             Your browser does not support the audio element.
                           </audio>
-                          <a className="record-download" href={item.recordingFile} target="_blank" rel="noreferrer">Open</a>
                         </div>
                       ) : (
-                        <span className="no-record">-</span>
+                        <span className="cdr-no-record">-</span>
                       )}
                     </td>
                   </tr>
@@ -360,6 +356,7 @@ const CDR = ({ agentId = 920222 }) => {
         </button>
       </div>
     </div>
+
   );
 };
 
