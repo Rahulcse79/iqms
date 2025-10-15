@@ -1,6 +1,102 @@
 /* =============================
    CDR.css — Theme Consistent Version
    ============================= */
+/* ---------- Filters Section ---------- */
+.cdr-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--cdr-border, #e5e7eb);
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  margin-bottom: 1.5rem;
+}
+
+.cdr-filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: var(--text, #333);
+  font-weight: 500;
+}
+
+.cdr-filters input[type="datetime-local"],
+.cdr-filters input[type="text"] {
+  margin-top: 0.35rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+   background: var(--bg);
+  font-size: 0.9rem;
+  min-width: 200px;
+  color: var(--text, #111);
+  transition: all 0.2s ease;
+}
+
+.cdr-filters input[type="datetime-local"]:focus,
+.cdr-filters input[type="text"]:focus {
+  border-color: var(--cdr-primary, #0ea5a4);
+  box-shadow: 0 0 0 3px rgba(14,165,164,0.15);
+  outline: none;
+}
+
+/* ---------- Buttons ---------- */
+.cdr-filters button {
+  background: var(--cdr-primary, #0ea5a4);
+  color: var(--cdr-button-text, #fff);
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+.cdr-filters button:hover:not(:disabled) {
+  background: var(--cdr-primary-dark, #0b8b8b);
+  transform: translateY(-1px);
+}
+
+.cdr-filters button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Reset button variant */
+.cdr-filters button[title*="Reset"] {
+  background: #f3f4f6;
+  color: #333;
+  border: 1px solid #d1d5db;
+}
+
+.cdr-filters button[title*="Reset"]:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 700px) {
+  .cdr-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cdr-filters label {
+    width: 100%;
+  }
+
+  .cdr-filters input {
+    width: 100%;
+  }
+
+  .cdr-filters button {
+    width: 100%;
+  }
+}
 
 .cdr-container {
   min-height: 100vh;
