@@ -14,12 +14,8 @@ export default function TaskUpdate({ task, onClose, onUpdated }) {
   // helpers
   const toLocalInput = (value) =>
     value ? String(value).replace(" ", "T") : "";
-  // Keep ISO "T" for backend parsing; do NOT replace with space
   const fromLocalInputToApi = (value) =>
-    value ? String(value) : "";
-  // Normalize any task props that may have " " to ISO "T"
-  const toIsoDateTime = (value) =>
-    value ? String(value).replace(" ", "T") : "";
+    value ? String(value).replace("T", " ") : "";
 
   // initial form data from task object
   const [formData, setFormData] = useState({
@@ -49,30 +45,29 @@ export default function TaskUpdate({ task, onClose, onUpdated }) {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task?.id]);
-
   const fetchStatuses = async () => {
-    try {
-      setDropdownLoading(true);
-      setError(null);
-
-      // Axios automatically parses JSON and returns response.data
-      const res = await application.post("taskStatus/listAll");
-
-      console.log("Axios Response:", res.data); // Debug log
-
-      // With axios, the parsed JSON is in res.data
-      if (res.data?.status === "OK") {
-        setStatusOptions(Array.isArray(res.data.data) ? res.data.data : []);
-      } else {
-        throw new Error(res.data?.message || "Failed to load statuses");
-      }
-    } catch (err) {
-      setError(`Error loading statuses: ${err.message}`);
-      console.error("Status dropdown error:", err);
-    } finally {
-      setDropdownLoading(false);
+  try {
+    setDropdownLoading(true);
+    setError(null);
+    
+    // Axios automatically parses JSON and returns response.data
+    const res = await application.post("taskStatus/listAll");
+    
+    console.log("Axios Response:", res.data); // Debug log
+    
+    // With axios, the parsed JSON is in res.data
+    if (res.data?.status === "OK") {
+      setStatusOptions(Array.isArray(res.data.data) ? res.data.data : []);
+    } else {
+      throw new Error(res.data?.message || "Failed to load statuses");
     }
-  };
+  } catch (err) {
+    setError(`Error loading statuses: ${err.message}`);
+    console.error("Status dropdown error:", err);
+  } finally {
+    setDropdownLoading(false);
+  }
+};
 
   // fetch statuses
   useEffect(() => {
@@ -101,64 +96,48 @@ export default function TaskUpdate({ task, onClose, onUpdated }) {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validate()) return;
 
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      // include task id in payload; coerce to number if numeric
-      const idValue = formData.id;
+    // include task id in payload; coerce to number if numeric
+    const idValue = /^\d+$/.test(String(formData.id))
+      ? Number(formData.id)
+      : formData.id;
 
-      // Default unchanged fields from incoming `task` prop but normalize date-times to ISO "T"
-      const base = task || {};
+    const payload = {
 
-      const payload = {
-        // Always include id and name from formData
-        id: idValue,
-        tasksName: formData.tasksName.trim(),
+      id: idValue,
+      tasksName: formData.tasksName.trim(),
+      isDelay: !!formData.isDelay,
+      changedCompletionOn: fromLocalInputToApi(formData.changedCompletionOn) || "",
+      currentStats: formData.currentStats || "",
+      remarks: formData.remarks?.trim() || "Status Updated",
+    };
+    console.log("submitting payload", payload);
 
-        // Defaults from the original task (unchanged fields), normalized to ISO "T"
-        assignedOn: toIsoDateTime(base.assignedOn || ""),
-        expectedCompletionDate: toIsoDateTime(base.expectedCompletionDate || ""),
-        taskPriority: base.taskPriority || "",
-        taskType: base.taskType || "",
-        assignedTo: base.assignedTo ?? "",
-        assignedUser: base.assignedUser ?? "",
-        reviewer: base.reviewer ?? "",
-        taskDescription: base.taskDescription || "",
-        filePath: base.filePath ?? "",
-        taskCompletedOn: toIsoDateTime(base.taskCompletedOn ?? ""),
+    // Axios: no res.ok/res.json; parsed body is in res.data
+    const res = await application.post("task/update", payload);
+    const data = res?.data;
 
-        // Editable fields from the form
-        currentStats: formData.currentStats || "",
-        isDelay: !!formData.isDelay,
-        changedCompletionOn:
-          fromLocalInputToApi(formData.changedCompletionOn) || "",
-        remarks: formData.remarks?.trim() || "Status Updated",
-      };
-
-      console.log("submitting payload", payload);
-
-      // Axios: parsed body is in res.data
-      const res = await application.post("taskDetails/update", payload);
-      const data = res?.data;
-
-      if (data?.status === "OK") {
-        onUpdated && onUpdated(data);
-        onClose && onClose();
-      } else {
-        throw new Error(data?.message || "Update failed");
-      }
-    } catch (err) {
-      setError(`Error updating task: ${err.message}`);
-      console.error("Update error:", err);
-    } finally {
-      setLoading(false);
+    if (data?.status === "OK") {
+      onUpdated && onUpdated(data);
+      onClose && onClose();
+    } else {
+      throw new Error(data?.message || "Update failed");
     }
-  };
+  } catch (err) {
+    setError(`Error updating task: ${err.message}`);
+    console.error("Update error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (dropdownLoading) {
     return (

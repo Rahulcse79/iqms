@@ -225,7 +225,7 @@ const handleSubmit = async (e) => {
                 maxLength={100}
                 autoComplete="off"
               />
-              {validationErrors.tasksName && <span className="error-message">{validationErrors.tasksName}</span>}
+              {TaskName}
             </div>
 
             {/* Task Description */}

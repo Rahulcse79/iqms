@@ -23,6 +23,13 @@ export default function TaskList() {
   const [userFilter, setUserFilter] = useState("all");
   const [dateRangeFilter, setDateRangeFilter] = useState("all"); // all, today, week, month, overdue
 
+  const isDelayedTask = (t) => t?.isDelay === true;
+
+  const getExpectedCompletionDisplay = (t) =>
+    isDelayedTask(t)
+      ? t.changedCompletionOn ?? t.expectedCompletionDate
+      : t.expectedCompletionDate;
+
   // API payload
   const apiPayload = useMemo(
     () => ({
@@ -57,87 +64,68 @@ export default function TaskList() {
   };
 
   // Get priority level and color for a task based on expected completion date
-  const getTaskPriority = (expectedCompletionDate) => {
-    if (!expectedCompletionDate) {
-      return {
-        priority: "unknown",
-        color: "#666666",
-        label: "No Date",
-        urgencyScore: 999,
-      };
+/**
+ * Compute priority from expected completion, with delay-aware swap.
+ * Backward-compatible:
+ * - Pass a task object: getTaskPriority(task)
+ * - Or pass a date string/Date: getTaskPriority(expectedCompletionDate)
+ * - Or pass a date with explicit options: getTaskPriority(date, { isDelay, changedCompletionOn, expectedCompletionDate })
+ */
+const getTaskPriority = (input, opts = {}) => {
+  // Normalize/parse expected date with swap logic
+  const pickExpected = () => {
+    // Case 1: input is a task-like object
+    if (input && typeof input === "object" && (
+        "expectedCompletionDate" in input ||
+        "changedCompletionOn" in input ||
+        "isDelay" in input
+      )) {
+      const delayed = input?.isDelay === true;
+      return delayed
+        ? (input.changedCompletionOn ?? input.expectedCompletionDate)
+        : input.expectedCompletionDate;
     }
 
-    try {
-      let dateStr = expectedCompletionDate;
-      if (
-        typeof dateStr === "string" &&
-        dateStr.includes(" ") &&
-        !dateStr.includes("T")
-      ) {
-        dateStr = dateStr.replace(" ", "T");
+    // Case 2: input is a primitive/date, but opts provided for swap hints
+    if (opts && (
+        "isDelay" in opts ||
+        "changedCompletionOn" in opts ||
+        "expectedCompletionDate" in opts
+      )) {
+      const delayed = opts?.isDelay === true;
+      return delayed
+        ? (opts.changedCompletionOn ?? opts.expectedCompletionDate ?? input)
+        : (opts.expectedCompletionDate ?? input);
+    }
+
+    // Case 3: legacy behavior (input is a date)
+    return input;
+  };
+
+  const expectedRaw = pickExpected();
+
+  if (!expectedRaw) {
+    return {
+      priority: "unknown",
+      color: "#666666",
+      label: "No Date",
+      urgencyScore: 999,
+    };
+  }
+
+  try {
+    // Robust parse: normalize "YYYY-MM-DD HH:mm" -> "YYYY-MM-DDTHH:mm"
+    const toDate = (v) => {
+      let s = v;
+      if (typeof s === "string" && s.includes(" ") && !s.includes("T")) {
+        s = s.replace(" ", "T");
       }
+      return new Date(s);
+    };
 
-      const expectedDate = new Date(dateStr);
-      const currentDate = new Date();
-      const today = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        currentDate.getDate()
-      );
-      const expectedDateOnly = new Date(
-        expectedDate.getFullYear(),
-        expectedDate.getMonth(),
-        expectedDate.getDate()
-      );
-
-      // Calculate business days difference
-      const businessDaysLeft = getBusinessDaysDifference(
-        today,
-        expectedDateOnly
-      );
-      const totalDaysLeft = Math.ceil(
-        (expectedDateOnly - today) / (1000 * 60 * 60 * 24)
-      );
-
-      // If the expected date has passed
-      if (totalDaysLeft < 0) {
-        return {
-          priority: "overdue",
-          color: "#DC2626",
-          label: "Overdue",
-          urgencyScore: 0,
-        };
-      }
-
-      // Critical: Due today or business days <= 1
-      if (totalDaysLeft === 0 || businessDaysLeft <= 1) {
-        return {
-          priority: "critical",
-          color: "#DC2626",
-          label: "Critical",
-          urgencyScore: 1,
-        };
-      }
-
-      // Urgent: Due within 1 week (7 days) or business days <= 5
-      if (totalDaysLeft <= 7 || businessDaysLeft <= 5) {
-        return {
-          priority: "urgent",
-          color: "#F59E0B",
-          label: "Urgent",
-          urgencyScore: 2,
-        };
-      }
-
-      // Normal: More than 1 week
-      return {
-        priority: "normal",
-        color: "#10B981",
-        label: "Normal",
-        urgencyScore: 3,
-      };
-    } catch (error) {
-      console.error("Error parsing date:", expectedCompletionDate, error);
+    const expectedDate = toDate(expectedRaw);
+    if (isNaN(expectedDate.getTime())) {
+      // Parsing failed
       return {
         priority: "unknown",
         color: "#666666",
@@ -145,34 +133,107 @@ export default function TaskList() {
         urgencyScore: 999,
       };
     }
-  };
 
-  // Normalize various backend shapes to an array
-  const normalizeTasks = (data) => {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data?.content)) return data.content;
-    if (Array.isArray(data?.items)) return data.items;
-    if (Array.isArray(data?.results)) return data.results;
-    if (data == null) return [];
-    if (typeof data === "object") return [data];
-    return [];
-  };
+    // Compare using date-only precision
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const expectedDateOnly = new Date(
+      expectedDate.getFullYear(),
+      expectedDate.getMonth(),
+      expectedDate.getDate()
+    );
+
+    // Business days helper assumed available in your file
+    const businessDaysLeft = getBusinessDaysDifference(today, expectedDateOnly);
+
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const totalDaysLeft = Math.ceil((expectedDateOnly - today) / msPerDay);
+
+    // Overdue
+    if (totalDaysLeft < 0) {
+      return {
+        priority: "overdue",
+        color: "#DC2626",
+        label: "Overdue",
+        urgencyScore: 0,
+      };
+    }
+
+    // Critical: due today OR <= 1 business day remaining
+    if (totalDaysLeft === 0 || businessDaysLeft <= 1) {
+      return {
+        priority: "critical",
+        color: "#DC2626",
+        label: "Critical",
+        urgencyScore: 1,
+      };
+    }
+
+    // Urgent: due within 7 days OR <= 5 business days remaining
+    if (totalDaysLeft <= 7 || businessDaysLeft <= 5) {
+      return {
+        priority: "urgent",
+        color: "#F59E0B",
+        label: "Urgent",
+        urgencyScore: 2,
+      };
+    }
+
+    // Normal
+    return {
+      priority: "normal",
+      color: "#10B981",
+      label: "Normal",
+      urgencyScore: 3,
+    };
+  } catch (error) {
+    console.error("Error parsing date:", input, error);
+    return {
+      priority: "unknown",
+      color: "#666666",
+      label: "Invalid Date",
+      urgencyScore: 999,
+    };
+  }
+};
+
 
   // Robust date parsing for "YYYY-MM-DD HH:mm" -> replace space with T for Date()
   const formatDate = (value) => {
     if (!value) return "N/A";
     try {
       let v = value;
+      // Support "YYYY-MM-DD HH:mm" by normalizing the separator
       if (typeof v === "string" && v.includes(" ") && !v.includes("T")) {
         v = v.replace(" ", "T");
       }
+
       const d = new Date(v);
       if (isNaN(d.getTime())) return String(value);
-      return (
-        d.toLocaleDateString() +
-        " " +
-        d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      );
+
+      // Build dd/Month/yyyy using Intl for reliable month names
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }).formatToParts(d);
+
+      const dd =
+        parts.find((p) => p.type === "day")?.value ??
+        String(d.getDate()).padStart(2, "0");
+      const month =
+        parts.find((p) => p.type === "month")?.value ??
+        d.toLocaleString("en-GB", { month: "long" });
+      const yyyy =
+        parts.find((p) => p.type === "year")?.value ?? String(d.getFullYear());
+
+      const dateStr = `${dd}/${month}/${yyyy}`;
+      const timeStr = d.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      return `${dateStr} ${timeStr}`;
     } catch (_) {
       return String(value);
     }
@@ -183,20 +244,47 @@ export default function TaskList() {
     if (!value) return "N/A";
     try {
       let v = value;
+      // Normalize "YYYY-MM-DD HH:mm" -> "YYYY-MM-DDTHH:mm" for safe parsing
       if (typeof v === "string" && v.includes(" ") && !v.includes("T")) {
         v = v.replace(" ", "T");
       }
+
       const d = new Date(v);
       if (isNaN(d.getTime())) return String(value);
 
-      const today = new Date();
-      const diffTime = d - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      // Build dd/Month/yyyy
+      const MONTHS = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      const dd = String(d.getDate()).padStart(2, "0");
+      const month = MONTHS[d.getMonth()];
+      const yyyy = d.getFullYear();
+      const formattedDate = `${dd}/${month}/${yyyy}`;
 
-      const formattedDate = d.toLocaleDateString();
+      // Compare calendar days (normalize both to local midnight)
+      const startOf = (dt) =>
+        new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+      const todayStart = startOf(new Date());
+      const targetStart = startOf(d);
+
+      // Use rounding to be resilient to DST (23/25-hour days)
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const diffDays = Math.round((targetStart - todayStart) / msPerDay);
 
       if (diffDays < 0) {
-        return `${formattedDate} (${Math.abs(diffDays)} days overdue)`;
+        const days = Math.abs(diffDays);
+        return `${formattedDate} (${days} day${days !== 1 ? "s" : ""} overdue)`;
       } else if (diffDays === 0) {
         return `${formattedDate} (Today)`;
       } else if (diffDays === 1) {
@@ -206,7 +294,7 @@ export default function TaskList() {
       } else {
         return formattedDate;
       }
-    } catch (_) {
+    } catch {
       return String(value);
     }
   };
@@ -237,7 +325,8 @@ export default function TaskList() {
     // Priority filter
     if (priorityFilter !== "all") {
       filtered = filtered.filter((task) => {
-        const priority = getTaskPriority(task.expectedCompletionDate);
+        // Wherever you compute priority (e.g., filtered.sort or rendering):
+        const priority = getTaskPriority(getExpectedCompletionDisplay(task));
         return priority.priority === priorityFilter;
       });
     }
@@ -256,19 +345,22 @@ export default function TaskList() {
         today.getDate()
       );
 
+      // Inside the dateRangeFilter block:
       filtered = filtered.filter((task) => {
-        if (!task.expectedCompletionDate) return dateRangeFilter === "all";
-
+        const exp = getExpectedCompletionDisplay(task);
+        if (!exp) return dateRangeFilter === "all";
         try {
-          let dateStr = task.expectedCompletionDate;
-          if (
-            typeof dateStr === "string" &&
-            dateStr.includes(" ") &&
-            !dateStr.includes("T")
-          ) {
-            dateStr = dateStr.replace(" ", "T");
-          }
-          const taskDate = new Date(dateStr);
+          const v =
+            typeof exp === "string" && exp.includes(" ") && !exp.includes("T")
+              ? exp.replace(" ", "T")
+              : exp;
+          const taskDate = new Date(v);
+          const today = new Date();
+          const todayStart = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate()
+          );
           const taskDateOnly = new Date(
             taskDate.getFullYear(),
             taskDate.getMonth(),
@@ -278,14 +370,16 @@ export default function TaskList() {
           switch (dateRangeFilter) {
             case "today":
               return taskDateOnly.getTime() === todayStart.getTime();
-            case "week":
+            case "week": {
               const weekEnd = new Date(todayStart);
               weekEnd.setDate(weekEnd.getDate() + 7);
               return taskDateOnly >= todayStart && taskDateOnly <= weekEnd;
-            case "month":
+            }
+            case "month": {
               const monthEnd = new Date(todayStart);
               monthEnd.setMonth(monthEnd.getMonth() + 1);
               return taskDateOnly >= todayStart && taskDateOnly <= monthEnd;
+            }
             case "overdue":
               return taskDateOnly < todayStart;
             default:
@@ -299,37 +393,57 @@ export default function TaskList() {
 
     // Sort by priority (most urgent first), then by expected completion date
     filtered.sort((a, b) => {
-      const priorityA = getTaskPriority(a.expectedCompletionDate);
-      const priorityB = getTaskPriority(b.expectedCompletionDate);
-
-      // First sort by urgency score (lower score = more urgent)
+      // 1) urgency score using derived expected dates
+      const priorityA = getTaskPriority(getExpectedCompletionDisplay(a));
+      const priorityB = getTaskPriority(getExpectedCompletionDisplay(b));
       if (priorityA.urgencyScore !== priorityB.urgencyScore) {
         return priorityA.urgencyScore - priorityB.urgencyScore;
       }
 
-      // If same urgency, sort by date (earlier dates first)
-      if (a.expectedCompletionDate && b.expectedCompletionDate) {
-        const dateA = new Date(a.expectedCompletionDate.replace(" ", "T"));
-        const dateB = new Date(b.expectedCompletionDate.replace(" ", "T"));
-        return dateA - dateB;
+      // 2) fallback sort by derived expected date (earlier first)
+      const ea = getExpectedCompletionDisplay(a);
+      const eb = getExpectedCompletionDisplay(b);
+      if (ea && eb) {
+        const da = new Date(String(ea).replace(" ", "T"));
+        const db = new Date(String(eb).replace(" ", "T"));
+        return da - db;
       }
-
       return 0;
     });
 
     return filtered;
   }, [tasks, searchTerm, priorityFilter, userFilter, dateRangeFilter]);
 
+  // Normalize various backend shapes to an array
+  const normalizeTasks = (data) => {
+    // Handle null/undefined
+    if (data == null) return [];
+
+    // New paginated shape
+    if (Array.isArray(data.currentPageData)) return data.currentPageData;
+
+    // Legacy shapes
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.content)) return data.content;
+    if (Array.isArray(data.items)) return data.items;
+    if (Array.isArray(data.results)) return data.results;
+
+    // Single object fallback
+    if (typeof data === "object") return [data];
+
+    return [];
+  };
+
   // Fetch tasks from API
   const fetchTasks = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await application.post("/task/listAll", apiPayload);
+      const response = await application.post("/task/list", apiPayload);
 
       if (response.data?.status === "OK") {
         const arr = normalizeTasks(response.data?.data);
-        setTasks(arr);
+        setTasks(arr); // still an array in both old and new formats
       } else {
         throw new Error(response.data?.message || "Failed to fetch tasks");
       }
@@ -393,11 +507,17 @@ export default function TaskList() {
     setDateRangeFilter("all");
   };
 
+  // Swap-aware helpers (per task)
+
+  const getChangedCompletionDisplay = (t) =>
+    isDelayedTask(t) ? t.expectedCompletionDate : t.changedCompletionOn;
+
   // Priority statistics
   const priorityStats = useMemo(() => {
     const stats = { overdue: 0, critical: 0, urgent: 0, normal: 0, unknown: 0 };
     tasks.forEach((task) => {
-      const priority = getTaskPriority(task.expectedCompletionDate);
+      const priority = getTaskPriority(task);
+
       stats[priority.priority]++;
     });
     return stats;
@@ -531,7 +651,8 @@ export default function TaskList() {
             </thead>
             <tbody>
               {filteredAndSortedTasks.map((task, index) => {
-                const priority = getTaskPriority(task.expectedCompletionDate);
+                const priority = getTaskPriority(task);
+
                 return (
                   <tr
                     key={task.id || index}
@@ -549,7 +670,9 @@ export default function TaskList() {
                     </td>
                     <td className="task-name">{task?.tasksName ?? "—"}</td>
                     <td className="completion-date">
-                      {formatExpectedDate(task?.expectedCompletionDate)}
+                      {formatExpectedDate
+                        ? formatExpectedDate(getExpectedCompletionDisplay(task))
+                        : formatDate(getExpectedCompletionDisplay(task))}
                     </td>
                     <td className="assigned-user">
                       {task?.assignedUser || "N/A"}

@@ -15,6 +15,7 @@ import {
 } from "../../utils/helpers";
 import QueryHistorytab from "./QueryHistorytab";
 import { useDispatch } from "react-redux";
+import TaskCreate from "../TaskManagement/TaskCreate";
 const STORAGE_KEY = "queryDrafts_v2";
 
 /**
@@ -127,6 +128,8 @@ const QueryDetails = ({
   onBack,
 }) => {
   const [activeTab, setActiveTab] = useState("details");
+  const [replyType, setReplyType] = useState("final"); // 'final' or 'interim'
+  const [showInterimModal, setShowInterimModal] = useState(false);
   const [formError, setFormError] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [permissionCheck, setPermissionCheck] = useState({
@@ -280,6 +283,12 @@ const QueryDetails = ({
       return;
     }
     setShowConfirmDialog(true);
+  };
+
+  const handleInterimReplyCreated = (taskData) => {
+    console.log("Interim reply (task) created:", taskData);
+    setShowInterimModal(false);
+    // Optionally, you can add logic to refresh or show a success message
   };
 
   const handleConfirmSubmit = async () => {
@@ -712,6 +721,31 @@ const QueryDetails = ({
                 </div>
               ) : (
                 <div className="permission-granted">
+                  <div className="reply-type-selector">
+                    <label>
+                      <input
+                        type="radio"
+                        name="replyType"
+                        value="final"
+                        checked={replyType === "final"}
+                        onChange={() => setReplyType("final")}
+                      />
+                      Final Reply
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="replyType"
+                        value="interim"
+                        checked={replyType === "interim"}
+                        onChange={() => {
+                          setReplyType("interim");
+                          setShowInterimModal(true);
+                        }}
+                      />
+                      Interim Reply
+                    </label>
+                  </div>
                   <div className="permission-icon">✅</div>
                   <div className="permission-message">
                     <h4>Reply Available</h4>
@@ -720,8 +754,8 @@ const QueryDetails = ({
                 </div>
               )}
 
-              {/* Reply Form - Only show if user has permission */}
-              {permissionCheck.canReply && (
+              {/* Reply Form - Only show if user has permission and replyType is final */}
+              {permissionCheck.canReply && replyType === "final" && (
                 <>
                   <div className="form-group">
                     <label>Reply</label>
@@ -846,6 +880,16 @@ const QueryDetails = ({
           <QueryHistorytab docId={queryId} isActive={activeTab === 'history'} />
         </div>
       </div>
+
+      {showInterimModal && (
+        <TaskCreate docId={item.doc_id} // Assuming task creation needs doc_id
+          onClose={() => {
+            setShowInterimModal(false);
+            setReplyType("final"); // Revert selection if modal is closed
+          }}
+          onTaskCreated={handleInterimReplyCreated}
+        />
+      )}
 
       {/* ENHANCED: Confirmation Dialog */}
       <ConfirmDialog

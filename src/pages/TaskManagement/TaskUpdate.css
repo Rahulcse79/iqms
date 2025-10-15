@@ -30,7 +30,7 @@
 
 .update-task-header h2 { margin: 0; font-family: var(--font-family); font-size: 18px; font-weight: 700; color: var(--text); }
 
-.close-button { background: transparent; border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: var(--radius-sm); cursor: pointer; display: inline-grid; place-items: center; transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast); }
+.close-button { background: transparent; border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: var(--radius-sm); cursor: pointer; display: inline-grid; place-items: center; transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast); padding: auto; }
 .close-button:hover { background: var(--surface-accent); }
 .close-button:active { transform: scale(0.96); }
 .close-button:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent); }
