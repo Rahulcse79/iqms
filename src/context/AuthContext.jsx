@@ -84,6 +84,25 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove("authData", { path: "/" });
   };
 
+  const updateUserExtension = (extension) => {
+    try {
+      setAuth((prev) => {
+        if (!prev) return prev;
+        const updated = {
+          ...prev,
+          user: {
+            ...prev.user,
+            userExtension: extension,
+          },
+        };
+        Cookies.set("authData", JSON.stringify(updated), persistOptions);
+        return updated;
+      });
+    } catch (err) {
+      console.error("Failed to update user extension:", err);
+    }
+  };
+
   // Rehydrate auth from cookie/localStorage — robust with try/catch and a loading flag
   useEffect(() => {
     (async () => {
@@ -121,7 +140,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout, isAuthLoading }}>
+    <AuthContext.Provider value={{ auth, login, logout, updateUserExtension, isAuthLoading }}>
       {children}
     </AuthContext.Provider>
   );

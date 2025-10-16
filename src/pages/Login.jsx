@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/Loader";
 import { UserRole, DepartmentMapping } from "../constants/Enum";
 import { loginAPI } from "../utils/endpoints";
+import ExtensionDialog from "../components/ExtensionDialog";
 import { fetchAllUserQueriesNew, getDesignationFlags } from "../utils/helpers";
 import { encryptData } from "../utils/helpers";
 
@@ -23,11 +24,13 @@ const Login = () => {
     taskName: "",
   });
 
-  const { login } = useContext(AuthContext);
+  const { login, updateUserExtension } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { loading } = useSelector((state) => state.replied_queries);
+
+  const [showExtensionDialog, setShowExtensionDialog] = useState(false);
 
   useEffect(() => {
     localStorage.removeItem("queryDrafts_v2");
@@ -73,8 +76,13 @@ const Login = () => {
       }
 
       console.log("User category code:", categoryCode);
-      console.log("User department config:", deptConfig); 
-      console.log("User Category string:" + categoryStr + "and user Category code is" + categoryCode);
+      console.log("User department config:", deptConfig);
+      console.log(
+        "User Category string:" +
+          categoryStr +
+          "and user Category code is" +
+          categoryCode
+      );
 
       setInitProgress({ step: "fetching-user-details", current: 1, total: 4 });
 
@@ -186,12 +194,10 @@ const Login = () => {
       }
 
       setInitProgress({ step: "completed", current: 4, total: 4 });
-
-      // Small delay to show completion
       setTimeout(() => {
         setInitializing(false);
-        navigate("/");
-      }, 500);
+        setShowExtensionDialog(true);
+      }, 400);
     } catch (err) {
       console.error("Login error:", err);
       setInitializing(false);
@@ -312,6 +318,42 @@ const Login = () => {
           </form>
         </div>
       </div>
+      {showExtensionDialog && (
+        <ExtensionDialog
+          onSubmit={(extension) => {
+            try {
+              // Access updateUserExtension from AuthContext
+              updateUserExtension(extension);
+
+              // Update cookie also includes new userExtension
+              const authData = Cookies.get("authData");
+              if (authData) {
+                const parsed = JSON.parse(authData);
+                parsed.user.userExtension = extension;
+                Cookies.set("authData", JSON.stringify(parsed), {
+                  expires: new Date(new Date().getTime() + 8 * 60 * 60 * 1000),
+                  path: "/",
+                  secure: window.location.protocol === "https:",
+                  sameSite: "Lax",
+                });
+              }
+
+              // Optional: also store in localStorage for internal logic
+              const baseData = JSON.parse(
+                localStorage.getItem("baseUserData") || "{}"
+              );
+              baseData.userExtension = extension;
+              localStorage.setItem("baseUserData", JSON.stringify(baseData));
+
+              setShowExtensionDialog(false);
+              navigate("/");
+            } catch (err) {
+              console.error("Error saving extension:", err);
+              alert("Failed to save extension. Please retry.");
+            }
+          }}
+        />
+      )}
     </>
   );
 };
