@@ -882,7 +882,7 @@ const QueryDetails = ({
       </div>
 
       {showInterimModal && (
-        <TaskCreate docId={item.doc_id} // Assuming task creation needs doc_id
+        <TaskCreate TaskName={item.doc_id} // Assuming task creation needs doc_id
           onClose={() => {
             setShowInterimModal(false);
             setReplyType("final"); // Revert selection if modal is closed

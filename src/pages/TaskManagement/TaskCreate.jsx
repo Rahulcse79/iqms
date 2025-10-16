@@ -218,14 +218,14 @@ const handleSubmit = async (e) => {
                 type="text"
                 id="tasksName"
                 name="tasksName"
-                value={formData.tasksName}
+                value={TaskName}
                 onChange={handleInputChange}
-                className={`form-input ${validationErrors.tasksName ? 'error' : ''}`}
+                className={`form-input ${validationErrors.TaskName ? 'error' : ''}`}
                 placeholder="Enter Doc ID"
                 maxLength={100}
                 autoComplete="off"
               />
-              {TaskName}
+              
             </div>
 
             {/* Task Description */}

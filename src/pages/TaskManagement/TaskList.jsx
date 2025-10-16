@@ -526,7 +526,7 @@ const getTaskPriority = (input, opts = {}) => {
   if (loading) {
     return (
       <div className="task-list-container">
-        <p>Loading tasks...</p>
+        <p>Loading Interim Replys...</p>
       </div>
     );
   }
@@ -535,7 +535,7 @@ const getTaskPriority = (input, opts = {}) => {
     return (
       <div className="task-list-container">
         <div className="error-message">
-          <h3>Error loading tasks</h3>
+          <h3>Error loading Interim Replys</h3>
           <p>{error}</p>
           <button className="retry-button" onClick={handleRefresh}>
             Retry
@@ -641,7 +641,7 @@ const getTaskPriority = (input, opts = {}) => {
             <thead>
               <tr>
                 <th>Priority</th>
-                <th>Task Name</th>
+                <th>Doc Id</th>
                 <th>Expected Completion</th>
                 <th>Assigned User</th>
                 <th>Remarks</th>
