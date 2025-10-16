@@ -159,7 +159,7 @@ const CDR = () => {
   const [userExtensionState, setUserExtensionState] = useState(initialExtension);
   const [showExtensionDialog, setShowExtensionDialog] = useState(!initialExtension);
 
-  const apiUrl = useMemo(() => "agentCDR/list", []);
+  const apiUrl = useMemo(() => "/customerCDR/callerCall/list", []);
 
   const buildPayload = useCallback(
     (pageIndex, pageSize = PAGE_SIZE, tabKey = "all") => {
@@ -186,7 +186,7 @@ const CDR = () => {
         currentPage: pageIndex,
         pageSize,
         sortDirection: "asc",
-        sortBy: "agentName",
+        sortBy: "ccAgent",
         search: userExtensionState || "",
         sortDataType: "string",
         advancedFilters: adv,
