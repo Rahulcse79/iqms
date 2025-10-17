@@ -25,6 +25,13 @@ export default function CreateTask({ TaskName,onClose, onTaskCreated }) {
     fetchDropdownData();
   }, []);
 
+  // Set the tasksName from the prop when the component mounts
+  useEffect(() => {
+    if (TaskName) {
+      setFormData((prev) => ({ ...prev, tasksName: TaskName }));
+    }
+  }, [TaskName]);
+
   // Utilities: formatters
   const pad2 = (n) => String(n).padStart(2, '0');
 
@@ -88,10 +95,10 @@ const fetchDropdownData = async () => {
   const validateForm = () => {
     const errors = {};
 
-    if (!formData.tasksName.trim()) {
-      errors.tasksName = 'Task name is required';
-    } else if (formData.tasksName.trim().length < 3) {
-      errors.tasksName = 'Task name must be at least 3 characters';
+    // The tasksName is now from a prop, so we validate it directly
+    // Convert TaskName to string before trimming to prevent errors if it's a number
+    if (TaskName == null || String(TaskName).trim() === '') {
+      errors.tasksName = 'Task name (DOC ID) is required';
     }
 
     if (!formData.taskDescription.trim()) {
@@ -218,14 +225,13 @@ const handleSubmit = async (e) => {
                 type="text"
                 id="tasksName"
                 name="tasksName"
-                value={TaskName}
-                onChange={handleInputChange}
-                className={`form-input ${validationErrors.TaskName ? 'error' : ''}`}
-                placeholder="Enter Doc ID"
-                maxLength={100}
+                value={TaskName || ''} // Use TaskName prop directly
+                readOnly // Make the input read-only
+                className={`form-input ${validationErrors.tasksName ? 'error' : ''}`}
+                placeholder="DOC ID from previous page"
                 autoComplete="off"
               />
-              
+              {validationErrors.tasksName && <span className="error-message">{validationErrors.tasksName}</span>}
             </div>
 
             {/* Task Description */}

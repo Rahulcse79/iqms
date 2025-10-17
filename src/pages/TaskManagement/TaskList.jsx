@@ -643,8 +643,7 @@ const getTaskPriority = (input, opts = {}) => {
                 <th>Priority</th>
                 <th>Doc Id</th>
                 <th>Expected Completion</th>
-                <th>Assigned User</th>
-                <th>Remarks</th>
+                <th>Reply</th>
                 <th>Assigned On</th>
                 <th>Actions</th>
               </tr>
@@ -674,11 +673,8 @@ const getTaskPriority = (input, opts = {}) => {
                         ? formatExpectedDate(getExpectedCompletionDisplay(task))
                         : formatDate(getExpectedCompletionDisplay(task))}
                     </td>
-                    <td className="assigned-user">
-                      {task?.assignedUser || "N/A"}
-                    </td>
-                    <td className="remarks" title={task?.remarks || "N/A"}>
-                      {task?.remarks || "N/A"}
+                    <td className="remarks" title={task?.taskDescription || "N/A"}>
+                      {task?.taskDescription || "N/A"}
                     </td>
                     <td className="assigned-on">
                       {formatDate(task?.assignedOn)}
