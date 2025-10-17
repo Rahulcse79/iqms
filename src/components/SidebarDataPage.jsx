@@ -58,11 +58,11 @@ const SidebarDataPage = () => {
       iconOpened: <FaChevronUp />,
       subNav: [
         {
-          title: "IQMS MIS",
+          title: "Web Queries ",
           path: "/iqms-mis",
         },
         {
-          title: "CDR",
+          title: "Call Data Records",
           path: "/cdr",
         },
       ],
@@ -95,9 +95,9 @@ const SidebarDataPage = () => {
       icon: <FaBookOpen style={{ color: "#009688" }} />,
     },
     {
-      title: "Tasks",
+      title: "Interim Replies",
       path: "/interim-reply",
-      icon: <FaBookOpen style={{ color: "#009688" }} />,
+      icon: <FaBookOpen style={{ color: "#68ff9aff" }} />,
     },
 
   ];
