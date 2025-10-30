@@ -56,6 +56,7 @@ const profileViewInitial = {
   rankHistory: { loading: false, items: [], meta: null, error: null },
   tradeHistory: { loading: false, items: [], meta: null, error: null },
   postingHistory: { loading: false, items: [], meta: null, error: null },
+  gciHistory: { loading: false, items: [], meta: null, error: null, cache: {} },
 };
 
 /* -------------------- Personal Data Reducer -------------------- */
@@ -263,7 +264,14 @@ export const ProfileViewReducer = (state = profileViewInitial, action) => {
   }
 };
 
-export const abcCodesReducer = (state = personalInitial, action) => {
+const abcInitial = {
+  loading: false,
+  items: [],
+  meta: null,
+  error: null,
+};
+
+export const abcCodesReducer = (state = abcInitial, action) => {
   console.log("[Reducer] abcCodesReducer Action:", action.type);
 
   switch (action.type) {
@@ -279,14 +287,12 @@ export const abcCodesReducer = (state = personalInitial, action) => {
       return {
         ...state,
         loading: false,
-        items: action.payload.items || [],
-        meta: {
-          hasMore: action.payload.hasMore,
-          limit: action.payload.limit,
-          offset: action.payload.offset,
-          count: action.payload.count,
-          links: action.payload.links,
-        },
+        items: Array.isArray(action.payload?.items)
+          ? action.payload.items
+          : Array.isArray(action.payload)
+          ? action.payload
+          : [],
+        meta: action.payload?.meta ?? null,
         error: null,
       };
 

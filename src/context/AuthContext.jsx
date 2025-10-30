@@ -1,8 +1,6 @@
 // src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
-import { clearRepliedQueries } from "../utils/cache";
-
 export const AuthContext = createContext();
 
 /**
@@ -16,8 +14,10 @@ export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  const eightHoursFromNow = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+
   const persistOptions = {
-    expires: 7,
+    expires: eightHoursFromNow,
     path: "/",
     secure: window.location.protocol === "https:", // only set secure on https
     sameSite: "Lax",
@@ -34,11 +34,14 @@ export const AuthProvider = ({ children }) => {
       // Build a minimal auth object for the cookie (keep it small)
       const minimalAuth = {
         token: loginResponse.data.token,
+        refreshToken: loginResponse.data.refreshToken,
         user: {
           userId: loginResponse.data.userId,
           username: loginResponse.data.userName,
           fullName: loginResponse.data.fullName,
           roles: loginResponse.data.roles || [],
+          extension: loginResponse.data.extension || null,
+          extensionName: loginResponse.data.extensionName || null,
         },
       };
 
@@ -56,11 +59,14 @@ export const AuthProvider = ({ children }) => {
             JSON.stringify(loginResponse.data.userDetails)
           );
           localStorage.setItem(
-            "airForceUserDetails",
-            JSON.stringify(loginResponse.data.airForceUserDetails)
+            "baseUserData",
+            JSON.stringify(loginResponse.data)
           );
         } catch (err) {
-          console.warn("Could not persist userDetails and airForceUserDetails to localStorage:", err);
+          console.warn(
+            "Could not persist userDetails and airForceUserDetails to localStorage:",
+            err
+          );
         }
       }
     } catch (err) {
@@ -76,6 +82,25 @@ export const AuthProvider = ({ children }) => {
     }
     setAuth(null);
     Cookies.remove("authData", { path: "/" });
+  };
+
+  const updateUserExtension = (extension) => {
+    try {
+      setAuth((prev) => {
+        if (!prev) return prev;
+        const updated = {
+          ...prev,
+          user: {
+            ...prev.user,
+            userExtension: extension,
+          },
+        };
+        Cookies.set("authData", JSON.stringify(updated), persistOptions);
+        return updated;
+      });
+    } catch (err) {
+      console.error("Failed to update user extension:", err);
+    }
   };
 
   // Rehydrate auth from cookie/localStorage — robust with try/catch and a loading flag
@@ -115,7 +140,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout, isAuthLoading }}>
+    <AuthContext.Provider value={{ auth, login, logout, updateUserExtension, isAuthLoading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -7,8 +7,10 @@ import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/Loader";
 import { UserRole, DepartmentMapping } from "../constants/Enum";
-import users from "../utils/users.json";
+import { loginAPI } from "../utils/endpoints";
+import ExtensionDialog from "../components/ExtensionDialog";
 import { fetchAllUserQueriesNew, getDesignationFlags } from "../utils/helpers";
+import { encryptData } from "../utils/helpers";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -22,11 +24,13 @@ const Login = () => {
     taskName: "",
   });
 
-  const { login } = useContext(AuthContext);
+  const { login, updateUserExtension } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { loading } = useSelector((state) => state.replied_queries);
+
+  const [showExtensionDialog, setShowExtensionDialog] = useState(false);
 
   useEffect(() => {
     localStorage.removeItem("queryDrafts_v2");
@@ -41,20 +45,22 @@ const Login = () => {
     setInitProgress({ step: "authenticating", current: 0, total: 1 });
 
     try {
-      const response = await fakeLoginAPI(username, password);
+      const encryptedUsername = encryptData(username);
+      const encryptedPassword = encryptData(password);
+      const response = await loginAPI(encryptedUsername, encryptedPassword);
+      console.log("Login API response:", response.data);
 
-      if (response.status !== "OK") {
+      if (response.data.status !== "OK") {
         setInitializing(false);
-        setError("Invalid username or password");
+        setError(response.data.messageDetail || "Invalid username or password");
         return;
       }
-
-      const baseUser = response.data.airForceUserDetails;
-      const serviceNo = baseUser.airForceServiceNumber;
-      const categoryStr = baseUser.airForceCategory;
+      // As per new API response structure
+      const baseData = response.data.data;
+      const serviceNo = baseData.userName;
+      const categoryStr = baseData.designation;
       const categoryCode = UserRole[categoryStr?.toUpperCase()] ?? null;
-      const userDept =
-        response.data.airForceUserDetails?.airForceDepartment?.[0];
+      const userDept = baseData.department;
       const deptConfig = DepartmentMapping[userDept];
 
       if (!serviceNo || categoryCode === null) {
@@ -69,9 +75,17 @@ const Login = () => {
         return;
       }
 
+      console.log("User category code:", categoryCode);
+      console.log("User department config:", deptConfig);
+      console.log(
+        "User Category string:" +
+          categoryStr +
+          "and user Category code is" +
+          categoryCode
+      );
+
       setInitProgress({ step: "fetching-user-details", current: 1, total: 4 });
 
-      // Fetch user details from API
       let userDetails = null;
       try {
         const res = await fetch(
@@ -99,10 +113,11 @@ const Login = () => {
       }
 
       // Enrich login response
-      response.data.userDetails = userDetails;
+      baseData.userDetails = userDetails;
+      console.log("Fetched user base data :", baseData);
 
       // Save in context & cookies
-      login(response);
+      login({ data: baseData, status: response.status });
 
       setInitProgress({ step: "setting-active-role", current: 2, total: 4 });
 
@@ -179,16 +194,29 @@ const Login = () => {
       }
 
       setInitProgress({ step: "completed", current: 4, total: 4 });
-
-      // Small delay to show completion
       setTimeout(() => {
         setInitializing(false);
-        navigate("/");
-      }, 500);
+        setShowExtensionDialog(true);
+      }, 400);
     } catch (err) {
       console.error("Login error:", err);
       setInitializing(false);
-      setError("Something went wrong. Please try again.");
+
+      if (err.response) {
+        // Handle API errors (like 400 Bad Request)
+        const apiError = err.response.data;
+        setError(
+          apiError.messageDetail ||
+            apiError.message ||
+            "Login failed. Please check your credentials."
+        );
+      } else if (err.request) {
+        // Handle network errors (request made but no response received)
+        setError("Network error. Please check your connection and try again.");
+      } else {
+        // Handle other errors
+        setError("Something went wrong. Please try again.");
+      }
     }
   };
 
@@ -290,24 +318,44 @@ const Login = () => {
           </form>
         </div>
       </div>
+      {showExtensionDialog && (
+        <ExtensionDialog
+          onSubmit={(extension) => {
+            try {
+              // Access updateUserExtension from AuthContext
+              updateUserExtension(extension);
+
+              // Update cookie also includes new userExtension
+              const authData = Cookies.get("authData");
+              if (authData) {
+                const parsed = JSON.parse(authData);
+                parsed.user.userExtension = extension;
+                Cookies.set("authData", JSON.stringify(parsed), {
+                  expires: new Date(new Date().getTime() + 8 * 60 * 60 * 1000),
+                  path: "/",
+                  secure: window.location.protocol === "https:",
+                  sameSite: "Lax",
+                });
+              }
+
+              // Optional: also store in localStorage for internal logic
+              const baseData = JSON.parse(
+                localStorage.getItem("baseUserData") || "{}"
+              );
+              baseData.userExtension = extension;
+              localStorage.setItem("baseUserData", JSON.stringify(baseData));
+
+              setShowExtensionDialog(false);
+              navigate("/");
+            } catch (err) {
+              console.error("Error saving extension:", err);
+              alert("Failed to save extension. Please retry.");
+            }
+          }}
+        />
+      )}
     </>
   );
 };
-
-async function fakeLoginAPI(username, password) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const user = users.find(
-        (u) => u.username === username && u.password === password
-      );
-
-      if (user) {
-        resolve(user);
-      } else {
-        resolve({ status: "ERROR", message: "Invalid credentials" });
-      }
-    }, 1000);
-  });
-}
 
 export default Login;

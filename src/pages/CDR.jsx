@@ -1,78 +1,628 @@
-import React, { useState } from "react";
+// src/components/CDR.jsx
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import "./CDR.css";
+import { application } from "../utils/endpoints";
+import { getCookieData } from "../utils/helpers";
+import ExtensionDialog from "../components/ExtensionDialog";
 
-const dummyData = {
-  received: [
-    { name: "Alice", number: "+91 9876543210", time: "10:00 AM", duration: "2m 30s", status: "Completed" },
-    { name: "Bob", number: "+91 9123456780", time: "11:30 AM", duration: "1m 15s", status: "Completed" },
-    { name: "Carol", number: "+91 9988776655", time: "12:00 PM", duration: "5m 00s", status: "Completed" },
-  ],
-  dialed: [
-    { name: "Charlie", number: "+91 9876501234", time: "09:45 AM", duration: "3m 20s", status: "Completed" },
-    { name: "David", number: "+91 9123405678", time: "02:15 PM", duration: "0m 45s", status: "Completed" },
-    { name: "Eva", number: "+91 9988123456", time: "03:30 PM", duration: "1m 50s", status: "Completed" },
-  ],
-  answered: [
-    { name: "Eve", number: "+91 9988771122", time: "01:00 PM", duration: "4m 10s", status: "Completed" },
-    { name: "Frank", number: "+91 9876112233", time: "03:30 PM", duration: "2m 05s", status: "Completed" },
-  ],
-  missed: [
-    { name: "Grace", number: "+91 9123987654", time: "04:00 PM", duration: "0m 00s", status: "Missed" },
-    { name: "Heidi", number: "+91 9876541122", time: "05:20 PM", duration: "0m 00s", status: "Missed" },
-  ],
-  all: [
-    { name: "Alice", number: "+91 9876543210", time: "10:00 AM", duration: "2m 30s", type: "Received", status: "Completed" },
-    { name: "Charlie", number: "+91 9876501234", time: "09:45 AM", duration: "3m 20s", type: "Dialed", status: "Completed" },
-    { name: "Grace", number: "+91 9123987654", time: "04:00 PM", duration: "0m 00s", type: "Missed", status: "Missed" },
-    { name: "Bob", number: "+91 9123456780", time: "11:30 AM", duration: "1m 15s", type: "Received", status: "Completed" },
-  ],
+const TABS = [
+  {
+    key: "received",
+    label: "Received",
+    badgeKey: "totalAnswered",
+    color: "#16a34a",
+  },
+  { key: "dialed", label: "Dialed", badgeKey: "totalDialed", color: "#2563eb" },
+  {
+    key: "missed",
+    label: "Missed",
+    badgeKey: "totalNoAnswered",
+    color: "#dc2626",
+  },
+  { key: "all", label: "All", badgeKey: "totalOffered", color: "#f97316" },
+];
+
+const PAGE_SIZE = 10;
+const TAB_POLL_MS = 60000;
+
+const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+const toDatetimeLocalValue = (d) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}`;
+
+const getDefaultLast30DaysFilter = () => {
+  const now = new Date();
+  const from = new Date(now);
+  from.setDate(now.getDate() - 30);
+  from.setHours(0, 0, 0, 0);
+  return {
+    from: toDatetimeLocalValue(from),
+    to: toDatetimeLocalValue(now),
+    search: "",
+  };
 };
 
-const CDR = () => {
-  const [activeTab, setActiveTab] = useState("received");
+const safeParseDate = (s) => {
+  if (!s) return null;
+  const iso =
+    typeof s === "string" && s.includes(" ") && !s.includes("T")
+      ? s.replace(" ", "T")
+      : s;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
 
-  const renderData = () => {
-    const data = dummyData[activeTab] || [];
-    return data.map((item, index) => (
-      <tr key={index}>
-        <td>{item.name}</td>
-        <td>{item.number}</td>
-        <td>{item.time}</td>
-        <td>{item.duration}</td>
-        <td className={item.type ? item.type.toLowerCase() : ""}>{item.type || "-"}</td>
-        <td className={item.status.toLowerCase()}>{item.status}</td>
-      </tr>
-    ));
+const formatDate = (s) => {
+  const d = safeParseDate(s);
+  return d ? d.toLocaleString() : "-";
+};
+
+const normalizeResponse = (resp) => {
+  try {
+    if (!resp) return { items: [], meta: {} };
+    const dataRoot = resp?.data?.data ?? resp?.data ?? resp;
+    if (!dataRoot) return { items: [], meta: {} };
+
+    if (dataRoot.currentPageData) {
+      return {
+        items: Array.isArray(dataRoot.currentPageData)
+          ? dataRoot.currentPageData
+          : [],
+        meta: {
+          currentPage: Number.isFinite(dataRoot.currentPage)
+            ? dataRoot.currentPage
+            : 0,
+          pageSize: Number.isFinite(dataRoot.pageSize)
+            ? dataRoot.pageSize
+            : PAGE_SIZE,
+          totalRecords: Number.isFinite(dataRoot.totalRecords)
+            ? dataRoot.totalRecords
+            : null,
+          totalPages: Number.isFinite(dataRoot.totalPages)
+            ? dataRoot.totalPages
+            : 1,
+        },
+      };
+    }
+
+    if (dataRoot.items) {
+      return {
+        items: Array.isArray(dataRoot.items) ? dataRoot.items : [],
+        meta: {
+          currentPage: Number.isFinite(dataRoot.currentPage)
+            ? dataRoot.currentPage
+            : 0,
+          pageSize: Number.isFinite(dataRoot.pageSize)
+            ? dataRoot.pageSize
+            : PAGE_SIZE,
+          totalRecords: Number.isFinite(dataRoot.totalRecords)
+            ? dataRoot.totalRecords
+            : null,
+          totalPages: Number.isFinite(dataRoot.totalPages)
+            ? dataRoot.totalPages
+            : 1,
+        },
+      };
+    }
+
+    if (Array.isArray(dataRoot)) {
+      return {
+        items: dataRoot,
+        meta: {
+          currentPage: 0,
+          pageSize: PAGE_SIZE,
+          totalRecords: dataRoot.length,
+          totalPages: 1,
+        },
+      };
+    }
+
+    return { items: [], meta: {} };
+  } catch (err) {
+    console.error("normalizeResponse error:", err);
+    return { items: [], meta: {} };
+  }
+};
+
+const normalizeItem = (raw = {}) => {
+  const directionRaw =
+    raw.callDirection ?? raw.direction ?? raw.call_direction ?? "";
+  const dirToken = String(directionRaw).toLowerCase().startsWith("in")
+    ? "in"
+    : String(directionRaw).toLowerCase().startsWith("out")
+    ? "out"
+    : (directionRaw || "").toString().toLowerCase();
+
+  const recording =
+    raw.recordingFile && raw.recordingFile.trim() !== ""
+      ? raw.recordingFile
+      : null;
+
+  return {
+    uuid: raw.uuid ?? raw.id ?? null,
+    agentName:
+      raw.agentFullName ?? raw.agentName ?? raw.ccAgent ?? raw.agent ?? "-",
+    customerNumber: raw.customerNumber ?? raw.customer ?? raw.callerId ?? "-",
+    startTime: raw.startTime ?? raw.start_time ?? null,
+    queue: raw.queue ?? "-",
+    queueName: raw.queueName ?? raw.queue_name ?? "-",
+    talkDuration: raw.duration ?? raw.agentTalkTime ?? raw.talkDuration ?? "-",
+    direction: directionRaw ?? "-",
+    directionToken: dirToken,
+    agentTalkedTo:
+      raw.agentTalkedTo ?? raw.answeredByName ?? raw.answeredBy ?? "-",
+    recordingFile: recording,
+    __raw: raw,
+  };
+};
+
+/* ---------- helper heuristics ---------- */
+const isDialedRaw = (r) => {
+  const dir = String(r.callDirection ?? r.direction ?? "").toLowerCase();
+  if (dir.startsWith("out")) return true;
+  if (
+    String(r.queue ?? "")
+      .toLowerCase()
+      .includes("dial")
+  )
+    return true;
+  return false;
+};
+const isAnsweredRaw = (r) => {
+  const status = String(r.status ?? "").toLowerCase();
+  if (status.includes("answered")) return true;
+  if (r.answerTime && r.answerTime !== "") return true;
+  if (r.answeredBy || r.answeredByName) return true;
+  return false;
+};
+const isMissedRaw = (r) => {
+  const isMissed = String(r.isMissed ?? "").toLowerCase();
+  const status = String(r.status ?? "").toLowerCase();
+  const answerTimeEmpty = !r.answerTime || r.answerTime === "";
+  if (isMissed && (isMissed.includes("not") || isMissed.includes("miss")))
+    return true;
+  if (
+    status &&
+    (status.includes("not") ||
+      status.includes("not contacted") ||
+      status.includes("abandoned") ||
+      status.includes("abd"))
+  )
+    return true;
+  if (answerTimeEmpty && !isDialedRaw(r)) return true;
+  return false;
+};
+
+/* ---------- main component ---------- */
+const CDR = () => {
+  const [activeTab, setActiveTab] = useState("all");
+  const [page, setPage] = useState(0);
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({
+    currentPage: 0,
+    pageSize: PAGE_SIZE,
+    totalPages: 1,
+    totalRecords: 0,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const [totals, setTotals] = useState({
+    totalOffered: 0,
+    totalAnswered: 0,
+    totalNoAnswered: 0,
+    totalDialed: 0,
+    approximate: false,
+  });
+
+  const [filters, setFilters] = useState(() => getDefaultLast30DaysFilter());
+  const reqCounterRef = useRef(0);
+
+  // extension handling
+  const [userExtensionState, setUserExtensionState] = useState("");
+  const [showExtensionDialog, setShowExtensionDialog] = useState(false);
+
+  // Load userExtension from cookie after mount
+  useEffect(() => {
+    const cookieData = getCookieData();
+    const ext = cookieData?.user?.userExtension;
+    if (ext) {
+      console.log("Found userExtension in cookie:", ext);
+      setUserExtensionState(ext);
+      setShowExtensionDialog(false);
+    } else {
+      console.log("No userExtension found — showing dialog");
+      setShowExtensionDialog(true);
+    }
+  }, []);
+
+  const apiUrl = useMemo(() => "agentCDR/list", []);
+
+  const buildPayload = useCallback(
+    (pageIndex, pageSize = PAGE_SIZE, tabKey = "all") => {
+      const fromVal = filters.from ?? "";
+      const toVal = filters.to ?? "";
+      const adv = [
+        {
+          direction: "from",
+          dataType: "date",
+          fieldName: "startTime",
+          value: fromVal,
+        },
+        {
+          direction: "to",
+          dataType: "date",
+          fieldName: "startTime",
+          value: toVal,
+        },
+      ];
+
+      if (tabKey === "received") {
+        adv.push({
+          direction: "eq",
+          dataType: "string",
+          fieldName: "callDirection",
+          value: "IN",
+        });
+      } else if (tabKey === "dialed") {
+        adv.push({
+          direction: "eq",
+          dataType: "string",
+          fieldName: "callDirection",
+          value: "OUT",
+        });
+      } else if (tabKey === "missed") {
+        adv.push({
+          direction: "eq",
+          dataType: "string",
+          fieldName: "isMissed",
+          value: "Not Answered",
+        });
+      }
+
+      return {
+        currentPage: pageIndex,
+        pageSize,
+        sortDirection: "desc",
+        sortBy: "agentName",
+        search: userExtensionState || "",
+        sortDataType: "String",
+        advancedFilters: adv,
+      };
+    },
+    [filters, userExtensionState]
+  );
+
+  const fetchDataForTab = useCallback(
+    async (tabKey, pageIndex = 0) => {
+      const thisReq = ++reqCounterRef.current;
+      setLoading(true);
+      setError(null);
+
+      try {
+        const payload = buildPayload(pageIndex, PAGE_SIZE, tabKey);
+        const resp = await application.post(apiUrl, payload);
+        if (thisReq !== reqCounterRef.current) return;
+
+        const normalized = normalizeResponse(resp);
+        const rawItems = normalized.items || [];
+        const serverMeta = normalized.meta || {};
+
+        const totalRecords = Number.isFinite(serverMeta.totalRecords)
+          ? serverMeta.totalRecords
+          : rawItems.length;
+        const pageSize = Number.isFinite(serverMeta.pageSize)
+          ? serverMeta.pageSize
+          : PAGE_SIZE;
+        const totalPages = Number.isFinite(serverMeta.totalPages)
+          ? serverMeta.totalPages
+          : Math.max(1, Math.ceil(totalRecords / pageSize));
+
+        let dial = 0,
+          answered = 0,
+          missed = 0;
+        for (const r of rawItems) {
+          if (isDialedRaw(r)) dial++;
+          if (isAnsweredRaw(r)) answered++;
+          if (isMissedRaw(r)) missed++;
+        }
+        const approx = totalRecords > rawItems.length;
+        setTotals({
+          totalOffered: totalRecords,
+          totalAnswered: answered,
+          totalNoAnswered: missed,
+          totalDialed: dial,
+          approximate: approx,
+        });
+
+        const pageItems = (rawItems || []).map(normalizeItem);
+        setItems(pageItems);
+        setMeta({ currentPage: pageIndex, pageSize, totalRecords, totalPages });
+      } catch (err) {
+        console.error("fetchDataForTab error:", err);
+        if (thisReq === reqCounterRef.current) {
+          setError("Failed to load records. Please try again.");
+          setItems([]);
+          setMeta({
+            currentPage: 0,
+            pageSize: PAGE_SIZE,
+            totalPages: 1,
+            totalRecords: 0,
+          });
+        }
+      } finally {
+        if (thisReq === reqCounterRef.current) setLoading(false);
+      }
+    },
+    [apiUrl, buildPayload]
+  );
+
+  useEffect(() => {
+    if (!userExtensionState) return;
+    fetchDataForTab(activeTab, page);
+  }, [userExtensionState]);
+
+  useEffect(() => {
+    if (!userExtensionState) return;
+    fetchDataForTab(activeTab, page);
+  }, [activeTab, page, filters, fetchDataForTab, userExtensionState]);
+
+  useEffect(() => {
+    if (!userExtensionState) return;
+    let mounted = true;
+    let intervalId = null;
+
+    const startPolling = () => {
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(() => {
+        if (!mounted) return;
+        fetchDataForTab(activeTab, page);
+      }, TAB_POLL_MS);
+    };
+
+    startPolling();
+    return () => {
+      mounted = false;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [activeTab, page, fetchDataForTab, userExtensionState]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const applyFilters = () => {
+    const fromDate = safeParseDate(filters.from);
+    const toDate = safeParseDate(filters.to);
+    if (fromDate && toDate && fromDate > toDate) {
+      setError("Invalid date range: 'From' is after 'To'.");
+      return;
+    }
+    setError(null);
+    setPage(0);
+    fetchDataForTab(activeTab, 0);
+  };
+
+  const onTabClick = (key) => {
+    if (key === activeTab) return;
+    setActiveTab(key);
+    setPage(0);
+    setError(null);
+  };
+
+  const hasNext = Number.isFinite(meta.totalPages)
+    ? page + 1 < meta.totalPages
+    : items.length === PAGE_SIZE;
+
+  const handleExtensionSubmit = (ext) => {
+    try {
+      localStorage.setItem("userExtension", ext);
+    } catch (e) {}
+    setUserExtensionState(ext);
+    setShowExtensionDialog(false);
   };
 
   return (
     <div className="cdr-container">
-      <h1>CALL  DETAILS  RECORDS</h1>
-      <div className="cdr-tabs">
-        {["received", "dialed", "answered", "missed", "all"].map((tab) => (
+      <h1 className="cdr-title">Call Detail Records</h1>
+
+      {showExtensionDialog && (
+        <ExtensionDialog
+          onSubmit={handleExtensionSubmit}
+          onClose={() => setShowExtensionDialog(false)}
+        />
+      )}
+
+      {/* FILTER SECTION */}
+      <div className="cdr-filters" aria-label="Filters">
+        <label>
+          From:
+          <input
+            type="datetime-local"
+            name="from"
+            value={filters.from}
+            onChange={handleFilterChange}
+          />
+        </label>
+        <label>
+          To:
+          <input
+            type="datetime-local"
+            name="to"
+            value={filters.to}
+            onChange={handleFilterChange}
+          />
+        </label>
+        <label>
+          Search:
+          <input
+            type="text"
+            name="search"
+            placeholder="Agent / Number"
+            value={filters.search}
+            onChange={handleFilterChange}
+          />
+        </label>
+        <button
+          onClick={applyFilters}
+          disabled={loading || !userExtensionState}
+        >
+          Apply
+        </button>
+        <button
+          onClick={() => {
+            const def = getDefaultLast30DaysFilter();
+            setFilters(def);
+            setPage(0);
+            if (userExtensionState) fetchDataForTab(activeTab, 0);
+          }}
+          disabled={loading || !userExtensionState}
+          title="Reset to last 30 days"
+        >
+          Reset (30d)
+        </button>
+      </div>
+
+      {/* TABS */}
+      <div className="cdr-tabs" role="tablist" aria-label="Call types">
+        {TABS.map((t) => (
           <button
-            key={tab}
-            className={activeTab === tab ? "active" : ""}
-            onClick={() => setActiveTab(tab)}
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === t.key}
+            className={`cdr-tab ${activeTab === t.key ? "active" : ""}`}
+            onClick={() => onTabClick(t.key)}
+            style={{
+              borderBottom:
+                activeTab === t.key ? `2px solid ${t.color}` : "none",
+            }}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            <span>{t.label}</span>
+            <span className="cdr-badge" style={{ backgroundColor: t.color }}>
+              {t.key === "all"
+                ? totals.totalOffered
+                : t.key === "received"
+                ? totals.totalAnswered
+                : t.key === "dialed"
+                ? totals.totalDialed
+                : totals.totalNoAnswered}
+            </span>
           </button>
         ))}
+        {totals.approximate && (
+          <div className="cdr-totals-note">
+            Totals approximate (large dataset)
+          </div>
+        )}
       </div>
-      <div className="cdr-table-wrapper">
+
+      {/* TABLE */}
+      <div className="cdr-table-wrapper" role="region" aria-live="polite">
         <table className="cdr-table">
           <thead>
             <tr>
-              <th>Name</th>
+              <th>#</th>
+              <th>Agent Name</th>
               <th>Number</th>
-              <th>Time</th>
+              <th>Start Time</th>
+              <th>Queue</th>
+              <th>Queue Name</th>
               <th>Duration</th>
-              <th>Type</th>
-              <th>Status</th>
+              <th>Direction</th>
+              <th>Agent Talked To</th>
+              <th>Recording</th>
             </tr>
           </thead>
-          <tbody>{renderData()}</tbody>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan="10" className="cdr-loading">
+                  Loading...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="10" className="cdr-error">
+                  {error}
+                </td>
+              </tr>
+            ) : items.length === 0 ? (
+              <tr>
+                <td colSpan="10" className="cdr-no-data">
+                  No records found
+                </td>
+              </tr>
+            ) : (
+              items.map((item, i) => {
+                const key =
+                  item.uuid ??
+                  `${item.agentName}-${item.startTime}-${item.customerNumber}-${i}`;
+                return (
+                  <tr key={key}>
+                    <td>{page * PAGE_SIZE + i + 1}</td>
+                    <td>{item.agentName ?? "-"}</td>
+                    <td>{item.customerNumber ?? "-"}</td>
+                    <td>{formatDate(item.startTime)}</td>
+                    <td>{item.queue ?? "-"}</td>
+                    <td>{item.queueName ?? "-"}</td>
+                    <td>{item.talkDuration ?? "-"}</td>
+                    <td
+                      className={`cdr-direction ${item.directionToken ?? ""}`}
+                    >
+                      {item.direction ?? "-"}
+                    </td>
+                    <td>{item.agentTalkedTo ?? "-"}</td>
+                    <td>
+                      {item.recordingFile ? (
+                        <div className="cdr-recording-wrap">
+                          <audio
+                            controls
+                            preload="none"
+                            src={item.recordingFile}
+                          >
+                            Your browser does not support the audio element.
+                          </audio>
+                        </div>
+                      ) : (
+                        <span className="cdr-no-record">-</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
         </table>
+      </div>
+
+      {/* PAGINATION */}
+      <div className="cdr-pagination" aria-label="Pagination controls">
+        <button
+          onClick={() => setPage((p) => Math.max(0, p - 1))}
+          disabled={page === 0 || loading}
+        >
+          Prev
+        </button>
+        <span>
+          Page{" "}
+          {Number.isFinite(meta.currentPage) ? meta.currentPage + 1 : page + 1}{" "}
+          of {meta.totalPages ?? 1}
+        </span>
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          disabled={!hasNext || loading}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

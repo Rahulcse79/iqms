@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 import Loader from "./Loader";
 import { AuthContext } from "../context/AuthContext";
 import { RiLogoutBoxRLine } from "react-icons/ri";
+import ChangePasswordDialog from "./ChangePasswordDialog";
 
 /**
  * Topbar with Enhanced Active Role Management
@@ -33,6 +34,9 @@ const Topbar = ({ toggleSidebar }) => {
   // Role switching states
   const [switchingRole, setSwitchingRole] = useState(false);
   const [switchProgress, setSwitchProgress] = useState({});
+
+  // Change password dialog state
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("queryDrafts_v2");
@@ -367,6 +371,17 @@ const Topbar = ({ toggleSidebar }) => {
     }
   };
 
+  const handleChangePassword = () => {
+    setIsProfileOpen(false);
+    setIsChangePasswordOpen(true);
+  };
+
+  const handlePasswordChanged = () => {
+    setIsChangePasswordOpen(false);
+    // After successful password change, log out the user
+    handleLogout();
+  };
+
   // Small helper to render a profile row if value exists
   const ProfileRow = ({ label, value }) =>
     !value ? null : (
@@ -406,377 +421,417 @@ const Topbar = ({ toggleSidebar }) => {
   }
 
   return (
-    <header className="topbar">
-      <div className="topbar-content">
-        {/* Left: Sidebar + Portfolio */}
-        <div className="topbar-left controls-group">
-          <button
-            className="sidebar-toggle control"
-            onClick={toggleSidebar}
-            title="Toggle sidebar"
-          >
-            <RiMenuFill />
-          </button>
-
-          <label
-            htmlFor="portfolioDropdown"
-            className="control"
-            style={{ whiteSpace: "nowrap" }}
-          >
-            Portfolio:
-          </label>
-
-          <select
-            id="portfolioDropdown"
-            className={`control portfolio-dropdown ${switchingRole ? "switching" : ""
-              }`}
-            value={activeRole?.PORTFOLIO_NAME || ""}
-            onChange={handlePortfolioChange}
-            disabled={portfolios.length === 0 || switchingRole}
-            title={switchingRole ? getRoleSwitchingText() : "Select portfolio"}
-          >
-            {portfolios.length > 0 ? (
-              portfolios.map((p, idx) => (
-                <option key={idx} value={p.PORTFOLIO_NAME}>
-                  {p.PORTFOLIO_NAME} ({p.USER_ROLE})
-                </option>
-              ))
-            ) : (
-              <option disabled>No portfolios available</option>
-            )}
-          </select>
-
-          {/* Role switching indicator */}
-          {switchingRole && (
-            <div
-              className="role-switch-indicator"
-              style={{
-                fontSize: "11px",
-                color: "var(--primary)",
-                marginLeft: "8px",
-                maxWidth: "200px",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-              title={getRoleSwitchingText()}
-            >
-              {switchProgress.step === "fetching" && "🔄"}{" "}
-              {getRoleSwitchingText()}
-            </div>
-          )}
-
-          {/* Show error if role error exists */}
-          {roleError && (
-            <div
-              style={{
-                color: "var(--error)",
-                fontSize: "12px",
-                marginLeft: "8px",
-              }}
-              title={roleError}
-            >
-              ⚠️
-            </div>
-          )}
-        </div>
-
-        {/* Refresh Button */}
-        <div className="refresh-container controls-group">
-          <GrRefresh
-            className={`refresh-button-api control ${isManualRefreshing || switchingRole ? "spinning" : ""
-              }`}
-            onClick={handleRefreshScreen}
-            title={
-              switchingRole
-                ? "Role switching in progress..."
-                : isManualRefreshing
-                  ? getRefreshIndicatorText()
-                  : "Refresh data"
-            }
-            aria-label="Refresh"
-            style={{
-              opacity: switchingRole || isManualRefreshing ? 0.6 : 1,
-              cursor:
-                switchingRole || isManualRefreshing ? "not-allowed" : "pointer",
-            }}
-          />
-          {isManualRefreshing && (
-            <div
-              className="refresh-indicator"
-              style={{
-                fontSize: "11px",
-                color: "var(--primary)",
-                marginLeft: "8px",
-                whiteSpace: "nowrap",
-              }}
-              title={getRefreshIndicatorText()}
-            >
-              {getRefreshIndicatorText()}
-            </div>
-          )}
-        </div>
-
-        {/* Center: Category + Search */}
-        <div className="topbar-center controls-group">
-          <select
-            value={searchCategory}
-            className="control"
-            onChange={(e) => setSearchCategory(e.target.value)}
-            disabled={categories.length === 0}
-          >
-            {categories.length > 0 ? (
-              categories.map((cat, idx) => (
-                <option key={idx} value={cat}>
-                  {cat}
-                </option>
-              ))
-            ) : (
-              <option disabled>No categories available</option>
-            )}
-          </select>
-
-          <select
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value)}
-            className="control"
-          >
-            <option value="Service">Service No.</option>
-            <option value="Query">Query</option>
-          </select>
-
-          <input
-            type="text"
-            className={`control control--grow ${isError ? "input-error" : ""}`}
-            placeholder={
-              errorPlaceholder ||
-              (searchType === "Query" ? "Enter Query ID" : "Enter Service No.")
-            }
-            value={searchValue}
-            onChange={handleSearchInputChange}
-          />
-
-          <button className="control" onClick={handleSearch}>
-            Search
-          </button>
-        </div>
-
-        {/* Right: Theme + Profile Icon */}
-        <div
-          className="topbar-right controls-group"
-          style={{ alignItems: "center" }}
-        >
-          <div
-            className="theme-toggle control"
-            onClick={toggleTheme}
-            role="button"
-            aria-label="Toggle theme"
-            title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-            style={{ cursor: "pointer", userSelect: "none" }}
-          >
-            {theme === "dark" ? "🌙 Dark" : "🌤 Light"}
-          </div>
-
-          {/* Profile icon + popup */}
-          <div
-            className="profile-wrapper control"
-            style={{ position: "relative", display: "inline-block" }}
-            ref={profileButtonRef}
-          >
+    <>
+      <header className="topbar">
+        <div className="topbar-content">
+          {/* Left: Sidebar + Portfolio */}
+          <div className="topbar-left controls-group">
             <button
-              className="profile-button"
-              onClick={() => setIsProfileOpen((s) => !s)}
-              aria-haspopup="dialog"
-              aria-expanded={isProfileOpen}
-              title="Open profile"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 6,
-                borderRadius: "50%",
-                border: "1px solid var(--border)",
-                background: "transparent",
-                cursor: "pointer",
-              }}
+              className="sidebar-toggle control"
+              onClick={toggleSidebar}
+              title="Toggle sidebar"
             >
-              <FaUserCircle style={{ fontSize: 28, color: "var(--text)" }} />
+              <RiMenuFill />
             </button>
 
-            {isProfileOpen && (
+            <label
+              htmlFor="portfolioDropdown"
+              className="control"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              Portfolio:
+            </label>
+
+            <select
+              id="portfolioDropdown"
+              className={`control portfolio-dropdown ${
+                switchingRole ? "switching" : ""
+              }`}
+              value={activeRole?.PORTFOLIO_NAME || ""}
+              onChange={handlePortfolioChange}
+              disabled={portfolios.length === 0 || switchingRole}
+              title={
+                switchingRole ? getRoleSwitchingText() : "Select portfolio"
+              }
+            >
+              {portfolios.length > 0 ? (
+                portfolios.map((p, idx) => (
+                  <option key={idx} value={p.PORTFOLIO_NAME}>
+                    {p.PORTFOLIO_NAME} ({p.USER_ROLE})
+                  </option>
+                ))
+              ) : (
+                <option disabled>No portfolios available</option>
+              )}
+            </select>
+
+            {/* Role switching indicator */}
+            {switchingRole && (
               <div
-                ref={profilePopupRef}
-                role="dialog"
-                aria-label="User profile"
-                className="user-popup user-card"
+                className="role-switch-indicator"
                 style={{
-                  position: "absolute",
-                  right: 0,
-                  top: "calc(100% + 8px)",
-                  background: "var(--surface)",
-                  color: "var(--text)",
-                  border: "1px solid var(--border)",
-                  boxShadow: "var(--shadow)",
-                  padding: 12,
-                  borderRadius: 10,
-                  minWidth: 320,
-                  zIndex: 2000,
+                  fontSize: "11px",
+                  color: "var(--primary)",
+                  marginLeft: "8px",
+                  maxWidth: "200px",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
+                title={getRoleSwitchingText()}
               >
-                {/* Popup header */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 12,
-                  }}
-                >
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: "100%",
-                        background:
-                          "color-mix(in srgb, var(--primary) 10%, transparent)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "var(--primary)",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {(fullProfile?.LOGIN_NAME && fullProfile.LOGIN_NAME[0]) || "U"}
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <div
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 700,
-                          color: "var(--text)",
-                        }}
-                      >
-                        {fullProfile?.LOGIN_NAME || "No Name"}
-                      </div>
-                    </div>
-                  </div>
+                {switchProgress.step === "fetching" && "🔄"}{" "}
+                {getRoleSwitchingText()}
+              </div>
+            )}
 
-                  {/* Small close button */}
-                  <button
-                    onClick={() => setIsProfileOpen(false)}
-                    aria-label="Close profile"
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "var(--muted)",
-                      padding: 6,
-                    }}
-                    title="Close"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {/* User Details */}
-                <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
-                  <ProfileRow label="Service No." value={fullProfile?.LOGIN_SNO} />
-                  <ProfileRow
-                    label="Rank"
-                    value={
-                      fullProfile?.RANK ||
-                      fullProfile?.RANK_NAME ||
-                      fullProfile?.RANK_AND_NAME ||
-                      ""
-                    }
-                  />
-                  <ProfileRow label="Dept." value={fullProfile?.MODULE || ""} />
-                  <ProfileRow
-                    label="Category"
-                    value={getUserRoleLabel(fullProfile?.LOGIN_CAT)}
-                  />
-                </div>
-
-                {/* Active Role Details */}
-                {activeRole && (
-                  <div
-                    style={{
-                      borderTop: "1px solid var(--border)",
-                      paddingTop: 8,
-                      marginTop: 8,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "var(--primary)",
-                        marginBottom: 8,
-                      }}
-                    >
-                      Active Role{" "}
-                      {switchingRole && (
-                        <span style={{ color: "var(--warning)" }}>🔄</span>
-                      )}
-                    </div>
-                    <div style={{ display: "grid", gap: 6 }}>
-                      <ProfileRow label="Portfolio" value={activeRole.PORTFOLIO_NAME} />
-                      <ProfileRow label="Role" value={activeRole.USER_ROLE} />
-                      <ProfileRow label="Sub Section" value={activeRole.SUB_SECTION} />
-                      <ProfileRow label="Module" value={activeRole.MODULE} />
-                      <ProfileRow label="Level" value={activeRole.PORTFOLIO_LEVEL} />
-                      {roleInfo?.cellsAlloted && roleInfo.cellsAlloted.length > 0 && (
-                        <ProfileRow
-                          label="Cells"
-                          value={`${roleInfo.cellsAlloted.length} assigned`}
-                        />
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* 🔴 Logout Button (added at bottom) */}
-                <button
-                  style={{
-                    marginTop: 16,
-                    width: "100%",
-                    background: "#292fe4ff",
-                    color: "#fff",
-                    border: "none",
-                    padding: "10px 0",
-                    borderRadius: 8,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  Change password
-                </button>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    marginTop: 16,
-                    width: "100%",
-                    background: "#ff4d4f",
-                    color: "#fff",
-                    border: "none",
-                    padding: "10px 0",
-                    borderRadius: 8,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  <RiLogoutBoxRLine style={{ marginRight: 6, verticalAlign: "middle" }} />
-                  Logout
-                </button>
+            {/* Show error if role error exists */}
+            {roleError && (
+              <div
+                style={{
+                  color: "var(--error)",
+                  fontSize: "12px",
+                  marginLeft: "8px",
+                }}
+                title={roleError}
+              >
+                ⚠️
               </div>
             )}
           </div>
 
+          {/* Refresh Button */}
+          <div className="refresh-container controls-group">
+            <GrRefresh
+              className={`refresh-button-api control ${
+                isManualRefreshing || switchingRole ? "spinning" : ""
+              }`}
+              onClick={handleRefreshScreen}
+              title={
+                switchingRole
+                  ? "Role switching in progress..."
+                  : isManualRefreshing
+                  ? getRefreshIndicatorText()
+                  : "Refresh data"
+              }
+              aria-label="Refresh"
+              style={{
+                opacity: switchingRole || isManualRefreshing ? 0.6 : 1,
+                cursor:
+                  switchingRole || isManualRefreshing
+                    ? "not-allowed"
+                    : "pointer",
+              }}
+            />
+            {isManualRefreshing && (
+              <div
+                className="refresh-indicator"
+                style={{
+                  fontSize: "11px",
+                  color: "var(--primary)",
+                  marginLeft: "8px",
+                  whiteSpace: "nowrap",
+                }}
+                title={getRefreshIndicatorText()}
+              >
+                {getRefreshIndicatorText()}
+              </div>
+            )}
+          </div>
+
+          {/* Center: Category + Search */}
+          <div className="topbar-center controls-group">
+            <select
+              value={searchCategory}
+              className="control"
+              onChange={(e) => setSearchCategory(e.target.value)}
+              disabled={categories.length === 0}
+            >
+              {categories.length > 0 ? (
+                categories.map((cat, idx) => (
+                  <option key={idx} value={cat}>
+                    {cat}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No categories available</option>
+              )}
+            </select>
+
+            <select
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+              className="control"
+            >
+              <option value="Service">Service No.</option>
+              <option value="Query">Query</option>
+            </select>
+
+            <input
+              type="text"
+              className={`control control--grow ${
+                isError ? "input-error" : ""
+              }`}
+              placeholder={
+                errorPlaceholder ||
+                (searchType === "Query"
+                  ? "Enter Query ID"
+                  : "Enter Service No.")
+              }
+              value={searchValue}
+              onChange={handleSearchInputChange}
+            />
+
+            <button className="control" onClick={handleSearch}>
+              Search
+            </button>
+          </div>
+
+          {/* Right: Theme + Profile Icon */}
+          <div
+            className="topbar-right controls-group"
+            style={{ alignItems: "center" }}
+          >
+            <div
+              className="theme-toggle control"
+              onClick={toggleTheme}
+              role="button"
+              aria-label="Toggle theme"
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+              style={{ cursor: "pointer", userSelect: "none" }}
+            >
+              {theme === "dark" ? "🌙 Dark" : "🌤 Light"}
+            </div>
+
+            {/* Profile icon + popup */}
+            <div
+              className="profile-wrapper control"
+              style={{ position: "relative", display: "inline-block" }}
+              ref={profileButtonRef}
+            >
+              <button
+                className="profile-button"
+                onClick={() => setIsProfileOpen((s) => !s)}
+                aria-haspopup="dialog"
+                aria-expanded={isProfileOpen}
+                title="Open profile"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 6,
+                  borderRadius: "50%",
+                  border: "1px solid var(--border)",
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <FaUserCircle style={{ fontSize: 28, color: "var(--text)" }} />
+              </button>
+
+              {isProfileOpen && (
+                <div
+                  ref={profilePopupRef}
+                  role="dialog"
+                  aria-label="User profile"
+                  className="user-popup user-card"
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "calc(100% + 8px)",
+                    background: "var(--surface)",
+                    color: "var(--text)",
+                    border: "1px solid var(--border)",
+                    boxShadow: "var(--shadow)",
+                    padding: 12,
+                    borderRadius: 10,
+                    minWidth: 320,
+                    zIndex: 2000,
+                  }}
+                >
+                  {/* Popup header */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 8,
+                      marginBottom: 12,
+                    }}
+                  >
+                    <div
+                      style={{ display: "flex", gap: 8, alignItems: "center" }}
+                    >
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: "100%",
+                          background:
+                            "color-mix(in srgb, var(--primary) 10%, transparent)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "var(--primary)",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {(fullProfile?.LOGIN_NAME &&
+                          fullProfile.LOGIN_NAME[0]) ||
+                          "U"}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            color: "var(--text)",
+                          }}
+                        >
+                          {fullProfile?.LOGIN_NAME || "No Name"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Small close button */}
+                    <button
+                      onClick={() => setIsProfileOpen(false)}
+                      aria-label="Close profile"
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--muted)",
+                        padding: 6,
+                      }}
+                      title="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* User Details */}
+                  <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+                    <ProfileRow
+                      label="Service No."
+                      value={fullProfile?.LOGIN_SNO}
+                    />
+                    <ProfileRow
+                      label="Rank"
+                      value={
+                        fullProfile?.RANK ||
+                        fullProfile?.RANK_NAME ||
+                        fullProfile?.RANK_AND_NAME ||
+                        ""
+                      }
+                    />
+                    <ProfileRow
+                      label="Dept."
+                      value={fullProfile?.MODULE || ""}
+                    />
+                    <ProfileRow
+                      label="Category"
+                      value={getUserRoleLabel(fullProfile?.LOGIN_CAT)}
+                    />
+                  </div>
+
+                  {/* Active Role Details */}
+                  {activeRole && (
+                    <div
+                      style={{
+                        borderTop: "1px solid var(--border)",
+                        paddingTop: 8,
+                        marginTop: 8,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "var(--primary)",
+                          marginBottom: 8,
+                        }}
+                      >
+                        Active Role{" "}
+                        {switchingRole && (
+                          <span style={{ color: "var(--warning)" }}>🔄</span>
+                        )}
+                      </div>
+                      <div style={{ display: "grid", gap: 6 }}>
+                        <ProfileRow
+                          label="Portfolio"
+                          value={activeRole.PORTFOLIO_NAME}
+                        />
+                        <ProfileRow label="Role" value={activeRole.USER_ROLE} />
+                        <ProfileRow
+                          label="Sub Section"
+                          value={activeRole.SUB_SECTION}
+                        />
+                        <ProfileRow label="Module" value={activeRole.MODULE} />
+                        <ProfileRow
+                          label="Level"
+                          value={activeRole.PORTFOLIO_LEVEL}
+                        />
+                        {roleInfo?.cellsAlloted &&
+                          roleInfo.cellsAlloted.length > 0 && (
+                            <ProfileRow
+                              label="Cells"
+                              value={`${roleInfo.cellsAlloted.length} assigned`}
+                            />
+                          )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 🔴 Logout Button (added at bottom) */}
+                  <button
+                    style={{
+                      marginTop: 16,
+                      width: "100%",
+                      background: "#292fe4ff",
+                      color: "#fff",
+                      border: "none",
+                      padding: "10px 0",
+                      borderRadius: 8,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                    onClick={handleChangePassword}
+                  >
+                    Change password
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      marginTop: 16,
+                      width: "100%",
+                      background: "#ff4d4f",
+                      color: "#fff",
+                      border: "none",
+                      padding: "10px 0",
+                      borderRadius: 8,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <RiLogoutBoxRLine
+                      style={{ marginRight: 6, verticalAlign: "middle" }}
+                    />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      {isChangePasswordOpen && (
+        <ChangePasswordDialog
+          onClose={() => setIsChangePasswordOpen(false)}
+          onPasswordChanged={handlePasswordChanged}
+        />
+      )}
+    </>
   );
 };
 

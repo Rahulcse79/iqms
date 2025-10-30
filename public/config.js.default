@@ -1,0 +1,30 @@
+var defaultLogLevel = 4;
+var displayTrace = false;
+var DATA_REFRESH_INTERVAL = 10000;
+var overrideURLS = false;
+
+var SIPPhoneService = null;
+var mapURL = "http://192.168.8.112";
+var mapCenter = [28.679079, 77.069710];
+var mapDefaultZoom = 13;
+var mapDisplayDispatcher = true;
+var callServer = "http://127.0.0.1:8996";
+var callServerPredefinedAction = false;
+
+var northZone = {
+    codeBlue : "300",
+    pa : "301",
+    emService : "302"
+}
+
+
+var southZone = {
+    codeBlue : "400",
+    pa : "401",
+    emService : "402"
+}
+
+var websocketStatus = {
+    services: true,
+    telemetry: true
+}

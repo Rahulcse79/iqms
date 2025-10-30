@@ -1,19 +1,117 @@
 /* =============================
    CDR.css — Theme Consistent Version
    ============================= */
+/* ---------- Filters Section ---------- */
+.cdr-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--cdr-border, #e5e7eb);
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  margin-bottom: 1.5rem;
+}
+
+.cdr-filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: var(--text, #333);
+  font-weight: 500;
+}
+
+.cdr-filters input[type="datetime-local"],
+.cdr-filters input[type="text"] {
+  margin-top: 0.35rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+   background: var(--bg);
+  font-size: 0.9rem;
+  min-width: 200px;
+  color: var(--text, #111);
+  transition: all 0.2s ease;
+}
+
+.cdr-filters input[type="datetime-local"]:focus,
+.cdr-filters input[type="text"]:focus {
+  border-color: var(--cdr-primary, #0ea5a4);
+  box-shadow: 0 0 0 3px rgba(14,165,164,0.15);
+  outline: none;
+}
+
+/* ---------- Buttons ---------- */
+.cdr-filters button {
+  background: var(--cdr-primary, #0ea5a4);
+  color: var(--cdr-button-text, #fff);
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+.cdr-filters button:hover:not(:disabled) {
+  background: var(--cdr-primary-dark, #0b8b8b);
+  transform: translateY(-1px);
+}
+
+.cdr-filters button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Reset button variant */
+.cdr-filters button[title*="Reset"] {
+  background: #f3f4f6;
+  color: #333;
+  border: 1px solid #d1d5db;
+}
+
+.cdr-filters button[title*="Reset"]:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 700px) {
+  .cdr-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cdr-filters label {
+    width: 100%;
+  }
+
+  .cdr-filters input {
+    width: 100%;
+  }
+
+  .cdr-filters button {
+    width: 100%;
+  }
+}
 
 .cdr-container {
   min-height: 100vh;
   width: 100%;
   padding: 1.5rem;
-  background: var(--bg, #0ea5a4);
-  font-family: var(--font-family, 'Inter', system-ui, sans-serif);
-  color: var(--text, white);
+  background: var(--bg);
+  font-family: var(--cdr-font-family, 'Inter', system-ui, sans-serif);
+  color: var(--text);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
 /* ---------- Header ---------- */
-.cdr-container h1 {
-  color: var(--primary, #f3f4f6);
+.cdr-title {
+  color: var(--text);
   text-align: center;
   font-size: 1.6rem;
   font-weight: 700;
@@ -23,6 +121,7 @@
 
 /* ---------- Tabs ---------- */
 .cdr-tabs {
+  color: var(--text);
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
@@ -30,129 +129,178 @@
   margin-bottom: 1.5rem;
 }
 
-.cdr-tabs button {
-  padding: 0.6rem 1.25rem;
-  border-radius: 9999px;
-  border: 1px solid var(--border, #f3f4f6);
-  background: var(--surface-accent, #f3f4f6);
-  font-weight: 600;
+.cdr-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--bg);
   cursor: pointer;
-  color: var(--text, #111827);
+  font-weight: 600;
+  font-size: 0.9rem;
   transition: all 0.25s ease;
+  color: var(--text);
 }
 
-.cdr-tabs button.active {
-  background: var(--primary, #0ea5a4);
-  color: var(--button-text, #fff);
+.cdr-tab.active {
+  background: var(--cdr-primary, #0ea5a4);
+  color: var(--cdr-button-text, #fff);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   border-color: transparent;
-  box-shadow: 0 4px 10px rgba(14,165,164,0.25);
 }
 
-.cdr-tabs button:hover {
-  background: color-mix(in srgb, var(--primary, #0ea5a4) 20%, #fff);
-  color: var(--text-strong, #0f172a);
+/* ---------- Badges ---------- */
+.cdr-badge {
+  display: inline-block;
+  min-width: 28px;
+  padding: 0.15rem 0.4rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  margin-left: 0.35rem;
+  color: #fff;
 }
+
+/* Type Badges */
+.cdr-received { background: #ecfeff; color: #0e7490; }
+.cdr-dialed   { background: #fff7ed; color: #c2410c; }
+.cdr-answered { background: #ecfdf5; color: #047857; }
+.cdr-missed   { background: #fef2f2; color: #b91c1c; }
 
 /* ---------- Table Wrapper ---------- */
 .cdr-table-wrapper {
   overflow-x: auto;
-  background: var(--surface, #fff);
-  border: 1px solid var(--border, #e5e7eb);
+  background: var(--bg);
+  border: 1px solid var(--cdr-border, #e5e7eb);
   border-radius: 0.75rem;
-  box-shadow: var(--shadow, 0 2px 6px rgba(0,0,0,0.04));
+  box-shadow: var(--cdr-shadow, 0 2px 6px rgba(0,0,0,0.04));
 }
 
 /* ---------- Table ---------- */
 .cdr-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   min-width: 700px;
 }
 
 .cdr-table th,
 .cdr-table td {
-  padding: 0.75rem 0.9rem;
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid #f0f0f0;
   text-align: left;
-  border-bottom: 1px solid var(--border, #e5e7eb);
+  color: var(--text);
 }
 
-.cdr-table th {
-  background: linear-gradient(180deg, var(--surface-accent, #0ea5a4), var(--surface, #fff));
-  color: var(--text-strong, #0f172a);
+.cdr-table thead th {
+  background: var(--bg);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 0.85rem;
   position: sticky;
   top: 0;
   z-index: 2;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
 }
 
 .cdr-table tbody tr:nth-child(even) {
-  background: color-mix(in srgb, var(--surface, #ffffff) 92%, var(--surface-accent, #f9fafb) 8%);
+  background: var(--bg);
 }
 
 .cdr-table tbody tr:hover {
-  background: color-mix(in srgb, var(--accent, #6366f1) 6%, var(--surface, #fff) 94%);
+  background: var(--bg);
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
-/* ---------- Type Badges ---------- */
-.badge {
-  display: inline-block;
-  padding: 0.3rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+/* ---------- Direction ---------- */
+.cdr-direction.in { color: #2e7d32; }
+.cdr-direction.out { color: #1565c0; }
+
+/* ---------- Recording ---------- */
+.cdr-recording-wrap {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cdr-recording-wrap audio {
+  width: 120px;
+  height: 25px;
+}
+
+.cdr-record-download {
+  font-size: 0.75rem;
+  text-decoration: none;
+  color: #555;
+}
+
+.cdr-no-record {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* ---------- States ---------- */
+.cdr-loading, .cdr-error, .cdr-no-data {
   text-align: center;
-  min-width: 80px;
+  font-style: italic;
+  color: #555;
+  padding: 1rem 0;
 }
 
-/* Color Variants */
-.received {
-  background: #ecfeff;
-  color: #0e7490;
-}
-.dialed {
-  background: #fff7ed;
-  color: #c2410c;
-}
-.answered {
-  background: #ecfdf5;
-  color: #047857;
-}
-.missed {
-  background: #fef2f2;
-  color: #b91c1c;
+/* ---------- Pagination ---------- */
+.cdr-pagination {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 0;
 }
 
-/* ---------- Status Badges ---------- */
-.completed {
-  background: #dcfce7;
-  color: #15803d;
+.cdr-pagination button {
+  padding: 0.45rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #f6f6f6;
+  cursor: pointer;
+  font-weight: 600;
+  color: black;
+}
+
+.cdr-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .cdr-table th,
   .cdr-table td {
-    padding: 0.55rem 0.65rem;
+    padding: 0.55rem 0.55rem;
     font-size: 0.82rem;
   }
-  .cdr-table {
-    min-width: 650px;
-  }
+  .cdr-table { min-width: 650px; }
 }
 
 @media (max-width: 520px) {
   .cdr-table th,
   .cdr-table td {
-    padding: 0.45rem 0.55rem;
+    padding: 0.45rem 0.5rem;
     font-size: 0.78rem;
   }
-  .cdr-table {
-    min-width: 520px;
+  .cdr-table { min-width: 520px; }
+}
+
+@media (max-width: 720px) {
+  .cdr-table th:nth-child(4),
+  .cdr-table td:nth-child(4),
+  .cdr-table th:nth-child(5),
+  .cdr-table td:nth-child(5),
+  .cdr-table th:nth-child(8),
+  .cdr-table td:nth-child(8) {
+    display: none;
   }
 }
