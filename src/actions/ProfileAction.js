@@ -24,7 +24,9 @@ import {
   IRLA_SUCCESS,
   IRLA_FAIL,
   IRLA_API_TOKEN,
-  POR_REQUEST, POR_SUCCESS, POR_FAIL,
+  POR_REQUEST,
+  POR_SUCCESS,
+  POR_FAIL,
 } from "../constants/ProfileConstants";
 
 // Base paths
@@ -39,14 +41,14 @@ const log = {
     try {
       // eslint-disable-next-line no-console
       console.group(label);
-    } catch { }
+    } catch {}
   },
   groupEnd() {
     if (!DEBUG_REDUX_LOGS) return;
     try {
       // eslint-disable-next-line no-console
       console.groupEnd();
-    } catch { }
+    } catch {}
   },
   info(...args) {
     if (!DEBUG_REDUX_LOGS) return;
@@ -71,7 +73,7 @@ const safeErrorMessage = (err) => {
       if (err.response.data.message) return err.response.data.message;
       return JSON.stringify(err.response.data);
     }
-  } catch { }
+  } catch {}
   return err?.message || "Something went wrong";
 };
 
@@ -117,96 +119,96 @@ export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
    --------------------------- */
 export const getRankHistory =
   (serviceNo, category, page = 1) =>
-    async (dispatch) => {
-      dispatch({ type: RANK_HISTORY_REQUEST });
-      const url = `${BASE_PROFILEVIEW}/rankHist/${encodeURIComponent(
-        serviceNo
-      )}/${encodeURIComponent(category)}`;
+  async (dispatch) => {
+    dispatch({ type: RANK_HISTORY_REQUEST });
+    const url = `${BASE_PROFILEVIEW}/rankHist/${encodeURIComponent(
+      serviceNo
+    )}/${encodeURIComponent(category)}`;
 
-      log.group("getRankHistory");
-      log.debug("GET", url, { serviceNo, category, page });
+    log.group("getRankHistory");
+    log.debug("GET", url, { serviceNo, category, page });
 
-      try {
-        const { data } = await axios.get(url, { timeout: 15000 });
-        log.info("getRankHistory -> response received, count:", data?.count);
-        if (Array.isArray(data?.items)) {
-          // eslint-disable-next-line no-console
-          console.table(data.items);
-        }
-        dispatch({ type: RANK_HISTORY_SUCCESS, payload: data });
-        log.info("getRankHistory -> DISPATCH SUCCESS");
-        return data;
-      } catch (error) {
-        const msg = safeErrorMessage(error);
-        log.error("getRankHistory -> ERROR", msg, { error });
-        dispatch({ type: RANK_HISTORY_FAIL, payload: msg });
-        throw new Error(msg);
-      } finally {
-        log.groupEnd();
+    try {
+      const { data } = await axios.get(url, { timeout: 15000 });
+      log.info("getRankHistory -> response received, count:", data?.count);
+      if (Array.isArray(data?.items)) {
+        // eslint-disable-next-line no-console
+        console.table(data.items);
       }
-    };
+      dispatch({ type: RANK_HISTORY_SUCCESS, payload: data });
+      log.info("getRankHistory -> DISPATCH SUCCESS");
+      return data;
+    } catch (error) {
+      const msg = safeErrorMessage(error);
+      log.error("getRankHistory -> ERROR", msg, { error });
+      dispatch({ type: RANK_HISTORY_FAIL, payload: msg });
+      throw new Error(msg);
+    } finally {
+      log.groupEnd();
+    }
+  };
 
 export const getTradeHistory =
   (serviceNo, category, page = 1) =>
-    async (dispatch) => {
-      dispatch({ type: TRADE_HISTORY_REQUEST });
-      const url = `${BASE_PROFILEVIEW}/tradeHist/${encodeURIComponent(
-        serviceNo
-      )}/${encodeURIComponent(category)}`;
+  async (dispatch) => {
+    dispatch({ type: TRADE_HISTORY_REQUEST });
+    const url = `${BASE_PROFILEVIEW}/tradeHist/${encodeURIComponent(
+      serviceNo
+    )}/${encodeURIComponent(category)}`;
 
-      log.group("getTradeHistory");
-      log.debug("GET", url, { serviceNo, category, page });
+    log.group("getTradeHistory");
+    log.debug("GET", url, { serviceNo, category, page });
 
-      try {
-        const { data } = await axios.get(url, { timeout: 15000 });
-        log.info("getTradeHistory -> response received, count:", data?.count);
-        if (Array.isArray(data?.items)) {
-          // eslint-disable-next-line no-console
-          console.table(data.items);
-        }
-        dispatch({ type: TRADE_HISTORY_SUCCESS, payload: data });
-        log.info("getTradeHistory -> DISPATCH SUCCESS");
-        return data;
-      } catch (error) {
-        const msg = safeErrorMessage(error);
-        log.error("getTradeHistory -> ERROR", msg, { error });
-        dispatch({ type: TRADE_HISTORY_FAIL, payload: msg });
-        throw new Error(msg);
-      } finally {
-        log.groupEnd();
+    try {
+      const { data } = await axios.get(url, { timeout: 15000 });
+      log.info("getTradeHistory -> response received, count:", data?.count);
+      if (Array.isArray(data?.items)) {
+        // eslint-disable-next-line no-console
+        console.table(data.items);
       }
-    };
+      dispatch({ type: TRADE_HISTORY_SUCCESS, payload: data });
+      log.info("getTradeHistory -> DISPATCH SUCCESS");
+      return data;
+    } catch (error) {
+      const msg = safeErrorMessage(error);
+      log.error("getTradeHistory -> ERROR", msg, { error });
+      dispatch({ type: TRADE_HISTORY_FAIL, payload: msg });
+      throw new Error(msg);
+    } finally {
+      log.groupEnd();
+    }
+  };
 
 export const getPostingHistory =
   (serviceNo, category, page = 1) =>
-    async (dispatch) => {
-      dispatch({ type: POSTING_HISTORY_REQUEST });
-      const url = `${BASE_PROFILEVIEW}/postingHist/${encodeURIComponent(
-        serviceNo
-      )}/${encodeURIComponent(category)}`;
+  async (dispatch) => {
+    dispatch({ type: POSTING_HISTORY_REQUEST });
+    const url = `${BASE_PROFILEVIEW}/postingHist/${encodeURIComponent(
+      serviceNo
+    )}/${encodeURIComponent(category)}`;
 
-      log.group("getPostingHistory");
-      log.debug("GET", url, { serviceNo, category, page });
+    log.group("getPostingHistory");
+    log.debug("GET", url, { serviceNo, category, page });
 
-      try {
-        const { data } = await axios.get(url, { timeout: 15000 });
-        log.info("getPostingHistory -> response received, count:", data?.count);
-        if (Array.isArray(data?.items)) {
-          // eslint-disable-next-line no-console
-          console.table(data.items);
-        }
-        dispatch({ type: POSTING_HISTORY_SUCCESS, payload: data });
-        log.info("getPostingHistory -> DISPATCH SUCCESS");
-        return data;
-      } catch (error) {
-        const msg = safeErrorMessage(error);
-        log.error("getPostingHistory -> ERROR", msg, { error });
-        dispatch({ type: POSTING_HISTORY_FAIL, payload: msg });
-        throw new Error(msg);
-      } finally {
-        log.groupEnd();
+    try {
+      const { data } = await axios.get(url, { timeout: 15000 });
+      log.info("getPostingHistory -> response received, count:", data?.count);
+      if (Array.isArray(data?.items)) {
+        // eslint-disable-next-line no-console
+        console.table(data.items);
       }
-    };
+      dispatch({ type: POSTING_HISTORY_SUCCESS, payload: data });
+      log.info("getPostingHistory -> DISPATCH SUCCESS");
+      return data;
+    } catch (error) {
+      const msg = safeErrorMessage(error);
+      log.error("getPostingHistory -> ERROR", msg, { error });
+      dispatch({ type: POSTING_HISTORY_FAIL, payload: msg });
+      throw new Error(msg);
+    } finally {
+      log.groupEnd();
+    }
+  };
 
 export const fetchABCCodes = () => async (dispatch) => {
   console.log("[Action] fetchABCCodes triggered");
@@ -231,69 +233,103 @@ export const fetchABCCodes = () => async (dispatch) => {
   }
 };
 
+export const fetchABCCodesNew = (serviceNo) => async (dispatch) => {
+  console.log("[Action] fetchABCCodes triggered");
+  dispatch({ type: FETCH_ABC_REQUEST });
+
+  const url = `${BASE_ABCS}FETCH_ABC_CODES_NEW`;
+
+  try {
+    if (!serviceNo) {
+      throw new Error("Service number (SNO) is required to fetch ABC codes");
+    }
+
+    const res = await axios.get(url, {
+      headers: {
+        SNO: serviceNo, // new header as per requirement
+      },
+      timeout: 150000,
+    });
+
+    console.log("[Action] API Response:", res.data);
+
+    const payload = Array.isArray(res.data?.items) ? res.data.items : [];
+
+    dispatch({
+      type: FETCH_ABC_SUCCESS,
+      payload: payload,
+    });
+  } catch (error) {
+    console.error("[Action] Error fetching ABC codes:", error);
+    dispatch({
+      type: FETCH_ABC_FAILURE,
+      payload: error.message || "Failed to fetch ABC codes",
+    });
+  }
+};
+
 /* ----------------- getGCIHistory (with caching) -----------------
    serviceNo: string/number
    abc: string (selected code)
 */
-export const getGCIHistory =
-  (serviceNo, abc) => async (dispatch, getState) => {
-    if (!serviceNo) {
-      const msg = "Service number required to fetch GCI history";
-      dispatch({ type: GCI_HISTORY_FAIL, payload: msg });
-      throw new Error(msg);
-    }
+export const getGCIHistory = (serviceNo, abc) => async (dispatch, getState) => {
+  if (!serviceNo) {
+    const msg = "Service number required to fetch GCI history";
+    dispatch({ type: GCI_HISTORY_FAIL, payload: msg });
+    throw new Error(msg);
+  }
 
-    const cacheKey = `${serviceNo}|${abc}`;
-    // Check cache in redux first
-    try {
-      const cached = getState()?.profileView?.gciHistory?.cache?.[cacheKey];
-      if (cached) {
-        // served from cache
-        dispatch({
-          type: GCI_HISTORY_SUCCESS,
-          payload: cached,
-          meta: { cacheKey, fromCache: true },
-        });
-        log.info("getGCIHistory -> served from cache", cacheKey);
-        return cached;
-      }
-    } catch (e) {
-      // noop — continue to fetch
-    }
-
-    dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey } });
-    const url = `${BASE_PROFILEVIEW}/gciHist/${encodeURIComponent(
-      serviceNo
-    )}/${encodeURIComponent(abc)}`;
-    log.group("getGCIHistory");
-    log.debug("GET", url, { serviceNo, abc });
-
-    try {
-      const { data } = await axios.get(url, { timeout: 15000 });
-      // `data` expected in same pattern used elsewhere: { items: [...], count, limit, offset, links }
-      log.info("getGCIHistory -> response received", {
-        count: data?.count ?? null,
-      });
-      if (process.env.NODE_ENV !== "production" && Array.isArray(data?.items)) {
-        console.table(data.items.slice(0, 10));
-      }
-      // include cacheKey inside meta so reducer can store it
+  const cacheKey = `${serviceNo}|${abc}`;
+  // Check cache in redux first
+  try {
+    const cached = getState()?.profileView?.gciHistory?.cache?.[cacheKey];
+    if (cached) {
+      // served from cache
       dispatch({
         type: GCI_HISTORY_SUCCESS,
-        payload: data,
-        meta: { cacheKey },
+        payload: cached,
+        meta: { cacheKey, fromCache: true },
       });
-      log.info("getGCIHistory -> DISPATCH SUCCESS", cacheKey);
-      return data;
-    } catch (err) {
-      const msg = safeErrorMessage(err);
-      dispatch({ type: GCI_HISTORY_FAIL, payload: msg, meta: { cacheKey } });
-      log.error("getGCIHistory -> ERROR", msg);
-      throw new Error(msg);
-    } finally {
-      log.groupEnd();
+      log.info("getGCIHistory -> served from cache", cacheKey);
+      return cached;
     }
-  };
+  } catch (e) {
+    // noop — continue to fetch
+  }
+
+  dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey } });
+  const url = `${BASE_PROFILEVIEW}/gciHist/${encodeURIComponent(
+    serviceNo
+  )}/${encodeURIComponent(abc)}`;
+  log.group("getGCIHistory");
+  log.debug("GET", url, { serviceNo, abc });
+
+  try {
+    const { data } = await axios.get(url, { timeout: 15000 });
+    // `data` expected in same pattern used elsewhere: { items: [...], count, limit, offset, links }
+    log.info("getGCIHistory -> response received", {
+      count: data?.count ?? null,
+    });
+    if (process.env.NODE_ENV !== "production" && Array.isArray(data?.items)) {
+      console.table(data.items.slice(0, 10));
+    }
+    // include cacheKey inside meta so reducer can store it
+    dispatch({
+      type: GCI_HISTORY_SUCCESS,
+      payload: data,
+      meta: { cacheKey },
+    });
+    log.info("getGCIHistory -> DISPATCH SUCCESS", cacheKey);
+    return data;
+  } catch (err) {
+    const msg = safeErrorMessage(err);
+    dispatch({ type: GCI_HISTORY_FAIL, payload: msg, meta: { cacheKey } });
+    log.error("getGCIHistory -> ERROR", msg);
+    throw new Error(msg);
+  } finally {
+    log.groupEnd();
+  }
+};
 
 // Import breadcrumb
 try {
@@ -301,75 +337,98 @@ try {
     // eslint-disable-next-line no-console
     console.log("[actions] ProfileAction loaded");
   }
-} catch { }
+} catch {}
 
 const toFormData = (obj) =>
   Object.keys(obj)
-    .map(
-      (key) => encodeURIComponent(key) + "=" + encodeURIComponent(obj[key])
-    )
+    .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]))
     .join("&");
 
 const toFormDataPOR = (obj) =>
   Object.keys(obj)
-    .map(
-      (key) => encodeURIComponent(key) + "=" + encodeURIComponent(obj[key])
-    )
+    .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]))
     .join("&");
 
+export const fetchIrlaView =
+  ({ selSno, selCat, selYr, selMon, month }) =>
+  async (dispatch) => {
+    dispatch({ type: IRLA_REQUEST });
 
-export const fetchIrlaView = ({ selSno, selCat, selYr, selMon, month }) => async (dispatch) => {
-  dispatch({ type: IRLA_REQUEST });
+    try {
+      const body = toFormData({ api_token: IRLA_API_TOKEN });
 
-  try {
-    const body = toFormData({ api_token: IRLA_API_TOKEN });
+      const response = await axios.post(
+        `http://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=IVRS`,
+        body,
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          responseType: "blob",
+          timeout: 20000,
+        }
+      );
 
-    const response = await axios.post(
-      `http://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=IVRS`,
-      body,
-      {
+      const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      dispatch({ type: IRLA_SUCCESS, payload: { blob: pdfBlob, url: pdfUrl } });
+    } catch (err) {
+      dispatch({
+        type: IRLA_FAIL,
+        payload:
+          err?.response?.data?.message ||
+          err.message ||
+          "Failed to fetch IRLA View",
+      });
+    }
+  };
+
+export const fetchPorData =
+  ({ sno, cat, porYear }) =>
+  async (dispatch) => {
+    dispatch({ type: POR_REQUEST });
+
+    try {
+      const body = toFormDataPOR({ api_token: IRLA_API_TOKEN });
+
+      const url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=IVRS`;
+
+      const response = await axios.post(url, body, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        responseType: "blob",
         timeout: 20000,
-      }
-    );
+      });
 
-    const pdfBlob = new Blob([response.data], { type: "application/pdf" });
-    const pdfUrl = URL.createObjectURL(pdfBlob);
+      dispatch({ type: POR_SUCCESS, payload: response.data });
+    } catch (err) {
+      dispatch({
+        type: POR_FAIL,
+        payload:
+          err?.response?.data?.message ||
+          err.message ||
+          "Failed to fetch POR data",
+      });
+    }
+  };
 
-    dispatch({ type: IRLA_SUCCESS, payload: { blob: pdfBlob, url: pdfUrl } });
-  } catch (err) {
-    dispatch({
-      type: IRLA_FAIL,
-      payload:
-        err?.response?.data?.message || 
-        err.message ||
-        "Failed to fetch IRLA View",
-    });
-  }
-};
+  export const getGCIHistoryNew = (serviceNo, abcCode) => async (dispatch, getState) => {
+  dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey: `${serviceNo}_${abcCode}` } });
 
-export const fetchPorData = ({ sno, cat, porYear }) => async (dispatch) => {
-  dispatch({ type: POR_REQUEST });
+  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/profileView/gciHistory/${encodeURIComponent(
+    serviceNo
+  )}/${encodeURIComponent(abcCode)}`;
 
   try {
-    const body = toFormDataPOR({ api_token: IRLA_API_TOKEN });
+    const { data } = await axios.get(url, { timeout: 15000 });
 
-    const url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=IVRS`;
-
-    const response = await axios.post(url, body, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      timeout: 20000,
-    });
-
-    dispatch({ type: POR_SUCCESS, payload: response.data });
-  } catch (err) {
     dispatch({
-      type: POR_FAIL,
-      payload:
-        err?.response?.data?.message ||
-        err.message ||
-        "Failed to fetch POR data",
+      type: GCI_HISTORY_SUCCESS,
+      payload: data,
+      meta: { cacheKey: `${serviceNo}_${abcCode}`, fromCache: false },
     });
+    return data;
+  } catch (error) {
+    const msg = error?.message || "Failed to fetch GCI history";
+    dispatch({ type: GCI_HISTORY_FAIL, payload: msg });
+    throw error;
   }
 };
+

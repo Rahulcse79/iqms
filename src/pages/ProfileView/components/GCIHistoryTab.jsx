@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchABCCodes, getGCIHistory } from "../../../actions/ProfileAction";
+import {
+  fetchABCCodesNew,
+  getGCIHistoryNew,
+} from "../../../actions/ProfileAction";
 import "./GCIHistoryTab.css";
 
 export default function GCIHistoryTab() {
@@ -14,7 +17,9 @@ export default function GCIHistoryTab() {
   } = useSelector((state) => state.abcCodes || {});
 
   // personalData slice -> get serviceNo & category
-  const personalData = useSelector((state) => state.personalData?.personalData || null);
+  const personalData = useSelector(
+    (state) => state.personalData?.personalData || null
+  );
   const serviceNo = personalData?.sno ?? personalData?.serviceNo ?? "";
   const category = personalData?.cat ?? personalData?.category ?? "1";
 
@@ -29,13 +34,17 @@ export default function GCIHistoryTab() {
   const [selectedAbc, setSelectedAbc] = useState("");
   const [localError, setLocalError] = useState("");
 
-  // Load ABC codes if not present
+  const [abcFetched, setAbcFetched] = useState(false);
+
   useEffect(() => {
-    if ((!Array.isArray(abcItems) || abcItems.length === 0) && !abcLoading) {
-      // fetchABCCodes returns a promise in your actions; swallow rejections here
-      dispatch(fetchABCCodes()).catch(() => {});
+    if (!abcItems.length && !abcLoading && serviceNo) {
+      dispatch(fetchABCCodesNew(serviceNo))
+        .then(() => console.log("ABC codes loaded"))
+        .catch((err) => console.error("Failed:", err));
     }
-  }, [dispatch, abcItems, abcLoading]);
+    // run only once after mount or when serviceNo changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serviceNo]);
 
   // Helper: format ISO date to local readable date
   const formatDate = (iso) => {
@@ -65,7 +74,10 @@ export default function GCIHistoryTab() {
   const displayedColumns = useMemo(() => {
     if (!Array.isArray(gciItems) || gciItems.length === 0) return rawColumns;
     const hasOcc = rawColumns.includes("occ_id");
-    const hasPor = rawColumns.includes("porno") || rawColumns.includes("porno_no") || rawColumns.includes("por_no");
+    const hasPor =
+      rawColumns.includes("porno") ||
+      rawColumns.includes("porno_no") ||
+      rawColumns.includes("por_no");
     // handle common variant keys: prefer exact 'porno', fallback names if needed
     // We'll check exact 'porno' first
     if (rawColumns.includes("occ_id") && rawColumns.includes("porno")) {
@@ -106,12 +118,14 @@ export default function GCIHistoryTab() {
       return;
     }
     if (!serviceNo) {
-      setLocalError("Service number unavailable — open Personal Details and fetch profile first.");
+      setLocalError(
+        "Service number unavailable — open Personal Details and fetch profile first."
+      );
       return;
     }
 
     // dispatch and ignore rejection here to avoid unhandled promise
-    dispatch(getGCIHistory(serviceNo, selectedAbc)).catch(() => {});
+    dispatch(getGCIHistoryNew(serviceNo, selectedAbc)).catch(() => {});
   };
 
   const clearSelection = () => {
@@ -127,25 +141,39 @@ export default function GCIHistoryTab() {
 
       {!serviceNo ? (
         <div style={{ marginBottom: 12, color: "var(--red, #b91c1c)" }}>
-          No service number available — open Personal Details and fetch profile first.
+          No service number available — open Personal Details and fetch profile
+          first.
         </div>
       ) : (
         <div style={{ marginBottom: 12, color: "var(--text)" }}>
-          Service No: <strong>{serviceNo}</strong> • Category: <strong>{category}</strong>
+          Service No: <strong>{serviceNo}</strong> • Category:{" "}
+          <strong>{category}</strong>
         </div>
       )}
 
       <form onSubmit={handleSubmit} style={{ marginBottom: 12 }}>
-        <label htmlFor="gci-abc-select" style={{ color: "var(--text)", display: "block", marginBottom: 6 }}>
+        <label
+          htmlFor="gci-abc-select"
+          style={{ color: "var(--text)", display: "block", marginBottom: 6 }}
+        >
           Select ABC code
         </label>
 
         {abcLoading ? (
           <div>Loading codes...</div>
         ) : abcError ? (
-          <div style={{ color: "var(--red, #b91c1c)" }}>Error loading codes: {String(abcError)}</div>
+          <div style={{ color: "var(--red, #b91c1c)" }}>
+            Error loading codes: {String(abcError)}
+          </div>
         ) : (
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <select
               id="gci-abc-select"
               value={selectedAbc}
@@ -167,8 +195,8 @@ export default function GCIHistoryTab() {
               <option value="">-- Select code --</option>
               {Array.isArray(abcItems) && abcItems.length > 0 ? (
                 abcItems.map((c) => (
-                  <option key={c.abccd} value={c.abccd}>
-                    {c.abccd} — {c.description}
+                  <option key={c.abc} value={c.abc}>
+                    {c.abc} — {c.description}
                   </option>
                 ))
               ) : (
@@ -183,8 +211,14 @@ export default function GCIHistoryTab() {
                 padding: "8px 12px",
                 borderRadius: 6,
                 border: "none",
-                background: selectedAbc && serviceNo ? "var(--primary, #0ea5a4)" : "var(--surface-accent, #f3f4f6)",
-                color: selectedAbc && serviceNo ? "var(--surface, #fff)" : "var(--muted, #94a3b8)",
+                background:
+                  selectedAbc && serviceNo
+                    ? "var(--primary, #0ea5a4)"
+                    : "var(--surface-accent, #f3f4f6)",
+                color:
+                  selectedAbc && serviceNo
+                    ? "var(--surface, #fff)"
+                    : "var(--muted, #94a3b8)",
                 cursor: selectedAbc && serviceNo ? "pointer" : "not-allowed",
               }}
               aria-disabled={!selectedAbc || !serviceNo}
@@ -208,29 +242,63 @@ export default function GCIHistoryTab() {
               Clear
             </button>
 
-            {selectedAbc && <div style={{ color: "var(--text)" }}>Selected: <strong>{selectedAbc}</strong></div>}
+            {selectedAbc && (
+              <div style={{ color: "var(--text)" }}>
+                Selected: <strong>{selectedAbc}</strong>
+              </div>
+            )}
           </div>
         )}
       </form>
 
-      {localError && <div style={{ color: "var(--red, #b91c1c)", marginBottom: 8 }}>{localError}</div>}
+      {localError && (
+        <div style={{ color: "var(--red, #b91c1c)", marginBottom: 8 }}>
+          {localError}
+        </div>
+      )}
 
       <div style={{ marginTop: 12 }}>
         {gciLoading ? (
           <div>Loading GCI history...</div>
         ) : gciError ? (
-          <div style={{ color: "var(--red, #b91c1c)" }}>Error fetching GCI history: {String(gciError)}</div>
+          <div style={{ color: "var(--red, #b91c1c)" }}>
+            Error fetching GCI history: {String(gciError)}
+          </div>
         ) : !selectedAbc ? (
-          <div style={{ color: "var(--muted)" }}>Please select an ABC code and click <strong>Submit</strong> to view GCI history.</div>
-        ) : Array.isArray(gciItems) && gciItems.length === 0 ? (
-          <div>No GCI history records found for selected code.</div>
+          <div style={{ color: "var(--muted)" }}>
+            Please select an ABC code and click <strong>Submit</strong> to view
+            GCI history.
+          </div>
+        ) : selectedAbc && Array.isArray(gciItems) && gciItems.length === 0 ? (
+          <div>
+            No GCI history records found for ABC code{" "}
+            <strong>{selectedAbc}</strong>.
+          </div>
         ) : (
           <div>
-            {isFromCache && <div style={{ color: "var(--green, #065f46)", marginBottom: 6 }}>Served from cache</div>}
+            {isFromCache && (
+              <div style={{ color: "var(--green, #065f46)", marginBottom: 6 }}>
+                Served from cache
+              </div>
+            )}
 
-            <div style={{ overflowX: "auto", border: "1px solid var(--border, #e6eaea)", borderRadius: 8 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
-                <thead style={{ background: "var(--surface)", color: "var(--text)" }}>
+            <div
+              style={{
+                overflowX: "auto",
+                border: "1px solid var(--border, #e6eaea)",
+                borderRadius: 8,
+              }}
+            >
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: 640,
+                }}
+              >
+                <thead
+                  style={{ background: "var(--surface)", color: "var(--text)" }}
+                >
                   <tr>
                     {displayedColumns.map((col) => (
                       <th
@@ -250,7 +318,13 @@ export default function GCIHistoryTab() {
 
                 <tbody>
                   {gciItems.map((row, idx) => (
-                    <tr key={idx} style={{ borderBottom: "1px solid var(--surface-accent, #f1f5f9)" }}>
+                    <tr
+                      key={idx}
+                      style={{
+                        borderBottom:
+                          "1px solid var(--surface-accent, #f1f5f9)",
+                      }}
+                    >
                       {displayedColumns.map((col) => {
                         let raw = row[col];
                         // If 'wef' is a date-ish key, format it nicely
@@ -265,7 +339,14 @@ export default function GCIHistoryTab() {
                         }
 
                         return (
-                          <td key={col} style={{ padding: "8px 12px", verticalAlign: "top", whiteSpace: "normal" }}>
+                          <td
+                            key={col}
+                            style={{
+                              padding: "8px 12px",
+                              verticalAlign: "top",
+                              whiteSpace: "normal",
+                            }}
+                          >
                             {raw}
                           </td>
                         );
