@@ -412,7 +412,7 @@ export const fetchPorData =
   export const getGCIHistoryNew = (serviceNo, abcCode) => async (dispatch, getState) => {
   dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey: `${serviceNo}_${abcCode}` } });
 
-  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/profileView/gciHistory/${encodeURIComponent(
+  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/profileView/gciHist/${encodeURIComponent(
     serviceNo
   )}/${encodeURIComponent(abcCode)}`;
 
