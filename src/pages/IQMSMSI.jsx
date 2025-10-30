@@ -61,6 +61,25 @@ function formatNumber(n) {
   return n?.toLocaleString?.() ?? n;
 }
 
+// make ids safe for HTML id attributes and aria-controls
+const safeId = (s) =>
+  String(s || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^A-Za-z0-9_\-:]/g, "")
+    .slice(0, 80);
+
+// convert arbitrary date string to yyyy-mm-dd (date-only) or null
+const toDateOnly = (dateLike) => {
+  if (!dateLike) return null;
+  const d = new Date(dateLike);
+  if (isNaN(d)) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+};
+
 const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
   const [role, setRole] = useState(initialRole);
   const [fromDate, setFromDate] = useState("");
@@ -68,7 +87,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
   const [applyFilter, setApplyFilter] = useState(false);
   const [expanded, setExpanded] = useState({});
   const [expandedSub, setExpandedSub] = useState({});
-  const [expandedGroups, setExpandedGroups] = useState({}); // per-subsection per-category open state
+  const [expandedGroups, setExpandedGroups] = useState({}); 
   const [loading, setLoading] = useState(false);
   const [apiResults, setApiResults] = useState([]);
   const [globalError, setGlobalError] = useState(null);
@@ -76,12 +95,10 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
   const navigate = useNavigate();
   const type = ROLE_TYPE_MAP[role] || ROLE_TYPE_MAP.OFFICER;
 
-  // group toggle
   const toggleGroup = useCallback((groupKey) => {
-    setExpandedGroups((p) => ({ ...p, [groupKey]: !p[groupKey] }));
+    setExpandedGroups((p) => ({ ...p, [groupKey]: !(p[groupKey] === undefined ? true : !!p[groupKey]) }));
   }, []);
 
-  // Navigate to search-results for a doc
   const handleDocClick = useCallback(
     (docId) => {
       if (!docId) return;
@@ -91,7 +108,6 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
     [navigate, role]
   );
 
-  // Fetch endpoints when `type` changes
   useEffect(() => {
     let mounted = true;
     const endpoints = ENDPOINTS[type] || [];
@@ -102,7 +118,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
       setApiResults([]);
       try {
         const calls = endpoints.map((ep) =>
-          API_CALL(type, ep.section, ep.id, 0, 100)
+          API_CALL(type, ep.section, ep.id, 0)
             .then((data) => ({ section: ep.section, id: ep.id, data }))
             .catch((err) => ({ section: ep.section, id: ep.id, error: err }))
         );
@@ -126,39 +142,40 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
 
   const handleApplyFilter = useCallback(() => setApplyFilter(true), []);
 
-  // local-date helper: construct a Date anchored to local timezone for "YYYY-MM-DD"
-  const toLocalDate = useCallback((yyyy_mm_dd, endOfDay = false) => {
-    if (!yyyy_mm_dd) return null;
-    const parts = yyyy_mm_dd.split("-");
-    if (parts.length < 3) return null;
-    const [y, m, d] = parts.map((p) => Number(p));
-    if ([y, m, d].some((v) => Number.isNaN(v))) return null;
-    const dt = new Date(y, m - 1, d, endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, endOfDay ? 999 : 0);
-    return isNaN(dt) ? null : dt;
+  // map pending_with to category per your updated rules
+  const mapPendingToCategory = useCallback((it) => {
+    const pw = String(it?.pending_with ?? "").trim().toUpperCase();
+    if (!pw) return "Replied";
+    if (pw === "RPY") return "Replied";
+    // precedence: 2 -> 1 -> 3 (as requested earlier)
+    if (pw.includes("2")) return "Verifier";
+    if (pw.includes("1")) return "Creator";
+    if (pw.includes("3")) return "Approver";
+    return "Replied";
   }, []);
 
-  // Filtered results memo (date inclusive for toDate)
+  // date-only filtering: compare yyyy-mm-dd strings to avoid timezone issues
   const filteredResults = useMemo(() => {
     if (!applyFilter) return apiResults;
-    const fd = fromDate ? toLocalDate(fromDate, false) : null;
-    const td = toDate ? toLocalDate(toDate, true) : null;
+    const fd = fromDate || null; // already yyyy-mm-dd
+    const td = toDate || null;
 
     return apiResults.map((r) => {
-      if (!r?.data?.items) return r;
+      if (!r?.data?.items || !Array.isArray(r.data.items)) return r;
       const filteredItems = r.data.items.filter((item) => {
         const dateStr = item.action_date || item.submit_date;
         if (!dateStr) return false;
-        const d = new Date(dateStr);
-        if (isNaN(d)) return false;
-        if (fd && d < fd) return false;
-        if (td && d > td) return false;
+        const dOnly = toDateOnly(dateStr);
+        if (!dOnly) return false;
+        if (fd && dOnly < fd) return false;
+        if (td && dOnly > td) return false;
         return true;
       });
       return { ...r, data: { ...r.data, items: filteredItems } };
     });
-  }, [apiResults, fromDate, toDate, applyFilter, toLocalDate]);
+  }, [apiResults, fromDate, toDate, applyFilter]);
 
-  // dynamic subsection map (100-wide buckets from numeric cell / apw_sub_section / cpw_sub_section)
+  // build dynamic subsection map based on filteredResults (numerical ranges)
   const dynamicSubsectionMap = useMemo(() => {
     const getNumericCell = (it) => {
       if (!it) return NaN;
@@ -208,7 +225,6 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
     return result;
   }, [filteredResults]);
 
-  // helper: map numeric cell to subsection name
   const getSubsectionName = useCallback(
     (sectionNormalized, cellValue) => {
       if (cellValue === undefined || cellValue === null) return "Unassigned";
@@ -217,49 +233,31 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
       const dynamicMap = dynamicSubsectionMap[sectionNormalized];
       const staticMap = STATIC_SUBSECTION_MAP[sectionNormalized];
       const mapToCheck = dynamicMap ?? staticMap;
-      if (!mapToCheck) return null;
+      if (!mapToCheck) return "Other";
       const found = mapToCheck.find((r) => num >= r.from && num <= r.to);
       return found ? found.name : "Other";
     },
     [dynamicSubsectionMap]
   );
 
-  // Build summary by section and subsections
+  // Build summaryBySection in a single pass (normalized keys for lookup)
   const summaryBySection = useMemo(() => {
     const map = {};
 
-    // pre-seed sections from fetched endpoints (keeps consistent keys)
     filteredResults.forEach((r) => {
-      const rawSection = (r?.section ?? "UNKNOWN").toString().trim();
-      const sectionKey = rawSection;
+      const sectionRaw = (r?.section ?? "UNKNOWN").toString().trim();
+      const sectionKey = sectionRaw; // keep original-case for display
+      const sectionNorm = sectionRaw.toUpperCase();
+
       if (!map[sectionKey]) {
-        const norm = sectionKey.toUpperCase();
-        const subsections = {};
-
-        const configured = dynamicSubsectionMap[norm] ?? STATIC_SUBSECTION_MAP[norm] ?? [];
-        configured.forEach((s) => {
-          subsections[s.name] = { name: s.name, rows: [], received: 0, replied: 0, pending: 0 };
-        });
-
-        subsections["Other"] = { name: "Other", rows: [], received: 0, replied: 0, pending: 0 };
-        subsections["Unassigned"] = { name: "Unassigned", rows: [], received: 0, replied: 0, pending: 0 };
-
-        map[sectionKey] = { received: 0, replied: 0, pending: 0, rows: [], subsections, fetchErrors: 0 };
-      }
-    });
-
-    // Fill counts and rows
-    filteredResults.forEach((r) => {
-      const sectionKey = (r?.section ?? "UNKNOWN").toString().trim();
-      const sectionNorm = sectionKey.toUpperCase();
-      if (!map[sectionKey]) {
-        const subsections = {};
         const configured = dynamicSubsectionMap[sectionNorm] ?? STATIC_SUBSECTION_MAP[sectionNorm] ?? [];
+        const subsections = {};
         configured.forEach((s) => {
           subsections[s.name] = { name: s.name, rows: [], received: 0, replied: 0, pending: 0 };
         });
         subsections["Other"] = { name: "Other", rows: [], received: 0, replied: 0, pending: 0 };
         subsections["Unassigned"] = { name: "Unassigned", rows: [], received: 0, replied: 0, pending: 0 };
+
         map[sectionKey] = { received: 0, replied: 0, pending: 0, rows: [], subsections, fetchErrors: 0 };
       }
 
@@ -274,8 +272,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
 
         items.forEach((it) => {
           const pw = String(it.pending_with || "").trim().toUpperCase();
-          const pendingWithCap = String(it.pending_with_cap || "").trim().toLowerCase();
-          const isReplied = pw === "RPY" || pendingWithCap.includes("replied");
+          const isReplied = pw === "RPY";
           if (isReplied) map[sectionKey].replied += 1;
           else map[sectionKey].pending += 1;
 
@@ -314,17 +311,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
       return { ...p, [k]: !p[k] };
     }), []);
 
-  // Map pending_with codes to Creator / Verifier / Approver / Replied
-  const PENDING_ROLE_MAP = { "1": "Creator", "2": "Verifier", "3": "Approver" };
-  const mapPendingToCategory = useCallback((it) => {
-    const pw = String(it?.pending_with ?? "").trim();
-    const cap = String(it?.pending_with_cap ?? "").toLowerCase();
-    // If you want pending_with_cap to override and mark 'Replied' when it contains 'replied', uncomment:
-    // if (cap.includes("replied")) return "Replied";
-    return PENDING_ROLE_MAP[pw] ?? "Replied";
-  }, []);
-
-  // Modal component improved with focus trap
+  // Modal component (focus trap, escape, overlay click, prevent background scroll)
   const Modal = ({ item, onClose }) => {
     const closeBtnRef = useRef(null);
     const previousActive = useRef(null);
@@ -332,6 +319,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
 
     useEffect(() => {
       previousActive.current = document.activeElement;
+
       const onKey = (e) => {
         if (e.key === "Escape") onClose();
         if (e.key === "Tab" && modalRef.current) {
@@ -350,10 +338,15 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
           }
         }
       };
+
       document.addEventListener("keydown", onKey);
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
       setTimeout(() => closeBtnRef.current?.focus?.(), 0);
+
       return () => {
         document.removeEventListener("keydown", onKey);
+        document.body.style.overflow = prevOverflow || "";
         try {
           previousActive.current?.focus?.();
         } catch (e) {}
@@ -362,7 +355,16 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
 
     if (!item) return null;
     return (
-      <div className="cq-modal-overlay" role="dialog" aria-modal="true" aria-label="Row details">
+      <div
+        className="cq-modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Row details"
+        onMouseDown={(e) => {
+          // close on backdrop click (but not when clicking inside modal)
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
         <div className="cq-modal" role="document" ref={modalRef}>
           <div className="cq-modal-header">
             <strong style={{ color: "var(--text)" }}>Query details: {item.doc_id || item.queryId}</strong>
@@ -376,7 +378,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
             </button>
           </div>
           <div className="cq-modal-body">
-            <table className="cq-modal-table">
+            <table className="cq-modal-table" role="table">
               <tbody>
                 {Object.entries(item).map(([k, v]) => (
                   <tr key={k}>
@@ -397,7 +399,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
   return (
     <div className="consolidated-page">
       {loading && (
-        <div className="loading-overlay">
+        <div className="loading-overlay" role="status" aria-live="polite">
           <div className="loading-box">
             <div className="spinner" />
             <div className="loading-text">Loading data — please wait</div>
@@ -457,11 +459,11 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
         <table className="summary-table">
           <thead>
             <tr>
-              <th>View</th>
-              <th>Section</th>
-              <th className="num">Total Received</th>
-              <th className="num">Replied</th>
-              <th className="num">Pending</th>
+              <th scope="col">View</th>
+              <th scope="col">Section</th>
+              <th scope="col" className="num">Total Received</th>
+              <th scope="col" className="num">Replied</th>
+              <th scope="col" className="num">Pending</th>
             </tr>
           </thead>
           <tbody>
@@ -473,7 +475,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
                       className="expand-btn"
                       onClick={() => toggleExpand(section)}
                       aria-expanded={!!expanded[section]}
-                      aria-controls={`section-${section}`}
+                      aria-controls={`section-${safeId(section)}`}
                     >
                       {expanded[section] ? "−" : "+"}
                     </button>
@@ -488,7 +490,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
                 </tr>
 
                 {expanded[section] && (
-                  <tr id={`section-${section}`}>
+                  <tr id={`section-${safeId(section)}`}>
                     <td colSpan="5">
                       <div className="sub-table-wrap">
                         <table className="sub-table">
@@ -521,7 +523,7 @@ const ConsolidatedQueries = ({ initialRole = "OFFICER" }) => {
                                           className="expand-btn"
                                           onClick={() => toggleSub(section, subName)}
                                           aria-expanded={!!expandedSub[subKey]}
-                                          aria-controls={`sub-${subKey}`}
+                                          aria-controls={`sub-${safeId(subKey)}`}
                                         >
                                           {expandedSub[subKey] ? "−" : "+"}
                                         </button>
