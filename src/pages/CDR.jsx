@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import Cookies from "js-cookie";
 import "./CDR.css";
 import { application } from "../utils/endpoints";
 import { getCookieData } from "../utils/helpers";
@@ -497,11 +498,32 @@ const CDR = () => {
     ? page + 1 < meta.totalPages
     : items.length === PAGE_SIZE;
 
-  const handleExtensionSubmit = (ext) => {
+  const handleExtensionSubmit = (extension) => {
     try {
-      localStorage.setItem("userExtension", ext);
-    } catch (e) {}
-    setUserExtensionState(ext);
+      // Update cookie also includes new userExtension
+      const authData = Cookies.get("authData");
+      if (authData) {
+        const parsed = JSON.parse(authData);
+        parsed.user.userExtension = extension;
+        Cookies.set("authData", JSON.stringify(parsed), {
+          expires: new Date(new Date().getTime() + 8 * 60 * 60 * 1000),
+          path: "/",
+          secure: window.location.protocol === "https:",
+          sameSite: "Lax",
+        });
+      }
+
+      // Optional: also store in localStorage for internal logic
+      const baseData = JSON.parse(localStorage.getItem("baseUserData") || "{}");
+      baseData.userExtension = extension;
+      localStorage.setItem("baseUserData", JSON.stringify(baseData));
+
+      setShowExtensionDialog(false);
+    } catch (err) {
+      console.error("Error saving extension:", err);
+      alert("Failed to save extension. Please retry.");
+    }
+    setUserExtensionState(extension);
     setShowExtensionDialog(false);
   };
 

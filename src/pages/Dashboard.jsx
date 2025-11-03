@@ -4,10 +4,12 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
+import Cookies from "js-cookie";
 import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { getAllTransferredCountsForRole } from "../actions/transferredQueryActionNew";
-import { getDesignationFlags } from "../utils/helpers";
-import { getAgentStatus } from "../utils/endpoints";
+import { getDesignationFlags, getCookieData } from "../utils/helpers";
+import { getAgentStatus, application } from "../utils/endpoints";
+import ExtensionDialog from "../components/ExtensionDialog";
 // --- CSS Styles (can remain the same) ---
 const styles = `
     .dashboard-section { padding: 2rem; background-color: var(--bg); font-family: var(--font-family, sans-serif); color: var(--text); }
@@ -31,6 +33,11 @@ const styles = `
     .pending .card-value-link:hover { background-color: var(--red-hover); }
     .transferred .card-value-link:hover { background-color: var(--blue-hover); }
     .replied .card-value-link:hover { background-color: var(--green-hover); }
+    .query-card.cdr { border-top-color: var(--purple, #6b4ce6); }
+    .cdr .card-header { color: var(--purple-text, #6b4ce6); }
+    .cdr .card-value-link { background-color: rgba(107, 76, 230, 0.1); color: #6b4ce6; }
+    .cdr .card-value-link:hover { background-color: rgba(107, 76, 230, 0.2); }
+
     @media (max-width: 1024px) { .dashboard-section { padding: 1.5rem; } .dashboard-grid { gap: 1.25rem; } }
     @media (max-width: 768px) { .dashboard-section { padding: 1rem; } .dashboard-grid { grid-template-columns: 1fr; } .query-card { padding: 1.25rem; } .card-header { font-size: 1rem; } }
     @media (max-width: 480px) { .dashboard-section { padding: 0.75rem; } .query-card { padding: 1rem; } .card-header { font-size: 0.95rem; } .card-row { flex-direction: column; align-items: flex-start; gap: 4px; } .card-value-link { font-size: 0.85rem; padding: 0.2rem 0.6rem; } }
@@ -64,6 +71,49 @@ const QueryCard = React.memo(({ title, data, className, link }) => {
   );
 });
 
+// --- Fetch CDR summary counts ---
+const fetchPerformanceSummary = async (extension) => {
+  if (!extension) return null;
+  try {
+    const payload = {
+      currentPage: 0,
+      pageSize: 10,
+      sortDirection: "none",
+      sortBy: "agentName",
+      search: String(extension),
+      sortDataType: "string",
+      advancedFilters: [],
+    };
+
+    const resp = await application.post(
+      "agentPerformanceSummary/dailyPerformanceReportList",
+      payload
+    );
+
+    const data = resp?.data?.data?.currentPageData?.[0];
+    if (!data) throw new Error("No summary data found");
+
+    const {
+      totalOffered = 0,
+      totalAnswered = 0,
+      totalDialed = 0,
+      totalNoAnswered = 0,
+    } = data;
+
+    return {
+      totalOffered,
+      totalAnswered:
+        (Number(totalOffered) || 0) - (Number(totalNoAnswered) || 0),
+      totalDialed,
+      totalNoAnswered,
+      totalAll: (Number(totalOffered) || 0) + (Number(totalDialed) || 0),
+    };
+  } catch (err) {
+    console.error("fetchPerformanceSummary error:", err);
+    return null;
+  }
+};
+
 const Dashboard = () => {
   const [counts, setCounts] = useState({
     pending: { creator: 0, verifier: 0, approver: 0, total: 0 },
@@ -72,6 +122,78 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const { error: repliedError } = useSelector((state) => state.replied_queries);
+
+  // extension handling
+  const [userExtensionState, setUserExtensionState] = useState("");
+  const [showExtensionDialog, setShowExtensionDialog] = useState(false);
+
+  const handleExtensionSubmit = (extension) => {
+    try {
+      // Update cookie also includes new userExtension
+      const authData = Cookies.get("authData");
+      if (authData) {
+        const parsed = JSON.parse(authData);
+        parsed.user.userExtension = extension;
+        Cookies.set("authData", JSON.stringify(parsed), {
+          expires: new Date(new Date().getTime() + 8 * 60 * 60 * 1000),
+          path: "/",
+          secure: window.location.protocol === "https:",
+          sameSite: "Lax",
+        });
+      }
+
+      // Optional: also store in localStorage for internal logic
+      const baseData = JSON.parse(localStorage.getItem("baseUserData") || "{}");
+      baseData.userExtension = extension;
+      localStorage.setItem("baseUserData", JSON.stringify(baseData));
+
+      setShowExtensionDialog(false);
+    } catch (err) {
+      console.error("Error saving extension:", err);
+      alert("Failed to save extension. Please retry.");
+    }
+    setUserExtensionState(extension);
+    setShowExtensionDialog(false);
+  };
+
+  // Load userExtension from cookie after mount
+  useEffect(() => {
+    const cookieData = getCookieData();
+    const ext = cookieData?.user?.userExtension;
+    if (ext) {
+      console.log("Found userExtension in cookie:", ext);
+      setUserExtensionState(ext);
+      setShowExtensionDialog(false);
+    } else {
+      console.log("No userExtension found — showing dialog");
+      setShowExtensionDialog(true);
+    }
+  }, []);
+
+  const [cdrSummary, setCdrSummary] = useState({
+    totalAll: 0,
+    totalNoAnswered: 0,
+    totalAnswered: 0,
+    totalDialed: 0,
+  });
+
+  useEffect(() => {
+    if (!userExtensionState) return; // wait until we actually have extension
+
+    const loadCDRSummary = async () => {
+      try {
+        console.log("Calling CDR API for extension:", userExtensionState);
+        const summary = await fetchPerformanceSummary(userExtensionState);
+        if (summary) setCdrSummary(summary);
+      } catch (err) {
+        console.error("Dashboard: CDR summary load failed", err);
+      }
+    };
+
+    loadCDRSummary();
+    const interval = setInterval(loadCDRSummary, 30000);
+    return () => clearInterval(interval);
+  }, [userExtensionState]); // ✅ run when extension is set
 
   // Single effect for all updates using polling
   useEffect(() => {
@@ -185,6 +307,12 @@ const Dashboard = () => {
 
   return (
     <>
+      {showExtensionDialog && (
+        <ExtensionDialog
+          onSubmit={handleExtensionSubmit}
+          onClose={() => setShowExtensionDialog(false)}
+        />
+      )}
       <style>{styles}</style>
       <div className="dashboard-section">
         <div className="dashboard-grid">
@@ -205,6 +333,17 @@ const Dashboard = () => {
             data={repliedQueriesData}
             className="replied"
             link="/view/queries/replied"
+          />
+          <QueryCard
+            title="Call Details Records"
+            data={[
+              { label: "Total Calls", value: cdrSummary.totalAll },
+              { label: "Missed Calls", value: cdrSummary.totalNoAnswered },
+              { label: "Received Calls", value: cdrSummary.totalAnswered },
+              { label: "Dialed Calls", value: cdrSummary.totalDialed },
+            ]}
+            className="cdr" // or new class like "cdr"
+            link="/cdr"
           />
         </div>
       </div>
