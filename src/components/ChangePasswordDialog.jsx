@@ -34,8 +34,7 @@ const ChangePasswordDialog = ({ onClose, onPasswordChanged }) => {
         newPassword,
         confirmPassword,
       });
-
-      if (response.status === "OK") {
+      if (response.status <= 399) {
         setSuccessMessage(response.message || "Password changed successfully!");
         setTimeout(() => {
           onPasswordChanged();
