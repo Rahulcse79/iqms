@@ -222,6 +222,14 @@ const CDR = () => {
     approximate: false,
   });
 
+  const [summaryTotals, setSummaryTotals] = useState({
+    totalOffered: 0,
+    totalAnswered: 0,
+    totalDialed: 0,
+    totalNoAnswered: 0,
+    totalAll: 0,
+  });
+
   const [filters, setFilters] = useState(() => getDefaultLast30DaysFilter());
   const reqCounterRef = useRef(0);
 
@@ -244,6 +252,48 @@ const CDR = () => {
   }, []);
 
   const apiUrl = useMemo(() => "agentCDR/list", []);
+
+  // Fetch performance summary counts
+  const fetchPerformanceSummary = async (extension) => {
+    if (!extension) return null;
+    try {
+      const payload = {
+        currentPage: 0,
+        pageSize: 10,
+        sortDirection: "none",
+        sortBy: "agentName",
+        search: String(extension),
+        sortDataType: "string",
+        advancedFilters: [],
+      };
+
+      const resp = await application.post(
+        "agentPerformanceSummary/dailyPerformanceReportList",
+        payload
+      );
+
+      const data = resp?.data?.data?.currentPageData?.[0];
+      if (!data) throw new Error("No summary data found");
+
+      const {
+        totalOffered = 0,
+        totalAnswered = 0,
+        totalDialed = 0,
+        totalNoAnswered = 0,
+      } = data;
+
+      return {
+        totalOffered,
+        totalAnswered: (Number(totalOffered) || 0) - (Number(totalNoAnswered) || 0),
+        totalDialed,
+        totalNoAnswered,
+        totalAll: (Number(totalOffered) || 0) + (Number(totalDialed) || 0),
+      };
+    } catch (err) {
+      console.error("fetchPerformanceSummary error:", err);
+      return null;
+    }
+  };
 
   const buildPayload = useCallback(
     (pageIndex, pageSize = PAGE_SIZE, tabKey = "all") => {
@@ -411,6 +461,19 @@ const CDR = () => {
     fetchDataForTab(activeTab, 0);
   };
 
+  useEffect(() => {
+    if (!userExtensionState) return;
+
+    const loadSummary = async () => {
+      const summary = await fetchPerformanceSummary(userExtensionState);
+      if (summary) setSummaryTotals(summary);
+    };
+
+    loadSummary();
+    const interval = setInterval(loadSummary, TAB_POLL_MS); // same polling interval
+    return () => clearInterval(interval);
+  }, [userExtensionState]);
+
   const onTabClick = (key) => {
     if (key === activeTab) return;
     setActiveTab(key);
@@ -509,12 +572,12 @@ const CDR = () => {
             <span>{t.label}</span>
             <span className="cdr-badge" style={{ backgroundColor: t.color }}>
               {t.key === "all"
-                ? totals.totalOffered
+                ? summaryTotals.totalAll
                 : t.key === "received"
-                ? totals.totalAnswered
+                ? summaryTotals.totalAnswered
                 : t.key === "dialed"
-                ? totals.totalDialed
-                : totals.totalNoAnswered}
+                ? summaryTotals.totalDialed
+                : summaryTotals.totalNoAnswered}
             </span>
           </button>
         ))}
