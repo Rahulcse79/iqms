@@ -163,43 +163,6 @@ const normalizeItem = (raw = {}) => {
   };
 };
 
-/* ---------- helper heuristics ---------- */
-const isDialedRaw = (r) => {
-  const dir = String(r.callDirection ?? r.direction ?? "").toLowerCase();
-  if (dir.startsWith("out")) return true;
-  if (
-    String(r.queue ?? "")
-      .toLowerCase()
-      .includes("dial")
-  )
-    return true;
-  return false;
-};
-const isAnsweredRaw = (r) => {
-  const status = String(r.status ?? "").toLowerCase();
-  if (status.includes("answered")) return true;
-  if (r.answerTime && r.answerTime !== "") return true;
-  if (r.answeredBy || r.answeredByName) return true;
-  return false;
-};
-const isMissedRaw = (r) => {
-  const isMissed = String(r.isMissed ?? "").toLowerCase();
-  const status = String(r.status ?? "").toLowerCase();
-  const answerTimeEmpty = !r.answerTime || r.answerTime === "";
-  if (isMissed && (isMissed.includes("not") || isMissed.includes("miss")))
-    return true;
-  if (
-    status &&
-    (status.includes("not") ||
-      status.includes("not contacted") ||
-      status.includes("abandoned") ||
-      status.includes("abd"))
-  )
-    return true;
-  if (answerTimeEmpty && !isDialedRaw(r)) return true;
-  return false;
-};
-
 /* ---------- main component ---------- */
 const CDR = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -214,13 +177,23 @@ const CDR = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [totals, setTotals] = useState({
-    totalOffered: 0,
-    totalAnswered: 0,
-    totalNoAnswered: 0,
-    totalDialed: 0,
-    approximate: false,
+  const [sortConfig, setSortConfig] = useState({
+    key: "startTime",
+    direction: "desc", // default descending by start time
   });
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        // toggle direction
+        return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
+      } else {
+        return { key, direction: "asc" };
+      }
+    });
+  };
+
+  const [allData, setAllData] = useState([]);
 
   const [summaryTotals, setSummaryTotals] = useState({
     totalOffered: 0,
@@ -284,7 +257,8 @@ const CDR = () => {
 
       return {
         totalOffered,
-        totalAnswered: (Number(totalOffered) || 0) - (Number(totalNoAnswered) || 0),
+        totalAnswered:
+          (Number(totalOffered) || 0) - (Number(totalNoAnswered) || 0),
         totalDialed,
         totalNoAnswered,
         totalAll: (Number(totalOffered) || 0) + (Number(totalDialed) || 0),
@@ -295,154 +269,109 @@ const CDR = () => {
     }
   };
 
-  const buildPayload = useCallback(
-    (pageIndex, pageSize = PAGE_SIZE, tabKey = "all") => {
-      const fromVal = filters.from ?? "";
-      const toVal = filters.to ?? "";
-      const adv = [
-        {
-          direction: "from",
-          dataType: "date",
-          fieldName: "startTime",
-          value: fromVal,
-        },
-        {
-          direction: "to",
-          dataType: "date",
-          fieldName: "startTime",
-          value: toVal,
-        },
-      ];
+  const fetchDataForTab = useCallback(async () => {
+    const thisReq = ++reqCounterRef.current;
+    setLoading(true);
+    setError(null);
 
-      if (tabKey === "received") {
-        adv.push({
-          direction: "eq",
-          dataType: "string",
-          fieldName: "callDirection",
-          value: "IN",
-        });
-      } else if (tabKey === "dialed") {
-        adv.push({
-          direction: "eq",
-          dataType: "string",
-          fieldName: "callDirection",
-          value: "OUT",
-        });
-      } else if (tabKey === "missed") {
-        adv.push({
-          direction: "eq",
-          dataType: "string",
-          fieldName: "isMissed",
-          value: "Not Answered",
-        });
-      }
-
-      return {
-        currentPage: pageIndex,
-        pageSize,
-        sortDirection: "desc",
+    try {
+      // Fetch ALL data in one go
+      const payload = {
+        currentPage: 0,
+        pageSize: 1000000,
+        sortDirection: "asc",
         sortBy: "agentName",
         search: userExtensionState || "",
-        sortDataType: "String",
-        advancedFilters: adv,
+        sortDataType: "string",
+        advancedFilters: [],
       };
-    },
-    [filters, userExtensionState]
-  );
 
-  const fetchDataForTab = useCallback(
-    async (tabKey, pageIndex = 0) => {
-      const thisReq = ++reqCounterRef.current;
-      setLoading(true);
-      setError(null);
+      const resp = await application.post(apiUrl, payload);
+      if (thisReq !== reqCounterRef.current) return;
 
-      try {
-        const payload = buildPayload(pageIndex, PAGE_SIZE, tabKey);
-        const resp = await application.post(apiUrl, payload);
-        if (thisReq !== reqCounterRef.current) return;
+      const normalized = normalizeResponse(resp);
+      const rawItems = normalized.items || [];
 
-        const normalized = normalizeResponse(resp);
-        const rawItems = normalized.items || [];
-        const serverMeta = normalized.meta || {};
+      // Save everything for frontend filtering
+      setAllData(rawItems.map(normalizeItem));
 
-        const totalRecords = Number.isFinite(serverMeta.totalRecords)
-          ? serverMeta.totalRecords
-          : rawItems.length;
-        const pageSize = Number.isFinite(serverMeta.pageSize)
-          ? serverMeta.pageSize
-          : PAGE_SIZE;
-        const totalPages = Number.isFinite(serverMeta.totalPages)
-          ? serverMeta.totalPages
-          : Math.max(1, Math.ceil(totalRecords / pageSize));
-
-        let dial = 0,
-          answered = 0,
-          missed = 0;
-        for (const r of rawItems) {
-          if (isDialedRaw(r)) dial++;
-          if (isAnsweredRaw(r)) answered++;
-          if (isMissedRaw(r)) missed++;
-        }
-        const approx = totalRecords > rawItems.length;
-        setTotals({
-          totalOffered: totalRecords,
-          totalAnswered: answered,
-          totalNoAnswered: missed,
-          totalDialed: dial,
-          approximate: approx,
+      setLoading(false);
+    } catch (err) {
+      console.error("fetchDataForTab error:", err);
+      if (thisReq === reqCounterRef.current) {
+        setError("Failed to load records. Please try again.");
+        setItems([]);
+        setMeta({
+          currentPage: 0,
+          pageSize: PAGE_SIZE,
+          totalPages: 1,
+          totalRecords: 0,
         });
-
-        const pageItems = (rawItems || []).map(normalizeItem);
-        setItems(pageItems);
-        setMeta({ currentPage: pageIndex, pageSize, totalRecords, totalPages });
-      } catch (err) {
-        console.error("fetchDataForTab error:", err);
-        if (thisReq === reqCounterRef.current) {
-          setError("Failed to load records. Please try again.");
-          setItems([]);
-          setMeta({
-            currentPage: 0,
-            pageSize: PAGE_SIZE,
-            totalPages: 1,
-            totalRecords: 0,
-          });
-        }
-      } finally {
-        if (thisReq === reqCounterRef.current) setLoading(false);
       }
-    },
-    [apiUrl, buildPayload]
-  );
+      setLoading(false);
+    }
+  }, [apiUrl, userExtensionState]);
+
+  useEffect(() => {
+    if (!allData.length) return;
+
+    let filtered = [...allData];
+
+    if (activeTab === "received") {
+      filtered = filtered.filter(
+        (r) => r.__raw.callDirection === "IN" && r.__raw.isMissed === "Answered"
+      );
+    } else if (activeTab === "missed") {
+      filtered = filtered.filter(
+        (r) =>
+          r.__raw.callDirection === "IN" && r.__raw.isMissed === "Not Answered"
+      );
+    } else if (activeTab === "dialed") {
+      filtered = filtered.filter((r) => r.__raw.callDirection === "OUT");
+    }
+
+    // Search filter
+    if (filters.search.trim() !== "") {
+      const q = filters.search.trim().toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.agentName.toLowerCase().includes(q) ||
+          r.customerNumber.toLowerCase().includes(q)
+      );
+    }
+
+    // Date filter
+    const fromDate = safeParseDate(filters.from);
+    const toDate = safeParseDate(filters.to);
+    if (fromDate || toDate) {
+      filtered = filtered.filter((r) => {
+        const start = safeParseDate(r.startTime);
+        if (!start) return false;
+        if (fromDate && start < fromDate) return false;
+        if (toDate && start > toDate) return false;
+        return true;
+      });
+    }
+
+    const totalRecords = filtered.length;
+    const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+    const startIdx = page * PAGE_SIZE;
+    const endIdx = startIdx + PAGE_SIZE;
+    const pageItems = filtered.slice(startIdx, endIdx);
+
+    setItems(pageItems);
+    setMeta({
+      currentPage: page,
+      pageSize: PAGE_SIZE,
+      totalRecords,
+      totalPages,
+    });
+  }, [allData, activeTab, page, filters, sortConfig]);
 
   useEffect(() => {
     if (!userExtensionState) return;
-    fetchDataForTab(activeTab, page);
+    fetchDataForTab(); // fetch all data once
   }, [userExtensionState]);
-
-  useEffect(() => {
-    if (!userExtensionState) return;
-    fetchDataForTab(activeTab, page);
-  }, [activeTab, page, filters, fetchDataForTab, userExtensionState]);
-
-  useEffect(() => {
-    if (!userExtensionState) return;
-    let mounted = true;
-    let intervalId = null;
-
-    const startPolling = () => {
-      if (intervalId) clearInterval(intervalId);
-      intervalId = setInterval(() => {
-        if (!mounted) return;
-        fetchDataForTab(activeTab, page);
-      }, TAB_POLL_MS);
-    };
-
-    startPolling();
-    return () => {
-      mounted = false;
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [activeTab, page, fetchDataForTab, userExtensionState]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -473,6 +402,89 @@ const CDR = () => {
     const interval = setInterval(loadSummary, TAB_POLL_MS); // same polling interval
     return () => clearInterval(interval);
   }, [userExtensionState]);
+
+  // Sort data whenever allData, filters, activeTab, or sortConfig change
+  useEffect(() => {
+    if (!allData.length) return;
+
+    let filtered = [...allData];
+
+    if (activeTab === "received") {
+      filtered = filtered.filter(
+        (r) => r.__raw.callDirection === "IN" && r.__raw.isMissed === "Answered"
+      );
+    } else if (activeTab === "missed") {
+      filtered = filtered.filter(
+        (r) =>
+          r.__raw.callDirection === "IN" && r.__raw.isMissed === "Not Answered"
+      );
+    } else if (activeTab === "dialed") {
+      filtered = filtered.filter((r) => r.__raw.callDirection === "OUT");
+    }
+
+    if (filters.search.trim() !== "") {
+      const q = filters.search.trim().toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.agentName.toLowerCase().includes(q) ||
+          r.customerNumber.toLowerCase().includes(q)
+      );
+    }
+
+    const fromDate = safeParseDate(filters.from);
+    const toDate = safeParseDate(filters.to);
+    if (fromDate || toDate) {
+      filtered = filtered.filter((r) => {
+        const start = safeParseDate(r.startTime);
+        if (!start) return false;
+        if (fromDate && start < fromDate) return false;
+        if (toDate && start > toDate) return false;
+        return true;
+      });
+    }
+
+    // 🔹 Apply sorting
+    filtered.sort((a, b) => {
+      const { key, direction } = sortConfig;
+      let valA = a[key];
+      let valB = b[key];
+
+      if (key === "startTime") {
+        valA = safeParseDate(valA)?.getTime() || 0;
+        valB = safeParseDate(valB)?.getTime() || 0;
+      } else if (key === "talkDuration") {
+        const parseDuration = (d) => {
+          if (!d || typeof d !== "string") return 0;
+          const parts = d.split(":").map(Number).reverse(); // seconds, minutes, hours
+          let total = 0;
+          if (parts[0]) total += parts[0]; // seconds
+          if (parts[1]) total += parts[1] * 60; // minutes
+          if (parts[2]) total += parts[2] * 3600; // hours
+          return total;
+        };
+        valA = parseDuration(valA);
+        valB = parseDuration(valB);
+      }
+
+      if (valA < valB) return direction === "asc" ? -1 : 1;
+      if (valA > valB) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    const totalRecords = filtered.length;
+    const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+    const startIdx = page * PAGE_SIZE;
+    const endIdx = startIdx + PAGE_SIZE;
+    const pageItems = filtered.slice(startIdx, endIdx);
+
+    setItems(pageItems);
+    setMeta({
+      currentPage: page,
+      pageSize: PAGE_SIZE,
+      totalRecords,
+      totalPages,
+    });
+  }, [allData, activeTab, page, filters, sortConfig]);
 
   const onTabClick = (key) => {
     if (key === activeTab) return;
@@ -581,11 +593,6 @@ const CDR = () => {
             </span>
           </button>
         ))}
-        {totals.approximate && (
-          <div className="cdr-totals-note">
-            Totals approximate (large dataset)
-          </div>
-        )}
       </div>
 
       {/* TABLE */}
@@ -596,10 +603,28 @@ const CDR = () => {
               <th>#</th>
               <th>Agent Name</th>
               <th>Number</th>
-              <th>Start Time</th>
-              <th>Queue</th>
-              <th>Queue Name</th>
-              <th>Duration</th>
+              <th
+                onClick={() => handleSort("startTime")}
+                style={{ cursor: "pointer" }}
+              >
+                Start Time{" "}
+                {sortConfig.key === "startTime"
+                  ? sortConfig.direction === "asc"
+                    ? "▲"
+                    : "▼"
+                  : ""}
+              </th>
+              <th
+                onClick={() => handleSort("talkDuration")}
+                style={{ cursor: "pointer" }}
+              >
+                Duration{" "}
+                {sortConfig.key === "talkDuration"
+                  ? sortConfig.direction === "asc"
+                    ? "▲"
+                    : "▼"
+                  : ""}
+              </th>
               <th>Direction</th>
               <th>Agent Talked To</th>
               <th>Recording</th>
@@ -608,19 +633,19 @@ const CDR = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="10" className="cdr-loading">
+                <td colSpan="8" className="cdr-loading">
                   Loading...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan="10" className="cdr-error">
+                <td colSpan="8" className="cdr-error">
                   {error}
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan="10" className="cdr-no-data">
+                <td colSpan="8" className="cdr-no-data">
                   No records found
                 </td>
               </tr>
@@ -635,8 +660,6 @@ const CDR = () => {
                     <td>{item.agentName ?? "-"}</td>
                     <td>{item.customerNumber ?? "-"}</td>
                     <td>{formatDate(item.startTime)}</td>
-                    <td>{item.queue ?? "-"}</td>
-                    <td>{item.queueName ?? "-"}</td>
                     <td>{item.talkDuration ?? "-"}</td>
                     <td
                       className={`cdr-direction ${item.directionToken ?? ""}`}
