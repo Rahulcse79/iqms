@@ -77,40 +77,52 @@ const fetchPerformanceSummary = async (extension) => {
   try {
     const payload = {
       currentPage: 0,
-      pageSize: 10,
-      sortDirection: "none",
+      pageSize: 1000000,
+      sortDirection: "asc",
       sortBy: "agentName",
-      search: String(extension),
+      search: extension || "",
       sortDataType: "string",
       advancedFilters: [],
     };
 
-    const resp = await application.post(
-      "agentPerformanceSummary/dailyPerformanceReportList",
-      payload
-    );
+    const resp = await application.post("agentCDR/list", payload);
+    const data = resp?.data?.data?.currentPageData || [];
 
-    const data = resp?.data?.data?.currentPageData?.[0];
-    if (!data) throw new Error("No summary data found");
+    if (!Array.isArray(data) || data.length === 0) {
+      return {
+        totalAll: 0,
+        totalNoAnswered: 0,
+        totalAnswered: 0,
+        totalDialed: 0,
+      };
+    }
 
-    const {
-      totalOffered = 0,
-      totalAnswered = 0,
-      totalDialed = 0,
-      totalNoAnswered = 0,
-    } = data;
+    // compute counts locally just like CDR page
+    const totalDialed = data.filter((r) => r.callDirection === "OUT").length;
+    const totalReceivedAnswered = data.filter(
+      (r) => r.callDirection === "IN" && r.isMissed === "Answered"
+    ).length;
+    const totalMissed = data.filter(
+      (r) => r.callDirection === "IN" && r.isMissed === "Not Answered"
+    ).length;
+    const totalReceived = totalReceivedAnswered + totalMissed;
+    const totalAll = totalDialed + totalReceived;
 
     return {
-      totalOffered,
-      totalAnswered:
-        (Number(totalOffered) || 0) - (Number(totalNoAnswered) || 0),
       totalDialed,
-      totalNoAnswered,
-      totalAll: (Number(totalOffered) || 0) + (Number(totalDialed) || 0),
+      totalAnswered: totalReceivedAnswered,
+      totalNoAnswered: totalMissed,
+      totalOffered: totalReceived,
+      totalAll,
     };
   } catch (err) {
-    console.error("fetchPerformanceSummary error:", err);
-    return null;
+    console.error("fetchCDRSummaryForDashboard error:", err);
+    return {
+      totalAll: 0,
+      totalNoAnswered: 0,
+      totalAnswered: 0,
+      totalDialed: 0,
+    };
   }
 };
 

@@ -160,6 +160,7 @@ const normalizeItem = (raw = {}) => {
     agentTalkedTo:
       raw.agentTalkedTo ?? raw.answeredByName ?? raw.answeredBy ?? "-",
     recordingFile: recording,
+    isMissed: raw.isMissed ?? "-",
     __raw: raw,
   };
 };
@@ -227,49 +228,6 @@ const CDR = () => {
 
   const apiUrl = useMemo(() => "agentCDR/list", []);
 
-  // Fetch performance summary counts
-  const fetchPerformanceSummary = async (extension) => {
-    if (!extension) return null;
-    try {
-      const payload = {
-        currentPage: 0,
-        pageSize: 10,
-        sortDirection: "none",
-        sortBy: "agentName",
-        search: String(extension),
-        sortDataType: "string",
-        advancedFilters: [],
-      };
-
-      const resp = await application.post(
-        "agentPerformanceSummary/dailyPerformanceReportList",
-        payload
-      );
-
-      const data = resp?.data?.data?.currentPageData?.[0];
-      if (!data) throw new Error("No summary data found");
-
-      const {
-        totalOffered = 0,
-        totalAnswered = 0,
-        totalDialed = 0,
-        totalNoAnswered = 0,
-      } = data;
-
-      return {
-        totalOffered,
-        totalAnswered:
-          (Number(totalOffered) || 0) - (Number(totalNoAnswered) || 0),
-        totalDialed,
-        totalNoAnswered,
-        totalAll: (Number(totalOffered) || 0) + (Number(totalDialed) || 0),
-      };
-    } catch (err) {
-      console.error("fetchPerformanceSummary error:", err);
-      return null;
-    }
-  };
-
   const fetchDataForTab = useCallback(async () => {
     const thisReq = ++reqCounterRef.current;
     setLoading(true);
@@ -292,9 +250,31 @@ const CDR = () => {
 
       const normalized = normalizeResponse(resp);
       const rawItems = normalized.items || [];
+      const normalizedItems = rawItems.map(normalizeItem);
 
       // Save everything for frontend filtering
-      setAllData(rawItems.map(normalizeItem));
+      setAllData(normalizedItems);
+
+      const totalDialed = normalizedItems.filter(
+        (r) => r.__raw.callDirection === "OUT"
+      ).length;
+      const totalReceivedAnswered = normalizedItems.filter(
+        (r) => r.__raw.callDirection === "IN" && r.__raw.isMissed === "Answered"
+      ).length;
+      const totalMissed = normalizedItems.filter(
+        (r) =>
+          r.__raw.callDirection === "IN" && r.__raw.isMissed === "Not Answered"
+      ).length;
+      const totalReceived = totalReceivedAnswered + totalMissed;
+      const totalAll = totalDialed + totalReceived;
+
+      setSummaryTotals({
+        totalDialed,
+        totalAnswered: totalReceivedAnswered,
+        totalNoAnswered: totalMissed,
+        totalOffered: totalReceived,
+        totalAll,
+      });
 
       setLoading(false);
     } catch (err) {
@@ -391,19 +371,6 @@ const CDR = () => {
     fetchDataForTab(activeTab, 0);
   };
 
-  useEffect(() => {
-    if (!userExtensionState) return;
-
-    const loadSummary = async () => {
-      const summary = await fetchPerformanceSummary(userExtensionState);
-      if (summary) setSummaryTotals(summary);
-    };
-
-    loadSummary();
-    const interval = setInterval(loadSummary, TAB_POLL_MS); // same polling interval
-    return () => clearInterval(interval);
-  }, [userExtensionState]);
-
   // Sort data whenever allData, filters, activeTab, or sortConfig change
   useEffect(() => {
     if (!allData.length) return;
@@ -486,6 +453,17 @@ const CDR = () => {
       totalPages,
     });
   }, [allData, activeTab, page, filters, sortConfig]);
+
+  useEffect(() => {
+    if (!userExtensionState) return;
+
+    const interval = setInterval(() => {
+      console.log("🔁 Auto-refreshing CDR data...");
+      fetchDataForTab();
+    }, TAB_POLL_MS);
+
+    return () => clearInterval(interval);
+  }, [userExtensionState, fetchDataForTab]);
 
   const onTabClick = (key) => {
     if (key === activeTab) return;
@@ -649,6 +627,7 @@ const CDR = () => {
               </th>
               <th>Direction</th>
               <th>Agent Talked To</th>
+              <th> Status </th>
               <th>Recording</th>
             </tr>
           </thead>
@@ -689,6 +668,7 @@ const CDR = () => {
                       {item.direction ?? "-"}
                     </td>
                     <td>{item.agentTalkedTo ?? "-"}</td>
+                    <td>{item.isMissed ?? "-"}</td>
                     <td>
                       {item.recordingFile ? (
                         <div className="cdr-recording-wrap">
