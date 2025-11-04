@@ -8,7 +8,11 @@ import Cookies from "js-cookie";
 import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { getAllTransferredCountsForRole } from "../actions/transferredQueryActionNew";
 import { getDesignationFlags, getCookieData } from "../utils/helpers";
-import { getAgentStatus, opaqueServices } from "../utils/endpoints";
+import {
+  appServices,
+  getAgentStatus,
+  opaqueServices,
+} from "../utils/endpoints";
 import ExtensionDialog from "../components/ExtensionDialog";
 // --- CSS Styles (can remain the same) ---
 const styles = `
@@ -37,7 +41,11 @@ const styles = `
     .cdr .card-header { color: var(--purple-text, #6b4ce6); }
     .cdr .card-value-link { background-color: rgba(107, 76, 230, 0.1); color: #6b4ce6; }
     .cdr .card-value-link:hover { background-color: rgba(107, 76, 230, 0.2); }
-
+    .query-card.interim { border-top-color: var(--orange, #f97316); }
+    .interim .card-header { color: var(--orange-text, #f97316); }
+    .interim .card-value-link { background-color: rgba(249, 115, 22, 0.1); color: #f97316; }
+    .interim .card-value-link:hover { background-color: rgba(249, 115, 22, 0.2); }
+    
     @media (max-width: 1024px) { .dashboard-section { padding: 1.5rem; } .dashboard-grid { gap: 1.25rem; } }
     @media (max-width: 768px) { .dashboard-section { padding: 1rem; } .dashboard-grid { grid-template-columns: 1fr; } .query-card { padding: 1.25rem; } .card-header { font-size: 1rem; } }
     @media (max-width: 480px) { .dashboard-section { padding: 0.75rem; } .query-card { padding: 1rem; } .card-header { font-size: 0.95rem; } .card-row { flex-direction: column; align-items: flex-start; gap: 4px; } .card-value-link { font-size: 0.85rem; padding: 0.2rem 0.6rem; } }
@@ -123,6 +131,60 @@ const fetchPerformanceSummary = async (extension) => {
       totalAnswered: 0,
       totalDialed: 0,
     };
+  }
+};
+
+const fetchInterimRepliesSummary = async () => {
+  try {
+    const payload = {
+      currentPage: 0,
+      pageSize: 10000,
+      sortDirection: "desc",
+      sortBy: "createdOn",
+      search: "",
+      sortDataType: "integer",
+      advancedFilters: [],
+    };
+
+    const resp = await appServices.post("task/list", payload);
+    const list = resp?.data?.data?.currentPageData || [];
+
+    if (!Array.isArray(list) || list.length === 0) {
+      return { total: 0, dueToday: 0, upcoming: 0, delayed: 0 };
+    }
+
+    const today = new Date();
+    const todayStart = new Date(today.setHours(0, 0, 0, 0));
+    const todayEnd = new Date(todayStart);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    let dueToday = 0;
+    let upcoming = 0;
+    let delayed = 0;
+
+    list.forEach((t) => {
+      const dueDateStr =
+        t.dueDate || t.expectedCompletionDate || t.changedCompletionOn;
+      if (!dueDateStr) return;
+
+      const dueDate = new Date(dueDateStr);
+      if (isNaN(dueDate)) return;
+
+      if (dueDate >= todayStart && dueDate <= todayEnd) {
+        dueToday++;
+      } else if (dueDate > todayEnd) {
+        upcoming++;
+      } else if (dueDate < todayStart) {
+        delayed++;
+      }
+    });
+
+    const total = list.length;
+
+    return { total, dueToday, upcoming, delayed };
+  } catch (err) {
+    console.error("fetchInterimRepliesSummary error:", err);
+    return { total: 0, dueToday: 0, upcoming: 0, delayed: 0 };
   }
 };
 
@@ -283,6 +345,28 @@ const Dashboard = () => {
     getAgentStatus();
   });
 
+  const [interimSummary, setInterimSummary] = useState({
+    totalTasks: 0,
+    inProgress: 0,
+    newTasks: 0,
+    delayed: 0,
+  });
+
+  useEffect(() => {
+    const loadInterimReplies = async () => {
+      try {
+        const summary = await fetchInterimRepliesSummary();
+        if (summary) setInterimSummary(summary);
+      } catch (err) {
+        console.error("Dashboard: Interim Replies summary load failed", err);
+      }
+    };
+
+    loadInterimReplies();
+    const interval = setInterval(loadInterimReplies, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const pendingQueriesData = useMemo(
     () => [
       { label: "Pending at Creator", value: counts.pending.creator },
@@ -356,6 +440,17 @@ const Dashboard = () => {
             ]}
             className="cdr" // or new class like "cdr"
             link="/cdr"
+          />
+          <QueryCard
+            title="Interim Replies"
+            data={[
+              { label: "Total", value: interimSummary.total },
+              { label: "Due Today", value: interimSummary.dueToday },
+              { label: "Upcoming", value: interimSummary.upcoming },
+              { label: "Delayed", value: interimSummary.delayed },
+            ]}
+            className="interim"
+            link="/interim-reply"
           />
         </div>
       </div>
