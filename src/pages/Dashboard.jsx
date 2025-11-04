@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { getAllTransferredCountsForRole } from "../actions/transferredQueryActionNew";
 import { getDesignationFlags, getCookieData } from "../utils/helpers";
-import { getAgentStatus, application } from "../utils/endpoints";
+import { getAgentStatus, opaqueServices } from "../utils/endpoints";
 import ExtensionDialog from "../components/ExtensionDialog";
 // --- CSS Styles (can remain the same) ---
 const styles = `
@@ -85,7 +85,7 @@ const fetchPerformanceSummary = async (extension) => {
       advancedFilters: [],
     };
 
-    const resp = await application.post("agentCDR/list", payload);
+    const resp = await opaqueServices.post("agentCDR/list", payload);
     const data = resp?.data?.data?.currentPageData || [];
 
     if (!Array.isArray(data) || data.length === 0) {

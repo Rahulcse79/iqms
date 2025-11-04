@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import Cookies from "js-cookie";
 import "./CDR.css";
-import { application } from "../utils/endpoints";
+import { opaqueServices } from "../utils/endpoints";
 import { getCookieData } from "../utils/helpers";
 import ExtensionDialog from "../components/ExtensionDialog";
 
@@ -245,7 +245,7 @@ const CDR = () => {
         advancedFilters: [],
       };
 
-      const resp = await application.post(apiUrl, payload);
+      const resp = await opaqueServices.post(apiUrl, payload);
       if (thisReq !== reqCounterRef.current) return;
 
       const normalized = normalizeResponse(resp);

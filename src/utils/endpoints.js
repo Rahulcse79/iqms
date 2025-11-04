@@ -4,6 +4,8 @@ import variables from "./variables";
 
 // ---------- Axios Instances ----------
 const application = axios.create({ baseURL: variables.api.services });
+const opaqueTelemetry = axios.create({ baseURL: variables.api.telemetry });
+const opaqueServices = axios.create({ baseURL: variables.api.services });
 const telemetry = axios.create({ baseURL: variables.api.telemetry });
 const appServices = axios.create({ baseURL: variables.app.services });
 const appTelemetry = axios.create({ baseURL: variables.app.telemetry });
@@ -43,6 +45,18 @@ const requestHandler = (request) => {
   }
   return request;
 };
+
+const opaqueRequestHandler = (request) => {
+    try {
+      const opaque = "abcdefgh";
+      if (opaque) request.headers["Authorization"] = `Opaque ${opaque}`;
+    } catch (e) {
+      console.error("Could not process request issue with header", e);
+      return Promise.reject(e);
+    }
+  return request;
+};
+
 
 // ---------- Response / Error Handler ----------
 const responseHandler = (response) => response;
@@ -146,6 +160,14 @@ instances.forEach((instance) => {
   instance.interceptors.response.use(responseHandler, errorHandler);
 });
 
+const opaqueInstances = [opaqueTelemetry, opaqueServices];
+opaqueInstances.forEach((instance) => {
+  instance.interceptors.request.use(opaqueRequestHandler, (error) =>  
+    Promise.reject(error)
+  );
+  instance.interceptors.response.use(responseHandler, errorHandler);
+});
+
 // ---------- Generate Dynamic Endpoints ----------
 const generateServicesEndPoint = (urlScheme, ipAddress) => {
   const endPoint = axios.create({
@@ -224,6 +246,8 @@ export {
   mcx,
   appServices,
   appTelemetry,
+  opaqueServices,
+  opaqueTelemetry,
   generateServicesEndPoint,
   generateTelemetryEndPoint,
 };
