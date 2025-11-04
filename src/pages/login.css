@@ -1,48 +1,56 @@
-/* Basic universal styling for Login Page (works on all browsers) */
+/* =============================
+   GOVERNMENT PORTAL LOGIN STYLE
+   ============================= */
 
-/* Page background and font */
+/* Works smoothly on all browsers and low-end PCs */
+
+/* Reset defaults */
 body {
-  background-color: #f5f7fa;
-  color: #1e293b;
-  font-family: Arial, Helvetica, sans-serif;
   margin: 0;
   padding: 0;
+  background-color: #e9edf3;
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+  color: #1c1c1c;
 }
 
-/* Outer container to center login box */
+/* Page heading */
+.ivrs-head {
+  text-align: center;
+  background-color: #1a4d8f; /* deep govt blue */
+  color: #ffffff;
+  padding: 12px 0;
+  font-size: 24px;
+  font-weight: bold;
+  border-bottom: 3px solid #0c3570;
+  margin: 0;
+}
+
+/* Container to center content */
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: calc(100vh - 70px);
   padding: 20px;
   box-sizing: border-box;
 }
 
-/* Heading */
-.ivrs-head {
-  text-align: center;
-  font-size: 26px;
-  font-weight: bold;
-  color: #0b5fa4;
-  margin-bottom: 20px;
-}
-
-/* Login box */
+/* Main box */
 .login-box {
-  background-color: #ffffff;
   width: 100%;
   max-width: 400px;
+  background-color: #ffffff;
+  border: 1px solid #c5c9cf;
+  border-top: 5px solid #1a4d8f;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
   padding: 25px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Logo */
 .login-header {
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .login-logo {
@@ -55,108 +63,110 @@ body {
 .login-title {
   text-align: center;
   font-size: 18px;
+  color: #1a4d8f;
   font-weight: bold;
-  color: #333333;
   margin: 10px 0 20px 0;
 }
 
-/* Error message */
+/* Error box */
 .error-text {
-  background-color: #fee2e2;
-  border: 1px solid #ef4444;
-  color: #b91c1c;
+  background-color: #fce4e4;
+  color: #a94442;
+  border: 1px solid #dca7a7;
   padding: 8px;
-  border-radius: 5px;
+  border-radius: 3px;
   font-size: 14px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  text-align: center;
 }
 
-/* Form */
+/* Form styling */
 .login-form {
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
-/* Labels and inputs */
 .form-group {
   margin-bottom: 15px;
 }
 
 .form-group label {
-  font-size: 14px;
-  font-weight: bold;
-  color: #374151;
-  margin-bottom: 5px;
   display: block;
+  font-size: 14px;
+  color: #222;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
 
 .login-input {
   width: 100%;
-  padding: 10px;
+  padding: 9px;
   font-size: 15px;
-  border: 1px solid #cbd5e1;
-  border-radius: 5px;
-  background-color: #f9fafb;
+  border: 1px solid #b8b8b8;
+  border-radius: 3px;
+  background-color: #fdfdfd;
   box-sizing: border-box;
 }
 
 .login-input:focus {
   outline: none;
-  border-color: #0ea5a4;
+  border-color: #1a4d8f;
   background-color: #ffffff;
 }
 
-/* Buttons */
+/* Button section */
 .login-actions {
   text-align: right;
+  margin-top: 5px;
 }
 
 .login-btn {
-  background-color: #0ea5a4;
+  background-color: #1a4d8f;
   color: #ffffff;
   border: none;
-  border-radius: 5px;
-  padding: 10px 16px;
+  padding: 10px 18px;
   font-size: 15px;
-  font-weight: bold;
+  border-radius: 3px;
   cursor: pointer;
+  font-weight: bold;
 }
 
 .login-btn:hover {
-  background-color: #0b8c8b;
+  background-color: #143e73;
 }
 
-/* Footer text */
+/* Footer */
 .login-footer {
   text-align: center;
+  margin-top: 20px;
   font-size: 13px;
-  color: #6b7280;
-  margin-top: 15px;
+  color: #555;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
 }
 
-/* Responsive (mobile) */
+/* Accessibility */
+.login-btn:focus,
+.login-input:focus {
+  outline: 2px solid #1a4d8f;
+  outline-offset: 2px;
+}
+
+/* Mobile view */
 @media (max-width: 480px) {
   .login-box {
     padding: 15px;
-    border-radius: 6px;
   }
-
   .login-logo {
     width: 60px;
     height: 60px;
   }
-
-  .login-title {
-    font-size: 16px;
+  .ivrs-head {
+    font-size: 20px;
+    padding: 10px 0;
   }
-
-  .login-input {
-    padding: 8px;
-    font-size: 14px;
-  }
-
   .login-btn {
-    padding: 8px 12px;
+    width: 100%;
+    padding: 10px;
     font-size: 14px;
   }
 }
