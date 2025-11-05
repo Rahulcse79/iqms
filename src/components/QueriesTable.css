@@ -71,7 +71,21 @@
   transition: background-color 0.3s ease;
 }
 
-
-.queries-container button{
+.queries-container button {
   color: var(--text);
+}
+
+.themed-data-table .rdt_TableRow:hover {
+  background-color: var(--surface-accent) !important;
+  color: var(--text) !important;
+}
+
+/* Ensure cell text color remains visible */
+.themed-data-table .rdt_TableRow:hover .rdt_TableCell {
+  color: var(--text) !important;
+}
+
+/* Optional subtle border for hover visibility */
+.themed-data-table .rdt_TableRow:hover {
+  border-color: var(--border);
 }

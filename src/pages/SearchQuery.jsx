@@ -21,7 +21,9 @@ const SearchQuery = () => {
   }, []);
 
   const categories = airForceProfile?.categoryQuery || [
-    "AIRMEN, OFFICER, CIVILIAN",
+    "AIRMEN",
+    "OFFICER",
+    "CIVILIAN",
   ];
   const [category, setCategory] = useState(categories[0] || "");
 
