@@ -11,6 +11,11 @@ import "./CDR.css";
 import { opaqueServices } from "../utils/endpoints";
 import { getCookieData } from "../utils/helpers";
 import ExtensionDialog from "../components/ExtensionDialog";
+import variables from "../utils/variables";
+import ReactPlayer from "react-player";
+import { Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 const TABS = [
   {
@@ -211,6 +216,7 @@ const CDR = () => {
   // extension handling
   const [userExtensionState, setUserExtensionState] = useState("");
   const [showExtensionDialog, setShowExtensionDialog] = useState(false);
+  const [playingUuid, setPlayingUuid] = useState(null);
 
   // Load userExtension from cookie after mount
   useEffect(() => {
@@ -671,14 +677,46 @@ const CDR = () => {
                     <td>{item.isMissed ?? "-"}</td>
                     <td>
                       {item.recordingFile ? (
-                        <div className="cdr-recording-wrap">
-                          <audio
-                            controls
-                            preload="none"
-                            src={item.recordingFile}
+                        <div className="cdr-recording-actions">
+                          <button
+                            className="cdr-btn cdr-btn-play"
+                            onClick={() => setPlayingUuid(item.uuid)}
                           >
-                            Your browser does not support the audio element.
-                          </audio>
+                            ▶ Play
+                          </button>
+                          <button
+                            className="cdr-btn cdr-btn-download"
+                            onClick={async () => {
+                              try {
+                                const resp = await fetch(
+                                  variables.app.services +
+                                    `auth/downloadRecordingFile/agentCdr/${item.uuid}`
+                                );
+                                if (!resp.ok)
+                                  throw new Error(
+                                    `Failed to download (${resp.status})`
+                                  );
+                                const blob = await resp.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `${
+                                  item.agentName || "recording"
+                                }-${item.uuid}.mp3`;
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                window.URL.revokeObjectURL(url);
+                              } catch (err) {
+                                console.error("Download error:", err);
+                                alert(
+                                  "Unable to download recording. Please try again later."
+                                );
+                              }
+                            }}
+                          >
+                            ⬇ Download
+                          </button>
                         </div>
                       ) : (
                         <span className="cdr-no-record">-</span>
@@ -691,6 +729,60 @@ const CDR = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Audio Player Dialog */}
+      {playingUuid && (
+        <Dialog
+          open={true}
+          onClose={() => setPlayingUuid(null)}
+          sx={(theme) => ({
+            "& .MuiPaper-root": {
+              backgroundColor:
+                theme.palette.mode === "dark" ? "#1e1e1e" : "#fefefe",
+              color: theme.palette.mode === "dark" ? "#fff" : "#000",
+              borderRadius: "8px",
+              width: "520px",
+            },
+          })}
+        >
+          <DialogTitle>
+            CDR Audio Recording
+            <IconButton
+              color="error"
+              aria-label="close"
+              onClick={() => setPlayingUuid(null)}
+              sx={{
+                position: "absolute",
+                right: "8px",
+                top: "8px",
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent>
+            <audio
+              key={playingUuid} // ensures React re-creates player fresh each time
+              controls
+              autoPlay
+              style={{ width: "100%" }}
+              onError={(e) => {
+                console.error("Audio playback error:", e);
+                alert("Unable to play this recording. Please try again later.");
+                setPlayingUuid(null);
+              }}
+              onEnded={() => setPlayingUuid(null)}
+            >
+              <source
+                src={`${variables.app.services}auth/downloadRecordingFile/agentCdr/${playingUuid}`}
+                type="audio/mpeg"
+              />
+              Your browser does not support the audio element.
+            </audio>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* PAGINATION */}
       <div className="cdr-pagination" aria-label="Pagination controls">
