@@ -47,16 +47,15 @@ const requestHandler = (request) => {
 };
 
 const opaqueRequestHandler = (request) => {
-    try {
-      const opaque = "abcdefgh";
-      if (opaque) request.headers["Authorization"] = `Opaque ${opaque}`;
-    } catch (e) {
-      console.error("Could not process request issue with header", e);
-      return Promise.reject(e);
-    }
+  try {
+    const opaque = "abcdefgh";
+    if (opaque) request.headers["Authorization"] = `Opaque ${opaque}`;
+  } catch (e) {
+    console.error("Could not process request issue with header", e);
+    return Promise.reject(e);
+  }
   return request;
 };
-
 
 // ---------- Response / Error Handler ----------
 const responseHandler = (response) => response;
@@ -162,7 +161,7 @@ instances.forEach((instance) => {
 
 const opaqueInstances = [opaqueTelemetry, opaqueServices];
 opaqueInstances.forEach((instance) => {
-  instance.interceptors.request.use(opaqueRequestHandler, (error) =>  
+  instance.interceptors.request.use(opaqueRequestHandler, (error) =>
     Promise.reject(error)
   );
   instance.interceptors.response.use(responseHandler, errorHandler);
@@ -196,10 +195,11 @@ export const loginAPI = (encryptedUsername, encryptedPassword) => {
 };
 
 // ---------- Exports ----------
-export const logoutAPI = () => {
-  return appServices.post(variables.app.services + "agentStatus/create", {
-    status: "Logout",
-  });
+export const logoutAPI = async () => {
+  console.log("Logging out agent via API");
+  await application.post("agentStatus/create", { status: "Logout" });
+  localStorage.clear();
+  Cookies.remove("authData", { path: "/" });
 };
 
 export const getAgentStatus = () => {
@@ -224,9 +224,6 @@ export const getAgentStatus = () => {
           console.log("Agent is logged in.");
         } else if (data.status === "Logout") {
           logoutAPI();
-          Cookies.remove("authData", { path: "/" });
-          localStorage.clear();
-          window.location = "/app2/login";
         } else {
           console.log("Agent status:", data.status);
         }

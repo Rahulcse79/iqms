@@ -9,8 +9,8 @@ import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { getAllTransferredCountsForRole } from "../actions/transferredQueryActionNew";
 import { getDesignationFlags, getCookieData } from "../utils/helpers";
 import {
-  appServices,
-  getAgentStatus,
+  application,
+  logoutAPI,
   opaqueServices,
 } from "../utils/endpoints";
 import ExtensionDialog from "../components/ExtensionDialog";
@@ -146,7 +146,7 @@ const fetchInterimRepliesSummary = async () => {
       advancedFilters: [],
     };
 
-    const resp = await appServices.post("task/list", payload);
+    const resp = await application.post("task/list", payload);
     const list = resp?.data?.data?.currentPageData || [];
 
     if (!Array.isArray(list) || list.length === 0) {
@@ -341,9 +341,22 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [loading]);
 
-  useEffect(() => {
-    getAgentStatus();
-  });
+useEffect(() => {
+  const checkCookieAndUpdateStatus = () => {
+    const cookie = getCookieData();
+
+    if (!cookie) {
+      logoutAPI();
+    } else {
+      application.post("agentStatus/create", { status: "Login" });
+    }
+  };
+
+  checkCookieAndUpdateStatus();
+  const interval = setInterval(checkCookieAndUpdateStatus, 30000);
+  return () => clearInterval(interval);
+}, []);
+
 
   const [interimSummary, setInterimSummary] = useState({
     totalTasks: 0,

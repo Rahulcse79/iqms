@@ -13,6 +13,7 @@ import Loader from "./Loader";
 import { AuthContext } from "../context/AuthContext";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import ChangePasswordDialog from "./ChangePasswordDialog";
+import { logoutAPI } from "../utils/endpoints";
 
 /**
  * Topbar with Enhanced Active Role Management
@@ -22,7 +23,6 @@ import ChangePasswordDialog from "./ChangePasswordDialog";
  * - Shows loading states during role switches
  */
 const Topbar = ({ toggleSidebar }) => {
-  const { logout } = React.useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -40,7 +40,7 @@ const Topbar = ({ toggleSidebar }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("queryDrafts_v2");
-    logout();
+    logoutAPI();
     navigate("/login");
   };
 
