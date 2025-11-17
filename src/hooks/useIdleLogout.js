@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { logoutAPI } from "../utils/endpoints";
 import Cookies from "js-cookie";
+import variables from "../utils/variables";
 
 /**
  * useIdleLogout
@@ -9,7 +10,7 @@ import Cookies from "js-cookie";
  * - Calls `logoutAPI()` and then navigates to `/login` (with fallbacks).
  * - Accepts either a callback `onLogout` or will perform the default logout flow.
  */
-export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
+export default function useIdleLogout(onLogout, timeout = 30 * 1000) {
   const timerRef = useRef(null);
   const isLoggingOutRef = useRef(false);
   const navigate = useNavigate();
@@ -54,6 +55,64 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
     }
   }, [navigate]);
 
+  // Best-effort logout for unload/close events.
+  // Uses fetch with `keepalive` (so the request may complete during unload) and
+  // falls back to navigator.sendBeacon when needed. Always clears client-side
+  // state (localStorage + cookie) so reopening won't re-authenticate.
+  const performUnloadLogout = useCallback(() => {
+    try {
+      const authCookie = Cookies.get("authData");
+      let token = null;
+      if (authCookie) {
+        try {
+          token = JSON.parse(authCookie)?.token;
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      const url = `${variables.api.services}agentStatus/create`;
+      const payload = JSON.stringify({ status: "Logout" });
+
+      // Try fetch with keepalive first (modern browsers)
+      if (typeof fetch === "function") {
+        try {
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: payload,
+            keepalive: true,
+          });
+        } catch (e) {
+          // fall through to sendBeacon
+          try {
+            if (navigator && typeof navigator.sendBeacon === "function") {
+              navigator.sendBeacon(url, payload);
+            }
+          } catch (e2) {
+            // last resort: do nothing
+          }
+        }
+      } else if (navigator && typeof navigator.sendBeacon === "function") {
+        try {
+          navigator.sendBeacon(url, payload);
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.error("performUnloadLogout error:", err);
+    } finally {
+      try {
+        localStorage.clear();
+      } catch (e) {}
+      try {
+        Cookies.remove("authData", { path: "/" });
+      } catch (e) {}
+    }
+  }, []);
+
   const handleIdle = useCallback(() => {
     // If a custom onLogout callback was provided, call it first
     if (typeof onLogout === "function") {
@@ -91,6 +150,10 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
       window.addEventListener(event, resetTimer, { passive: true });
     });
 
+    // Ensure we attempt to logout when the page is being unloaded/hidden
+    window.addEventListener("beforeunload", performUnloadLogout);
+    window.addEventListener("pagehide", performUnloadLogout);
+
     // Also reset on visibility change (user returned to tab)
     const handleVisibility = () => {
       if (!document.hidden) resetTimer();
@@ -105,6 +168,8 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
         window.removeEventListener(event, resetTimer);
       });
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("beforeunload", performUnloadLogout);
+      window.removeEventListener("pagehide", performUnloadLogout);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [resetTimer]);
