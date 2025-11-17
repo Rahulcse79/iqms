@@ -4,12 +4,15 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import "./DashboardLayout.css";
 import useTheme from "../hooks/useTheme";
+import useIdleLogout from "../hooks/useIdleLogout";
 
 const DashboardLayout = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
+  // Install the idle-logout hook for the whole dashboard area (default 5 minutes)
+  useIdleLogout();
 
-
+  
   // theme hook
   const { theme, toggleTheme } = useTheme();
 
