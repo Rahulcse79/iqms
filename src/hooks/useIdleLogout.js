@@ -14,6 +14,8 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
   const timerRef = useRef(null);
   const isLoggingOutRef = useRef(false);
   const navigate = useNavigate();
+  const isRefreshRef = useRef(false);
+  const lastActivityRef = useRef(Date.now());
 
   const performLogout = useCallback(async () => {
     if (isLoggingOutRef.current) return;
@@ -56,10 +58,22 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
   }, [navigate]);
 
   // Best-effort logout for unload/close events.
+  // Distinguishes between refresh (don't logout) and close/unload (do logout).
   // Uses fetch with `keepalive` (so the request may complete during unload) and
   // falls back to navigator.sendBeacon when needed. Always clears client-side
   // state (localStorage + cookie) so reopening won't re-authenticate.
   const performUnloadLogout = useCallback(() => {
+    // Detect if this is a refresh or a real unload/close
+    // Refresh typically has very short time since last activity
+    const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+    const isLikelyRefresh =
+      isRefreshRef.current || timeSinceLastActivity < 500; // <500ms = likely refresh
+
+    if (isLikelyRefresh) {
+      console.log("Detected page refresh — skipping unload logout");
+      return;
+    }
+
     try {
       const authCookie = Cookies.get("authData");
       let token = null;
@@ -138,6 +152,7 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
     try {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(handleIdle, timeout);
+      lastActivityRef.current = Date.now(); // Update last activity timestamp
     } catch (err) {
       console.error("useIdleLogout resetTimer error:", err);
     }
@@ -150,8 +165,21 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
       window.addEventListener(event, resetTimer, { passive: true });
     });
 
+    // Detect page reload/refresh
+    const handleBeforeUnload = (e) => {
+      // Check if this is a TYPE_RELOAD using performance.navigation (deprecated but still useful)
+      if (
+        typeof performance !== "undefined" &&
+        performance.navigation &&
+        performance.navigation.type === 1
+      ) {
+        isRefreshRef.current = true;
+      }
+      performUnloadLogout();
+    };
+
     // Ensure we attempt to logout when the page is being unloaded/hidden
-    window.addEventListener("beforeunload", performUnloadLogout);
+    window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("pagehide", performUnloadLogout);
 
     // Also reset on visibility change (user returned to tab)
@@ -168,11 +196,11 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
         window.removeEventListener(event, resetTimer);
       });
       document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("beforeunload", performUnloadLogout);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", performUnloadLogout);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [resetTimer]);
+  }, [resetTimer, performUnloadLogout]);
 
   return null;
 }
