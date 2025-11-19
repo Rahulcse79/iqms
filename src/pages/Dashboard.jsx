@@ -8,6 +8,7 @@ import Cookies from "js-cookie";
 import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { getAllTransferredCountsForRole } from "../actions/transferredQueryActionNew";
 import { getDesignationFlags, getCookieData } from "../utils/helpers";
+import VersionNoticeBoard from "../components/versionNoticeBoard";
 import {
   application,
   logoutAPI,
@@ -466,6 +467,7 @@ useEffect(() => {
             link="/interim-reply"
           />
         </div>
+      <VersionNoticeBoard />
       </div>
     </>
   );
