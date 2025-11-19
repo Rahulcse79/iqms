@@ -10,7 +10,7 @@ import variables from "../utils/variables";
  * - Calls `logoutAPI()` and then navigates to `/login` (with fallbacks).
  * - Accepts either a callback `onLogout` or will perform the default logout flow.
  */
-export default function useIdleLogout(onLogout, timeout = 30 * 1000) {
+export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
   const timerRef = useRef(null);
   const isLoggingOutRef = useRef(false);
   const navigate = useNavigate();
