@@ -89,9 +89,9 @@ const errorHandler = async (error) => {
       return axios(originalRequest);
     } catch (err) {
       processQueue(err, null);
-      Cookies.remove("authData", { path: "/" });
-      localStorage.clear();
-      window.location = "/app2/login";
+      // Cookies.remove("authData", { path: "/" });
+      // localStorage.clear();
+      // window.location = "/app2/login";
       return Promise.reject(err);
     } finally {
       isRefreshing = false;

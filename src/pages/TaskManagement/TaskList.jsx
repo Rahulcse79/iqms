@@ -36,10 +36,10 @@ export default function TaskList() {
       currentPage: 0,
       pageSize: 100, // Increased to get more tasks for better sorting
       sortDirection: "desc",
-      sortBy: "createdOn",
-      search: "",
-      sortDataType: "integer",
-      advancedFilters: [],
+      sortBy:"taskType",
+      search:"Interim Reply",
+      sortDataType:"string",
+      advancedFilters:[]
     }),
     []
   );

@@ -56,7 +56,6 @@ const fetchDropdownData = async () => {
 
     const [prioritiesRes, typesRes] = await Promise.all([
       application.post("taskPriority/listAll"),
-      application.post("taskType/listAll"),
     ]);
 
     const prioritiesData = prioritiesRes?.data;
@@ -118,7 +117,6 @@ const fetchDropdownData = async () => {
     }
 
     if (!formData.taskPriority) errors.taskPriority = 'Task priority is required';
-    if (!formData.taskType) errors.taskType = 'Task type is required';
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -150,7 +148,7 @@ const handleSubmit = async (e) => {
       assignedOn: nowToApi(), // current time at submit
       expectedCompletionDate: localInputToApi(formData.expectedCompletionDate), // exact format
       taskPriority: formData.taskPriority,
-      taskType: formData.taskType,
+      taskType: "Interim Reply", // fixed
       assignedTo: 2, // fixed
       assignedUser: String(assignedUser), // Use LOGIN_SNO from localStorage
       taskDescription: formData.taskDescription.trim(),
@@ -253,23 +251,6 @@ const handleSubmit = async (e) => {
 
             {/* Row: Type & Priority */}
             <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="taskType" className="form-label">Reply Type <span className="required">*</span></label>
-                <select
-                  id="taskType"
-                  name="taskType"
-                  value={formData.taskType}
-                  onChange={handleInputChange}
-                  className={`form-select ${validationErrors.taskType ? 'error' : ''}`}
-                >
-                  <option value="">Select Reply type</option>
-                  {dropdownData.types.map((t) => (
-                    <option key={t.id} value={t.taskType}>{t.taskType}</option>
-                  ))}
-                </select>
-                {validationErrors.taskType && <span className="error-message">{validationErrors.taskType}</span>}
-              </div>
-
               <div className="form-group">
                 <label htmlFor="taskPriority" className="form-label">Reply Priority <span className="required">*</span></label>
                 <select
