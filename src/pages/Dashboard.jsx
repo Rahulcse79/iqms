@@ -349,7 +349,7 @@ useEffect(() => {
     if (!cookie) {
       logoutAPI();
     } else {
-      application.post("agentStatus/create", { status: "Login" });
+      // application.post("agentStatus/create", { status: "Login" });
     }
   };
 
