@@ -213,7 +213,6 @@ export default function VersionNoticeBoard() {
 
               {/* Card Body */}
               <div className="notice-card-body">
-                <p className="notice-description">{b.description || "No description available."}</p>
                 
                 {/* Highlights */}
                 {b.highlights?.length ? (

@@ -60,14 +60,14 @@ export default function FeedbackCreate({ onClose, onTaskCreated }) {
 
     // Validate tasksName from formData (user input)
     if (!formData.tasksName.trim()) {
-      errors.tasksName = 'Task name (DOC ID) is required';
+      errors.tasksName = 'Feedback Heading is required';
     }
 
 
     if (!formData.taskDescription.trim()) {
-      errors.taskDescription = 'Task description is required';
+      errors.taskDescription = 'Feedback description is required';
     } else if (formData.taskDescription.trim().length < 10) {
-      errors.taskDescription = 'Task description must be at least 10 characters';
+      errors.taskDescription = 'Feedback description must be at least 10 characters';
     }
 
 

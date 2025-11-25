@@ -5,7 +5,7 @@ export const versionData = {
   builds: [
     {
       version: "Build 1",
-      date: "2025-09-25",
+      date: "25 Sep, 2025",
       tag: "Feature",
       highlights: [
         "Profile View",
@@ -16,11 +16,11 @@ export const versionData = {
         "MIS (as in IQMS (Pankh))",
       ],
       author: "Team IVRS",
-      fullNotes: "Added IQMS basic features including profile & query views, comparisons, and MIS."
+      fullNotes: "Introduced core IQMS functionality: profile and query views, comparisons between senior/junior agents, and query-level status tracking (pending, transferred, replied). Also added initial MIS reporting to surface key metrics for quality monitoring."
     },
     {
       version: "Build 2",
-      date: "2025-10-17",
+      date: "17 Oct, 2025",
       tag: "Improvement",
       highlights: [
         "Added the feature of Interim Replies",
@@ -29,24 +29,24 @@ export const versionData = {
         "Bugs of Build 1 resolved",
       ],
       author: "Team IVRS",
-      fullNotes: "Interim reply feature, CRM integration, query level filtering and important bug fixes."
+      fullNotes: "Delivered enhancements to response workflows by adding interim replies and integrated CRM capabilities. Implemented finer-grained query filtering (cell / sub-section / wing) and fixed bugs from Build 1 to improve stability and data accuracy."
     },
     {
       version: "Build 3",
-      date: "2025-11-05",
+      date: "05 Nov, 2025",
       tag: "Improvement",
       highlights: [
-        "Added the feature of Interim Replies",
-        "Added CRM",
+        "Added the cards for the Interim Reply and CDR",
+        "Added the recording feature in CDR",
         "Queries shown cell, sub-section and wing wise",
-        "Bugs of Build 1 resolved",
+        "Bugs of Build 2 resolved",
       ],
       author: "Team IVRS",
-      fullNotes: "Interim reply feature, CRM integration, query level filtering and important bug fixes."
+      fullNotes: "Consolidated CRM and interim-reply behavior with additional UX and performance refinements. This release focused on polishing workflows, resolving edge-case bugs, and improving responsiveness for query filtering and views."
     },
     {
       version: "Build 4",
-      date: "2025-11-24",
+      date: "24 Nov, 2025",
       tag: "Feedback and Auto Logout",
       highlights: [
         "Added the feedback feature",
@@ -55,11 +55,9 @@ export const versionData = {
         "Bugs of Build 3 resolved",
       ],
       author: "Team IVRS",
-      fullNotes: ""
+      fullNotes: "Added a feedback collection module to capture end-user responses, implemented automatic session logout after 5 minutes of inactivity for improved security, and introduced a live agent active-status list with real-time counts to aid monitoring. Also addressed outstanding issues from Build 3 and made fixes to session handling and realtime updates."
     },
   ]
 };
 
 export default versionData;
-
-

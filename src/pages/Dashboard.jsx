@@ -11,8 +11,10 @@ import { getDesignationFlags, getCookieData } from "../utils/helpers";
 import VersionNoticeBoard from "../components/versionNoticeBoard";
 import { application, logoutAPI, opaqueServices } from "../utils/endpoints";
 import ExtensionDialog from "../components/ExtensionDialog";
+import FeedbackCreate from "../pages/TaskManagement/FeedbackCreate";
 // --- CSS Styles (can remain the same) ---
 const styles = `
+    .feedback{ margin-bottom: 1rem; justify-content: flex-end; display: flex;}
     .dashboard-section { padding: 2rem; background-color: var(--bg); font-family: var(--font-family, sans-serif); color: var(--text); }
     .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
     .query-card { background-color: var(--surface); border-radius: 0.75rem; padding: 1.5rem; color: var(--text); box-shadow: var(--shadow); border: 1px solid var(--border); border-top: 4px solid transparent; transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; cursor: pointer; }
@@ -185,6 +187,61 @@ const fetchInterimRepliesSummary = async () => {
   }
 };
 
+// const fetchFeedbackRepliesSummary = async () => {
+//   try {
+//     const payload = {
+//       currentPage: 0,
+//       pageSize: 10000, // Increased to get more tasks for better sorting
+//       sortDirection: "desc",
+//       sortBy: "taskType",
+//       search: "Feedback",
+//       sortDataType: "string",
+//       advancedFilters: [],
+//     };
+
+//     const resp = await application.post("task/list", payload);
+//     const list = resp?.data?.data?.currentPageData || [];
+
+//     if (!Array.isArray(list) || list.length === 0) {
+//       return { total: 0, dueToday: 0, upcoming: 0, delayed: 0 };
+//     }
+
+//     const today = new Date();
+//     const todayStart = new Date(today.setHours(0, 0, 0, 0));
+//     const todayEnd = new Date(todayStart);
+//     todayEnd.setHours(23, 59, 59, 999);
+
+//     let dueToday = 0;
+//     let upcoming = 0;
+//     let delayed = 0;
+
+//     list.forEach((t) => {
+//       const dueDateStr =
+//         t.dueDate || t.expectedCompletionDate || t.changedCompletionOn;
+//       if (!dueDateStr) return;
+
+//       const dueDate = new Date(dueDateStr);
+//       if (isNaN(dueDate)) return;
+
+//       if (dueDate >= todayStart && dueDate <= todayEnd) {
+//         dueToday++;
+//       } else if (dueDate > todayEnd) {
+//         upcoming++;
+//       } else if (dueDate < todayStart) {
+//         delayed++;
+//       }
+//     });
+
+//     const total = list.length;
+
+//     return { total, dueToday, upcoming, delayed };
+//   } catch (err) {
+//     console.error("fetchFeedbackRepliesSummary error:", err);
+//     return { total: 0, dueToday: 0, upcoming: 0, delayed: 0 };
+//   }
+// };
+
+
 const Dashboard = () => {
   const [counts, setCounts] = useState({
     pending: { creator: 0, verifier: 0, approver: 0, total: 0 },
@@ -197,6 +254,15 @@ const Dashboard = () => {
   // extension handling
   const [userExtensionState, setUserExtensionState] = useState("");
   const [showExtensionDialog, setShowExtensionDialog] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+const handleFeedback = () => {
+  setShowFeedback(true);      // open the popup/component
+};
+
+const closeFeedback = () => {
+  setShowFeedback(false);     // close the popup/component
+};
+
 
   const handleExtensionSubmit = (extension) => {
     try {
@@ -365,6 +431,12 @@ const Dashboard = () => {
     newTasks: 0,
     delayed: 0,
   });
+  //   const [feedbackSummary, setFeedbackSummary] = useState({
+  //   totalTasks: 0,
+  //   inProgress: 0,
+  //   newTasks: 0,
+  //   delayed: 0,
+  // });
 
   useEffect(() => {
     const loadInterimReplies = async () => {
@@ -375,9 +447,19 @@ const Dashboard = () => {
         console.error("Dashboard: Interim Replies summary load failed", err);
       }
     };
+    // const loadFeedbackReplies = async () => {
+    //   try {
+    //     const summary = await fetchFeedbackRepliesSummary();
+    //     if (summary) setFeedbackSummary(summary);
+    //   } catch (err) {
+    //     console.error("Dashboard: Feedback Replies summary load failed", err);
+    //   }
+    // };
 
     loadInterimReplies();
+    // loadFeedbackReplies();
     const interval = setInterval(loadInterimReplies, 30000);
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -425,6 +507,16 @@ const Dashboard = () => {
       )}
       <style>{styles}</style>
       <div className="dashboard-section">
+
+        <div className="feedback">
+          {showFeedback && (
+  <FeedbackCreate onClose={closeFeedback} />
+)}
+
+<button onClick={handleFeedback}>
+  Give Suggestions
+</button>
+        </div>
         <div className="dashboard-grid">
           <QueryCard
             title="Pending Queries"
@@ -466,6 +558,18 @@ const Dashboard = () => {
             className="interim"
             link="/interim-reply"
           />
+                    {/* <QueryCard
+            title="Feedback "
+            data={[
+              { label: "Total", value: feedbackSummary.total },
+              { label: "Due Today", value: feedbackSummary.dueToday },
+              { label: "Upcoming", value: feedbackSummary.upcoming },
+              { label: "Delayed", value: feedbackSummary.delayed },
+            ]}
+            className="feedback"
+            link="/interim-reply"
+
+          /> */}
         </div>
         <VersionNoticeBoard />
       </div>
