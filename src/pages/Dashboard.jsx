@@ -1,4 +1,4 @@
-// src/pages/Dashboard/Dashboard.jsx - FINAL WORKING VERSION
+// src/pages/Dashboard/Dashboard.jsx - UPDATED VERSION
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
@@ -12,7 +12,8 @@ import VersionNoticeBoard from "../components/versionNoticeBoard";
 import { application, logoutAPI, opaqueServices } from "../utils/endpoints";
 import ExtensionDialog from "../components/ExtensionDialog";
 import FeedbackCreate from "../pages/TaskManagement/FeedbackCreate";
-// --- CSS Styles (can remain the same) ---
+import { loadRepliedQueries } from "../utils/storage";
+
 const styles = `
     .feedback{ margin-bottom: 1rem; justify-content: flex-end; display: flex;}
     .dashboard-section { padding: 2rem; background-color: var(--bg); font-family: var(--font-family, sans-serif); color: var(--text); }
@@ -60,7 +61,7 @@ const parseJSON = (key) => {
   }
 };
 
-// QueryCard component can remain the same
+// QueryCard component (remains the same)
 const QueryCard = React.memo(({ title, data, className, link }) => {
   const navigate = useNavigate();
   return (
@@ -104,7 +105,6 @@ const fetchPerformanceSummary = async (extension) => {
       };
     }
 
-    // compute counts locally just like CDR page
     const totalDialed = data.filter((r) => r.callDirection === "OUT").length;
     const totalReceivedAnswered = data.filter(
       (r) => r.callDirection === "IN" && r.isMissed === "Answered"
@@ -137,7 +137,7 @@ const fetchInterimRepliesSummary = async () => {
   try {
     const payload = {
       currentPage: 0,
-      pageSize: 10000, // Increased to get more tasks for better sorting
+      pageSize: 10000,
       sortDirection: "desc",
       sortBy: "taskType",
       search: "Interim Reply",
@@ -266,7 +266,6 @@ const closeFeedback = () => {
 
   const handleExtensionSubmit = (extension) => {
     try {
-      // Update cookie also includes new userExtension
       const authData = Cookies.get("authData");
       if (authData) {
         const parsed = JSON.parse(authData);
@@ -279,7 +278,6 @@ const closeFeedback = () => {
         });
       }
 
-      // Optional: also store in localStorage for internal logic
       const baseData = JSON.parse(localStorage.getItem("baseUserData") || "{}");
       baseData.userExtension = extension;
       localStorage.setItem("baseUserData", JSON.stringify(baseData));
@@ -293,7 +291,6 @@ const closeFeedback = () => {
     setShowExtensionDialog(false);
   };
 
-  // Load userExtension from cookie after mount
   useEffect(() => {
     const cookieData = getCookieData();
     const ext = cookieData?.user?.userExtension;
@@ -315,7 +312,7 @@ const closeFeedback = () => {
   });
 
   useEffect(() => {
-    if (!userExtensionState) return; // wait until we actually have extension
+    if (!userExtensionState) return;
 
     const loadCDRSummary = async () => {
       try {
@@ -330,9 +327,9 @@ const closeFeedback = () => {
     loadCDRSummary();
     const interval = setInterval(loadCDRSummary, 30000);
     return () => clearInterval(interval);
-  }, [userExtensionState]); // ✅ run when extension is set
+  }, [userExtensionState]);
 
-  // Single effect for all updates using polling
+  // ✅ UPDATED: Single effect for all updates using polling (now with IndexedDB)
   useEffect(() => {
     const updateAllCounts = async () => {
       try {
@@ -350,7 +347,7 @@ const closeFeedback = () => {
         // 1. Get Pending Counts
         const pendingCounts = getAllPendingCountsForRole(activeRole);
 
-        // 2. Get Transferred Counts (which requires async designation flags)
+        // 2. Get Transferred Counts
         let transferredCounts = {
           creator: 0,
           verifier: 0,
@@ -377,9 +374,20 @@ const closeFeedback = () => {
           console.warn("Dashboard: Could not get transferred counts.", error);
         }
 
-        // 3. Get Replied Count
-        const repliedData = parseJSON("repliedQueries_v2_new");
-        const repliedCount = repliedData?.[activeRole.SUB_SECTION]?.length || 0;
+        // ✅ 3. Get Replied Count from IndexedDB (async)
+        let repliedCount = 0;
+        try {
+          const repliedStore = await loadRepliedQueries(); // Load from IndexedDB
+          repliedCount = repliedStore[activeRole.SUB_SECTION]?.length || 0;
+          console.log(
+            `📊 Dashboard: Replied count for ${activeRole.SUB_SECTION}: ${repliedCount}`
+          );
+        } catch (error) {
+          console.warn(
+            "Dashboard: Could not get replied count from IndexedDB.",
+            error
+          );
+        }
 
         // 4. Update state once with all new counts
         setCounts({
@@ -390,7 +398,7 @@ const closeFeedback = () => {
       } catch (error) {
         console.error("Dashboard: Error updating counts.", error);
       } finally {
-        if (loading) setLoading(false); // Turn off initial loader
+        if (loading) setLoading(false);
       }
     };
 
@@ -544,7 +552,7 @@ const closeFeedback = () => {
               { label: "Received Calls", value: cdrSummary.totalAnswered },
               { label: "Dialed Calls", value: cdrSummary.totalDialed },
             ]}
-            className="cdr" // or new class like "cdr"
+            className="cdr"
             link="/cdr"
           />
           <QueryCard

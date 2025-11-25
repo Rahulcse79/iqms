@@ -1,23 +1,11 @@
-// NEW REPLIED QUERY ACTION - Add this as a new file: repliedQueryActionNew.js
-// or add these methods to your existing repliedQueryAction.js
-
+// repliedQueryActionNew.js
 import {
   REPLIED_QUERY_REQUEST,
   REPLIED_QUERY_SUCCESS,
   REPLIED_QUERY_FAIL,
+  REPLIED_QUERY_HYDRATE, // Make sure this constant exists in appConstants.js
 } from "../constants/appConstants";
-
-const REPLIED_STORAGE_KEY_NEW = "repliedQueries_v2_new";
-
-function safeLoadRepliedStorageNew() {
-  try {
-    const raw = localStorage.getItem(REPLIED_STORAGE_KEY_NEW);
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) {
-    console.warn("Failed to read REPLIED storage (NEW):", e);
-    return {};
-  }
-}
+import { loadRepliedQueries, saveRepliedQueries } from "../utils/storage"; // Import from storage.js
 
 /**
  * Format cell allocation for API
@@ -26,39 +14,48 @@ function safeLoadRepliedStorageNew() {
  */
 export const formatCellAllocation = (cellAlloted) => {
   if (!cellAlloted) return "";
-
   // If already formatted with quotes, return as is
   if (cellAlloted.includes("'")) return cellAlloted;
-
   // Split by comma and wrap each in quotes
   const cells = cellAlloted.split(",").map((cell) => cell.trim());
   const formatted = cells.map((cell) => `'${cell}'`).join(",");
-
   console.log(`📝 Formatted cells: ${cellAlloted} -> ${formatted}`);
   return formatted;
 };
 
-function safeSaveRepliedToStorageNew(subSection, items) {
-  try {
-    const store = safeLoadRepliedStorageNew();
-    store[subSection] = items || [];
-    localStorage.setItem(REPLIED_STORAGE_KEY_NEW, JSON.stringify(store));
-  } catch (e) {
-    console.warn("Failed to save REPLIED to storage (NEW):", e);
-  }
-}
+/**
+ * Hydrate replied queries from IndexedDB on app start
+ * This loads existing data without making API calls
+ */
+export const hydrateRepliedQueriesFromStorage =
+  (subSection) => async (dispatch) => {
+    try {
+      const store = await loadRepliedQueries();
+      const items = store[subSection] || [];
+      console.log(
+        `💧 Hydrating ${subSection} with ${items.length} items from IndexedDB`
+      );
+
+      dispatch({
+        type: REPLIED_QUERY_HYDRATE,
+        payload: { subSection, items },
+      });
+
+      return items;
+    } catch (error) {
+      console.error("❌ Failed to hydrate from IndexedDB:", error);
+      return [];
+    }
+  };
 
 /**
- * NEW API: Fetch replied queries using the updated ivrsIqmsListing API
- * @param {Object} params - API parameters
- * @param {string} params.moduleCat - Module category (e.g., "1")
- * @param {string} params.subSection - Sub section (e.g., "CQC")
- * @param {string} params.cell - Cell allocation string (e.g., "'501','502','503'")
+ * Fetch replied queries from API
  */
 export const fetchRepliedQueriesNew =
   ({ moduleCat, subSection, cell, activeRole }) =>
   async (dispatch) => {
     const storageKey = subSection || "DEFAULT";
+
     dispatch({
       type: REPLIED_QUERY_REQUEST,
       meta: { subSection: storageKey, apiVersion: "NEW" },
@@ -74,7 +71,7 @@ export const fetchRepliedQueriesNew =
         queryType: "REPLIED_QUERY",
         MODULE_CAT: moduleCat,
         SUB_SECTION: subSection,
-        CELL: formatCellAllocation(activeRole.CELL_ALLOTED),
+        CELL: formatCellAllocation(activeRole?.CELL_ALLOTED || cell),
         api_token: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS",
       };
 
@@ -86,7 +83,6 @@ export const fetchRepliedQueriesNew =
             "Content-Type": "application/json",
           },
           body: JSON.stringify(requestBody),
-          timeout: 30000,
         }
       );
 
@@ -95,28 +91,26 @@ export const fetchRepliedQueriesNew =
       }
 
       const data = await response.json();
-
       let items = [];
 
       if (data.success && Array.isArray(data.data)) {
-        // ✅ Success and data is valid array
         items = data.data;
         console.log(
           `✅ Fetched ${items.length} replied queries (NEW API) for ${subSection}`
         );
       } else {
-        // ❌ Failure or unexpected data format
         console.warn("⚠️ API responded with no data or error:", data);
-
-        // Optional: you could show a notification, or handle empty display
-        items = []; // Set to empty array to clear previous entries
+        items = [];
       }
 
-      // Save to storage and dispatch success
-      safeSaveRepliedToStorageNew(storageKey, items);
+      // Save to IndexedDB (async - non-blocking)
+      const store = await loadRepliedQueries();
+      store[storageKey] = items;
+      await saveRepliedQueries(store);
+
       dispatch({
         type: REPLIED_QUERY_SUCCESS,
-        payload: { subSection: storageKey, items: [...items] },
+        payload: items, // Changed to just items for simpler reducer
         meta: { apiVersion: "NEW" },
       });
 
@@ -140,73 +134,24 @@ export const fetchRepliedQueriesNew =
   };
 
 /**
- * NEW API: Refresh replied queries using the updated API
- * Used by Refresh button / Topbar manual refresh
+ * Refresh replied queries (wrapper for fetchRepliedQueriesNew)
  */
 export const refreshRepliedQueriesNew =
   ({ moduleCat, subSection, cell, activeRole }) =>
   async (dispatch) => {
-    const storageKey = subSection || "DEFAULT";
     console.log("🔄 Refreshing replied queries (NEW API) for:", subSection);
-
-    // Clear existing data first
-    safeSaveRepliedToStorageNew(storageKey, []);
-
-    // Fetch fresh data
     return dispatch(
       fetchRepliedQueriesNew({ moduleCat, subSection, cell, activeRole })
     );
   };
 
 /**
- * NEW API: Load replied queries from storage (for offline/cached access)
+ * Get replied queries count from IndexedDB
  */
-export const loadRepliedQueriesFromStorageNew = (subSection) => (dispatch) => {
+export const getRepliedQueriesCountNew = async (subSection) => {
   try {
-    const storageKey = subSection || "DEFAULT";
-    const store = safeLoadRepliedStorageNew();
-    const items = store[storageKey] || [];
-
-    console.log(
-      `📦 Loading replied queries (NEW API) from storage for ${subSection}:`,
-      items.length,
-      "items"
-    );
-
-    dispatch({
-      type: REPLIED_QUERY_SUCCESS,
-      payload: { subSection: storageKey, items: [...items] },
-      meta: { fromStorage: true, apiVersion: "NEW" },
-    });
-
-    return {
-      subSection: storageKey,
-      items: items,
-      fromStorage: true,
-      apiVersion: "NEW",
-    };
-  } catch (error) {
-    console.error(
-      "❌ Failed to load replied queries (NEW API) from storage:",
-      error
-    );
-    dispatch({
-      type: REPLIED_QUERY_FAIL,
-      payload: "Failed to load from storage: " + error?.message,
-      meta: { subSection: subSection || "DEFAULT", apiVersion: "NEW" },
-    });
-    throw error;
-  }
-};
-
-/**
- * NEW API: Get replied queries count from storage without dispatching
- */
-export const getRepliedQueriesCountNew = (subSection) => {
-  try {
-    const storageKey = subSection || "DEFAULT";
-    const store = safeLoadRepliedStorageNew();
-    const items = store[storageKey] || [];
+    const store = await loadRepliedQueries();
+    const items = store[subSection] || [];
     return items.length;
   } catch (error) {
     console.warn("Failed to get replied queries count (NEW API):", error);
@@ -215,11 +160,12 @@ export const getRepliedQueriesCountNew = (subSection) => {
 };
 
 /**
- * NEW API: Clear all replied queries from storage
+ * Clear all replied queries from IndexedDB
  */
-export const clearRepliedQueriesStorageNew = () => {
+export const clearRepliedQueriesStorageNew = async () => {
   try {
-    localStorage.removeItem(REPLIED_STORAGE_KEY_NEW);
+    const { clearRepliedQueries } = await import("../utils/storage");
+    await clearRepliedQueries();
     console.log("🗑️ Cleared replied queries storage (NEW API)");
   } catch (error) {
     console.warn("Failed to clear replied queries storage (NEW API):", error);

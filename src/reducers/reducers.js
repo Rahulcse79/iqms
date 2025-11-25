@@ -9,6 +9,7 @@ import {
   LOGOUT_USER_FAIL,
   CLEAR_ERRORS,
   REPLIED_QUERY_REQUEST,
+  REPLIED_QUERY_HYDRATE,
   REPLIED_QUERY_SUCCESS,
   REPLIED_QUERY_FAIL,
   SEARCH_QUERY_REQUEST,
@@ -45,7 +46,8 @@ import {
   SEARCH_QUERY_ID_SUCCESS,
   SEARCH_QUERY_ID_FAIL,
 } from "../constants/queryConstants";
-import { loadRepliedQueries, saveRepliedQueries } from "../utils/cache";
+import { loadRepliedQueries } from "../utils/storage";
+import { saveRepliedQueries } from "../utils/storage";
 
 // ---------- AIRMAN REDUCERS ----------
 export const airmanPersmastReducer = (
@@ -257,13 +259,12 @@ export const searchQueryReducer = (state = { items: [] }, action) => {
   }
 };
 
-const repliedInitial = (() => {
-  const cached = loadRepliedQueries();
-  if (cached && Array.isArray(cached)) {
-    return { items: cached, loading: false, error: null };
-  }
-  return { items: [], loading: false, error: null };
-})();
+// Remove synchronous loading from initial state
+const repliedInitial = {
+  items: [],
+  loading: false,
+  error: null,
+};
 
 export const repliedQueryReducer = (state = repliedInitial, action) => {
   switch (action.type) {
@@ -273,28 +274,37 @@ export const repliedQueryReducer = (state = repliedInitial, action) => {
         loading: true,
         error: null,
       };
+
     case REPLIED_QUERY_SUCCESS:
-      // persist into localStorage so reload will keep data
-      try {
-        saveRepliedQueries(action.payload);
-      } catch (e) {
-        console.warn("Could not persist replied queries", e);
-      }
+      // Don't save here - action already saved to IndexedDB
       return {
         loading: false,
         items: action.payload,
         error: null,
       };
+
+    case REPLIED_QUERY_HYDRATE:
+      // Hydrate from IndexedDB on mount
+      return {
+        ...state,
+        items: action.payload.items || [],
+        loading: false,
+        error: null,
+      };
+
     case REPLIED_QUERY_FAIL:
+      // Keep old data on failure
       return {
         ...state,
         loading: false,
-        error: action.payload, // keep prior behavior, adjust if you want to keep old items on fail
+        error: action.payload,
       };
+
     default:
       return state;
   }
 };
+
 
 export const userReducer = (state = { user: {} }, { type, payload }) => {
   switch (type) {

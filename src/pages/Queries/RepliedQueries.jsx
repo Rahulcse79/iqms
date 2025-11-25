@@ -1,12 +1,13 @@
-// src/pages/RepliedQueries/RepliedQueries.jsx (FINAL, ROBUST VERSION)
-
+// src/pages/RepliedQueries/RepliedQueries.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { refreshRepliedQueriesNew } from "../../actions/repliedQueryActionNew";
+import {
+  refreshRepliedQueriesNew,
+  hydrateRepliedQueriesFromStorage,
+} from "../../actions/repliedQueryActionNew";
 import QueriesTable from "../../components/QueriesTable";
 import { HiOutlineRefresh } from "react-icons/hi";
 
-const STORAGE_KEY = "repliedQueries_v2_new";
 const ACTIVE_ROLE_KEY = "activeRole_v1";
 
 const getLocalStorageData = (key) => {
@@ -30,35 +31,42 @@ const formatIso = (iso) => {
 
 const RepliedQueries = () => {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+
   const activeRole = useMemo(() => getLocalStorageData(ACTIVE_ROLE_KEY), []);
 
-  const loadFromStorage = useCallback(() => {
-    if (!activeRole?.SUB_SECTION) {
-      setItems([]);
-      return;
-    }
-    const storageData = getLocalStorageData(STORAGE_KEY);
-    const dataForRole = storageData?.[activeRole.SUB_SECTION] || [];
-    setItems(dataForRole);
-  }, [activeRole]);
-
+  // Hydrate from IndexedDB on mount
   useEffect(() => {
-    loadFromStorage();
-    window.addEventListener("storage", loadFromStorage);
-    window.addEventListener("repliedQueriesUpdated", loadFromStorage);
-    return () => {
-      window.removeEventListener("storage", loadFromStorage);
-      window.removeEventListener("repliedQueriesUpdated", loadFromStorage);
-    };
-  }, [loadFromStorage]);
+    async function hydrate() {
+      if (!activeRole?.SUB_SECTION) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await dispatch(
+          hydrateRepliedQueriesFromStorage(activeRole.SUB_SECTION)
+        );
+        setItems(data || []);
+      } catch (error) {
+        console.error("Failed to hydrate:", error);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    hydrate();
+  }, [activeRole, dispatch]);
 
   const handleRefresh = async () => {
     if (!activeRole) return;
+
     setLoading(true);
     try {
-      await dispatch(
+      const result = await dispatch(
         refreshRepliedQueriesNew({
           moduleCat: activeRole?.MODULE_CAT,
           subSection: activeRole?.SUB_SECTION,
@@ -66,6 +74,11 @@ const RepliedQueries = () => {
           activeRole: activeRole,
         })
       );
+
+      // Update local state with fresh data
+      if (result?.items) {
+        setItems(result.items);
+      }
     } catch (error) {
       console.error("Failed to refresh replied queries", error);
     } finally {
@@ -90,8 +103,8 @@ const RepliedQueries = () => {
   }, [items]);
 
   return (
-    <div>
-      <div className="header">
+    <div className="replied-queries-container">
+      <div className="queries-header">
         <h2>Replied Queries</h2>
         <button
           onClick={handleRefresh}
@@ -102,6 +115,7 @@ const RepliedQueries = () => {
           {loading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
+
       <QueriesTable data={tableData} loading={loading} />
     </div>
   );
