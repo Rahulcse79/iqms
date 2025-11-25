@@ -119,7 +119,11 @@ const refreshTokenRequest = () => {
     }
 
     axios
-      .post(`${variables.app.services}auth/refreshToken`, { refreshToken })
+      .post(`${variables.api.services}user/refreshToken`, {}, {
+        headers: {
+          "Authorization": `Refresh-Bearer ${refreshToken}`
+        }
+      })
       .then((response) => {
         if (response.data.status === "OK" && response.data.data.token) {
           const currentAuthData = JSON.parse(Cookies.get("authData") || "{}");
@@ -197,9 +201,33 @@ export const loginAPI = (encryptedUsername, encryptedPassword) => {
 // ---------- Exports ----------
 export const logoutAPI = async () => {
   console.log("Logging out agent via API");
-  await application.post("agentStatus/create", { status: "Logout" });
-  localStorage.clear();
-  Cookies.remove("authData", { path: "/" });
+  try {
+    const resp = await application.post("agentStatus/create", {
+      status: "Logout",
+    });
+
+    if (resp.status === 200 || resp.status === 400) {
+      console.log("Agent logout acknowledged:", resp.status);
+      localStorage.clear();
+      Cookies.remove("authData", { path: "/" });
+    } else {
+      console.error("Error updating agent status on logout:", resp);
+    }
+
+    return resp;
+  } catch (error) {
+    // Treat HTTP 400 as success for logout in this specific case
+    if (error?.response?.status === 400) {
+      console.log("Agent logout acknowledged (handled 400):", error.response.status);
+      localStorage.clear();
+      Cookies.remove("authData", { path: "/" });
+      return error.response;
+    }
+
+    console.error("Failed to update agent status on logout:", error);
+    // swallow the error to avoid uncaught exceptions; caller can check the return value
+    return null;
+  }
 };
 
 export const getAgentStatus = () => {

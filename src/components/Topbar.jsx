@@ -38,9 +38,9 @@ const Topbar = ({ toggleSidebar }) => {
   // Change password dialog state
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("queryDrafts_v2");
-    logoutAPI();
+    await logoutAPI();
     navigate("/login");
   };
 

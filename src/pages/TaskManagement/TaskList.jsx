@@ -34,7 +34,7 @@ export default function TaskList() {
   const apiPayload = useMemo(
     () => ({
       currentPage: 0,
-      pageSize: 100, // Increased to get more tasks for better sorting
+      pageSize: 10000, // Increased to get more tasks for better sorting
       sortDirection: "desc",
       sortBy:"taskType",
       search:"Interim Reply",

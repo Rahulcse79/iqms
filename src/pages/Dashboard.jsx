@@ -9,11 +9,7 @@ import { getAllPendingCountsForRole } from "../actions/pendingQueryActionNew";
 import { getAllTransferredCountsForRole } from "../actions/transferredQueryActionNew";
 import { getDesignationFlags, getCookieData } from "../utils/helpers";
 import VersionNoticeBoard from "../components/versionNoticeBoard";
-import {
-  application,
-  logoutAPI,
-  opaqueServices,
-} from "../utils/endpoints";
+import { application, logoutAPI, opaqueServices } from "../utils/endpoints";
 import ExtensionDialog from "../components/ExtensionDialog";
 // --- CSS Styles (can remain the same) ---
 const styles = `
@@ -139,11 +135,11 @@ const fetchInterimRepliesSummary = async () => {
   try {
     const payload = {
       currentPage: 0,
-      pageSize: 10000,
+      pageSize: 10000, // Increased to get more tasks for better sorting
       sortDirection: "desc",
-      sortBy: "createdOn",
-      search: "",
-      sortDataType: "integer",
+      sortBy: "taskType",
+      search: "Interim Reply",
+      sortDataType: "string",
       advancedFilters: [],
     };
 
@@ -342,22 +338,26 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [loading]);
 
-useEffect(() => {
-  const checkCookieAndUpdateStatus = () => {
-    const cookie = getCookieData();
+  useEffect(() => {
+    const checkCookieAndUpdateStatus = () => {
+      const cookie = getCookieData();
 
-    if (!cookie) {
-      logoutAPI();
-    } else {
-      // application.post("agentStatus/create", { status: "Login" });
-    }
-  };
+      if (!cookie) {
+        logoutAPI();
+      } else {
+        const resp = application.post("agentStatus/create", {
+          status: "Login",
+        });
+        resp.catch((error) => {
+          console.error("Error updating agent status:", error);
+        });
+      }
+    };
 
-  checkCookieAndUpdateStatus();
-  const interval = setInterval(checkCookieAndUpdateStatus, 30000);
-  return () => clearInterval(interval);
-}, []);
-
+    checkCookieAndUpdateStatus();
+    const interval = setInterval(checkCookieAndUpdateStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [interimSummary, setInterimSummary] = useState({
     totalTasks: 0,
@@ -467,7 +467,7 @@ useEffect(() => {
             link="/interim-reply"
           />
         </div>
-      <VersionNoticeBoard />
+        <VersionNoticeBoard />
       </div>
     </>
   );
