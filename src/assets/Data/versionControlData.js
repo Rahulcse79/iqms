@@ -32,8 +32,8 @@ export const versionData = {
       fullNotes: "Interim reply feature, CRM integration, query level filtering and important bug fixes."
     },
     {
-      version: "Build 2",
-      date: "2025-10-17",
+      version: "Build 3",
+      date: "2025-11-05",
       tag: "Improvement",
       highlights: [
         "Added the feature of Interim Replies",
@@ -45,57 +45,18 @@ export const versionData = {
       fullNotes: "Interim reply feature, CRM integration, query level filtering and important bug fixes."
     },
     {
-      version: "Build 2",
-      date: "2025-10-17",
-      tag: "Improvement",
+      version: "Build 4",
+      date: "2025-11-24",
+      tag: "Feedback and Auto Logout",
       highlights: [
-        "Added the feature of Interim Replies",
-        "Added CRM",
-        "Queries shown cell, sub-section and wing wise",
-        "Bugs of Build 1 resolved",
+        "Added the feedback feature",
+        "Auto Logout on inactivity after 5 minutes",
+        "Agent Active Status List and count Live Realtime",
+        "Bugs of Build 3 resolved",
       ],
       author: "Team IVRS",
-      fullNotes: "Interim reply feature, CRM integration, query level filtering and important bug fixes."
+      fullNotes: ""
     },
-    {
-      version: "Build 2",
-      date: "2025-10-17",
-      tag: "Improvement",
-      highlights: [
-        "Added the feature of Interim Replies",
-        "Added CRM",
-        "Queries shown cell, sub-section and wing wise",
-        "Bugs of Build 1 resolved",
-      ],
-      author: "Team IVRS",
-      fullNotes: "Interim reply feature, CRM integration, query level filtering and important bug fixes."
-    },
-    {
-      version: "Build 2",
-      date: "2025-10-17",
-      tag: "Improvement",
-      highlights: [
-        "Added the feature of Interim Replies",
-        "Added CRM",
-        "Queries shown cell, sub-section and wing wise",
-        "Bugs of Build 1 resolved",
-      ],
-      author: "Team IVRS",
-      fullNotes: "Interim reply feature, CRM integration, query level filtering and important bug fixes."
-    },
-    {
-      version: "Build 2",
-      date: "2025-10-17",
-      tag: "Improvement",
-      highlights: [
-        "Added the feature of Interim Replies",
-        "Added CRM",
-        "Queries shown cell, sub-section and wing wise",
-        "Bugs of Build 1 resolved",
-      ],
-      author: "Team IVRS",
-      fullNotes: "Interim reply feature, CRM integration, query level filtering and important bug fixes."
-    }
   ]
 };
 
