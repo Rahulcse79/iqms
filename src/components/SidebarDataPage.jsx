@@ -99,6 +99,11 @@ const SidebarDataPage = () => {
       path: "/interim-reply",
       icon: <FaBookOpen style={{ color: "#68ff9aff" }} />,
     },
+    {
+      title: "Feedback",
+      path: "/feedback",
+      icon: <FaBookOpen style={{ color: "#68ff9aff" }} />,
+    },
 
   ];
 

@@ -29,6 +29,7 @@ import DavQuery from "./Dav/QueryView";
 import FAQPage from "./pages/FAQ";
 import Inauguration from "./pages/Inauguration";
 import TaskDetails from "./pages/TaskManagement/TaskList";
+import FeedbackList from "./pages/TaskManagement/FeedbackList";
 import CreateTask from "./pages/TaskManagement/FeedbackCreate";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ function AppRoutes() {
         <Route path="cdr" element={<CDR />} />
 
         <Route path="interim-reply" element={<TaskDetails/>} />
+        <Route path="feedback" element={<FeedbackList/>} />
         <Route path="task-create" element={<CreateTask/>} />
 
 
