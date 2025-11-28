@@ -50,6 +50,8 @@ export default function PORDataTable({ sno, cat }) {
       const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
 
       let url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
+      // let url = `http://localhost:80/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
+
       
       if (selectedYear !== "ALL") {
         url += `&porYear=${selectedYear}`;
@@ -104,6 +106,8 @@ export default function PORDataTable({ sno, cat }) {
         const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
 
         const url = `http://175.25.5.7/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
+        // const url = `http://localhost:80/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
+
 
         const response = await axios.post(url, body, {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -245,8 +249,6 @@ export default function PORDataTable({ sno, cat }) {
             type="button"
             className="por-dt-btn por-dt-btn--primary"
             onClick={handleSearch}
-            disabled={!isYearValid || loading || !sno || cat == null}
-            aria-disabled={!isYearValid || loading || !sno || cat == null}
           >
             {loading ? "Searching…" : "Search"}
           </button>

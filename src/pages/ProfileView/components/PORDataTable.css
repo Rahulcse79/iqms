@@ -246,8 +246,7 @@ body.por-dt-modal-open { overflow: hidden; }
   max-height: min(90vh, 760px);
   display: flex;
   flex-direction: column;
-  background: var(--surface, #ffffff);
-  color: var(--text, #0f1724);
+  background:  #ffffff;
   border-radius: 14px;
   box-shadow: 0 20px 60px rgba(2,6,23,0.18);
   border: 1px solid color-mix(in srgb, var(--border, #e5e7eb) 60%, transparent 40%);
@@ -267,7 +266,6 @@ body.por-dt-modal-open { overflow: hidden; }
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: var(--text, #0f1724);
 }
 .por-dt-modal__body {
   padding: 16px 20px;
@@ -281,7 +279,6 @@ body.por-dt-modal-open { overflow: hidden; }
   align-items: center;
   padding: 12px 16px;
   border-top: 1px solid color-mix(in srgb, var(--border, #e5e7eb) 70%, transparent 30%);
-  background: color-mix(in srgb, var(--surface, #fff) 94%, var(--surface-accent, #fbfdff) 6%);
 }
 
 /* Close button */
@@ -295,8 +292,6 @@ body.por-dt-modal-open { overflow: hidden; }
   place-items: center;
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--border, #e6e9ef) 70%, transparent 30%);
-  background: var(--surface, #fff);
-  color: var(--text, #0f1724);
   cursor: pointer;
   transition: background-color 140ms ease, box-shadow 140ms ease, transform 120ms ease;
 }

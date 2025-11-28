@@ -30,7 +30,7 @@ import FAQPage from "./pages/FAQ";
 import Inauguration from "./pages/Inauguration";
 import TaskDetails from "./pages/TaskManagement/TaskList";
 import FeedbackList from "./pages/TaskManagement/FeedbackList";
-import CreateTask from "./pages/TaskManagement/FeedbackCreate";
+import CreateTask from "./pages/TaskManagement/TaskCreate";
 
 const queryClient = new QueryClient();
 
