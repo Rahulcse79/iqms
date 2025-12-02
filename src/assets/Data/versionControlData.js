@@ -24,7 +24,7 @@ export const versionData = {
       tag: "Improvement",
       highlights: [
         "Added the feature of Interim Replies",
-        "Added CRM",
+        "Added MIS for Call Details Record (CDR) along with recording play and download",
         "Queries shown cell, sub-section and wing wise",
         "Bugs of Build 1 resolved",
       ],
