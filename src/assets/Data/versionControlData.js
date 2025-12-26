@@ -44,11 +44,6 @@ export const versionData = {
       fullNotes: "This build introduces downloadable and viewable user manuals in both PDF and Word formats. Access the documentation directly from the IVRS CRM Updates section for guidance on using the system.",
       docs: [
         {
-          label: "User Manual (PDF)",
-          file: "/static/docs/user-manual.pdf",
-          type: "pdf"
-        },
-        {
           label: "User Manual (Word)",
           file: "/static/docs/user-manual.docx",
           type: "word"

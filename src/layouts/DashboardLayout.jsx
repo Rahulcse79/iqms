@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import "./DashboardLayout.css";
@@ -15,6 +15,7 @@ const DashboardLayout = () => {
   
   // theme hook
   const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
 
   return (
     <div
@@ -33,7 +34,7 @@ const DashboardLayout = () => {
         />
 
         <main className="content">
-          <Outlet />
+          <Outlet key={location.pathname + location.search} />
         </main>
 
         {/* <Footer className="footer" /> */}

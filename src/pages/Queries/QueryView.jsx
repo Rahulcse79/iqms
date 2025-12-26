@@ -18,6 +18,10 @@ const ResizablePanel = ({ onBack }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const row = location.state?.row || null;
+  const fallbackPath = location.state?.from || "/view/queries/incoming";
+  const isQueryRoute = location.pathname.includes("/view/query/");
+  const BASENAME = process.env.PUBLIC_URL || "/app2";
+  const hasForcedExitRef = useRef(false);
 
   const [queryType, setQueryType] = useState("Personal Data Issue");
 
@@ -370,7 +374,43 @@ const ResizablePanel = ({ onBack }) => {
     return { width: `${100 - panelState.leftWidth}%` };
   };
 
-  const handleClose = () => navigate(-1);
+  const handleClose = useCallback(() => {
+    navigate(fallbackPath, { replace: true });
+
+    // Safety: force navigation to ensure the view disappears even if React routing misbehaves
+    const targetHref = `${window.location.origin}${BASENAME}${fallbackPath.startsWith("/") ? "" : "/"}${fallbackPath}`;
+    setTimeout(() => window.location.replace(targetHref), 50);
+  }, [BASENAME, fallbackPath, navigate]);
+
+  // Ensure we clean up global listeners if the component unmounts mid-drag
+  useEffect(() => {
+    return () => {
+      isResizingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
+
+  // If the router says we are no longer on a query route but this component is still mounted,
+  // force a hard refresh to the current URL to drop this view.
+  useEffect(() => {
+    if (!isQueryRoute && !hasForcedExitRef.current) {
+      hasForcedExitRef.current = true;
+      setTimeout(() => {
+        window.location.replace(window.location.href);
+      }, 50);
+    }
+    if (isQueryRoute) {
+      hasForcedExitRef.current = false;
+    }
+  }, [isQueryRoute]);
+
+  // Guard: if the URL is no longer a query route, render nothing (prevents stale view)
+  if (!isQueryRoute) return null;
 
   const renderRightPanel = () => {
     switch (queryType) {
@@ -491,7 +531,7 @@ const ResizablePanel = ({ onBack }) => {
             queryId={id}
             enableCache={enableCache}
             {...(enableCache ? { draft, setDraft } : {})}
-            onBack={onBack}
+            onBack={handleClose}
           />
         )}
       </div>

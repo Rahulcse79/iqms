@@ -208,7 +208,7 @@ export default function SearchResults() {
       )}?category=${encodeURIComponent(category)}&type=${encodeURIComponent(
         type
       )}&q=${encodeURIComponent(serviceNumber)}`,
-      { state: { row, key } }
+      { state: { row, key, from: location.pathname + location.search } }
     );
   };
 

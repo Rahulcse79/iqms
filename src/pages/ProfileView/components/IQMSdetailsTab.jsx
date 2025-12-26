@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { FaEye } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function IQMSdetailsTab({
   serviceNumber,
@@ -16,6 +16,7 @@ export default function IQMSdetailsTab({
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!svc || !category) return;
@@ -204,6 +205,7 @@ export default function IQMSdetailsTab({
                   key: index,
                   serviceNumber: svc,
                   category,
+                  from: location.pathname + location.search,
                 },
               }
             )

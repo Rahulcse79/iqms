@@ -1,6 +1,6 @@
 // src/components/QueriesTable.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import jsPDF from "jspdf";
 import "./QueriesTable.css";
@@ -74,6 +74,7 @@ const QueriesTable = ({ title, data = [] }) => {
 
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Return the raw API value as-is if it is a string; otherwise JSON-stringify to preserve payload shape without formatting
   const getDisplayDate = (row) => {
@@ -99,7 +100,7 @@ const QueriesTable = ({ title, data = [] }) => {
       `/view/query/${encodeURIComponent(
         row.queryId
       )}?${queryParams.toString()}`,
-      { state: { row } }
+      { state: { row, from: location.pathname + location.search } }
     );
   };
 
