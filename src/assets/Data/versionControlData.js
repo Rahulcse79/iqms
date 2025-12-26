@@ -33,6 +33,30 @@ export const versionData = {
     },
     {
       version: "Build 3",
+      date: "21 Oct, 2025",
+      tag: "User Manual",
+      highlights: [
+        "User Manual (PDF and Word) now available for download and viewing directly from the IVRS CRM Updates section.",
+        "Guides users through all major features and workflows.",
+        "Future builds can also include documentation attachments.",
+      ],
+      author: "Team IVRS",
+      fullNotes: "This build introduces downloadable and viewable user manuals in both PDF and Word formats. Access the documentation directly from the IVRS CRM Updates section for guidance on using the system.",
+      docs: [
+        {
+          label: "User Manual (PDF)",
+          file: "/static/docs/user-manual.pdf",
+          type: "pdf"
+        },
+        {
+          label: "User Manual (Word)",
+          file: "/static/docs/user-manual.docx",
+          type: "word"
+        }
+      ]
+    },
+    {
+      version: "Build 4",
       date: "05 Nov, 2025",
       tag: "Improvement",
       highlights: [
@@ -45,7 +69,7 @@ export const versionData = {
       fullNotes: "Consolidated CRM and interim-reply behavior with additional UX and performance refinements. This release focused on polishing workflows, resolving edge-case bugs, and improving responsiveness for query filtering and views."
     },
     {
-      version: "Build 4",
+      version: "Build 5",
       date: "24 Nov, 2025",
       tag: "Feedback and Auto Logout",
       highlights: [

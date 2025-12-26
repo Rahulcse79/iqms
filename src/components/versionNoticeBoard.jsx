@@ -213,7 +213,6 @@ export default function VersionNoticeBoard() {
 
               {/* Card Body */}
               <div className="notice-card-body">
-                
                 {/* Highlights */}
                 {b.highlights?.length ? (
                   <ul className="notice-list">
@@ -228,6 +227,28 @@ export default function VersionNoticeBoard() {
                   <ul className="notice-list">
                     <li className="notice-no-highlights">No highlights provided.</li>
                   </ul>
+                )}
+                {/* Attached Docs */}
+                {Array.isArray(b.docs) && b.docs.length > 0 && (
+                  <div className="notice-docs">
+                    <span className="notice-docs-label">Documentation:</span>
+                    <ul className="notice-docs-list">
+                      {b.docs.map((doc, didx) => (
+                        <li key={didx}>
+                          <a
+                            href={doc.file}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                          >
+                            {doc.label || `Document ${didx + 1}`}
+                            {doc.type === "pdf" && <span style={{marginLeft:4}}>📄</span>}
+                            {doc.type === "word" && <span style={{marginLeft:4}}>📝</span>}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
 
@@ -284,6 +305,28 @@ export default function VersionNoticeBoard() {
               </div>
               <p className="modal-description">{modalContent.description}</p>
               <div className="modal-notes">{modalContent.fullNotes}</div>
+              {/* Modal Docs */}
+              {Array.isArray(modalContent.docs) && modalContent.docs.length > 0 && (
+                <div className="notice-docs-modal">
+                  <span className="notice-docs-label">Documentation:</span>
+                  <ul className="notice-docs-list">
+                    {modalContent.docs.map((doc, didx) => (
+                      <li key={didx}>
+                        <a
+                          href={doc.file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                        >
+                          {doc.label || `Document ${didx + 1}`}
+                          {doc.type === "pdf" && <span style={{marginLeft:4}}>📄</span>}
+                          {doc.type === "word" && <span style={{marginLeft:4}}>📝</span>}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
