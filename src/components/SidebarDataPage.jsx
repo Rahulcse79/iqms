@@ -10,7 +10,8 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaBookOpen,
-  FaPhoneAlt
+  FaPhoneAlt,
+  FaGraduationCap
 } from "react-icons/fa";
 
 const SidebarDataPage = () => {
@@ -93,6 +94,11 @@ const SidebarDataPage = () => {
       title: "FAQ's",
       path: "/FAQ",
       icon: <FaBookOpen style={{ color: "#009688" }} />,
+    },
+    {
+      title: "Knowledge Center",
+      path: "/knowledge-center",
+      icon: <FaGraduationCap style={{ color: "#6a1b9a" }} />,
     },
     {
       title: "Interim Replies",

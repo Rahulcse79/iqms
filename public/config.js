@@ -23,3 +23,6 @@ var activeConferencePollingInterval = 2000;   //milisec
 var enableTraceCall = false;
 var locationAsHome = [25.4280065, 81.8299179];
 var disablePhone = true;
+
+// Knowledge Center Configuration
+var KNOWLEDGE_CENTER_BASE_PATH = "static/KNOWLEDGE-CENTER-PDFS"; // relative so it works with basename

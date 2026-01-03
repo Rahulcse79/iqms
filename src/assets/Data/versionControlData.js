@@ -45,7 +45,7 @@ export const versionData = {
       docs: [
         {
           label: "User Manual (Word)",
-          file: "/static/docs/user-manual.docx",
+          file: "/static/docs/IVRS OPERATOR MANUAL.docx",
           type: "word"
         }
       ]

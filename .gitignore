@@ -25,3 +25,5 @@ yarn-debug.log*
 yarn-error.log*
 *.zip
 .env.production
+*.pdf
+*.docx

@@ -1,0 +1,55 @@
+/* Knowledge Center Styles */
+.knowledge-center-container {
+  padding: 20px;
+  min-height: 100vh;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+  .knowledge-center-container {
+    padding: 15px;
+  }
+}
+
+/* PDF Viewer Modal */
+.pdf-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.pdf-modal-content {
+  background: white;
+  width: 90%;
+  height: 90%;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pdf-modal-body {
+  flex: 1;
+  overflow: auto;
+}
+
+.pdf-modal-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}

@@ -31,6 +31,7 @@ import Inauguration from "./pages/Inauguration";
 import TaskDetails from "./pages/TaskManagement/TaskList";
 import FeedbackList from "./pages/TaskManagement/FeedbackList";
 import CreateTask from "./pages/TaskManagement/TaskCreate";
+import KnowledgeCenter from "./pages/KnowledgeCenter";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ function AppRoutes() {
         <Route path="search-results" element={<SearchResults />} />
         <Route path="query/comparision" element={<QueryComparision />} />
         <Route path="FAQ" element={<FAQPage />} />
+        <Route path="knowledge-center" element={<KnowledgeCenter />} />
 
         <Route path="cdr" element={<CDR />} />
 
