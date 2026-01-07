@@ -460,14 +460,27 @@ const KnowledgeCenter = () => {
     return pdfs;
   }, [config]);
 
-  // Filter and sort PDFs (global search, not by tab)
+  // Filter and sort PDFs (section/subsection view, but global search)
   const filteredPDFs = useMemo(() => {
-    let result = [...allPDFs];
-    // Filter by search term (global)
     const term = searchTerm.trim().toLowerCase();
+
+    let result;
     if (term) {
-      result = result.filter((pdf) => pdf.name.toLowerCase().includes(term));
+      // Global search: filter all PDFs by search term
+      result = allPDFs.filter((pdf) => pdf.name.toLowerCase().includes(term));
+    } else {
+      // Section view: filter by current section and subsection
+      if (!currentSection) return [];
+      result = allPDFs.filter(pdf => pdf.section === currentSection.title);
+      if (activeSubTab !== "all") {
+        if (activeSubTab === "root") {
+          result = result.filter(pdf => pdf.subsectionId === "root");
+        } else {
+          result = result.filter(pdf => pdf.subsectionId === activeSubTab);
+        }
+      }
     }
+
     // Sort
     result.sort((a, b) => {
       const nameA = a.name.toLowerCase();
@@ -476,8 +489,28 @@ const KnowledgeCenter = () => {
       if (sortOrder === "name-desc") return nameB.localeCompare(nameA);
       return 0;
     });
+
     return result;
-  }, [allPDFs, searchTerm, sortOrder]);
+  }, [allPDFs, currentSection, activeSubTab, searchTerm, sortOrder]);
+
+  // Total PDFs in current view (before search filter, or all if searching)
+  const totalPDFsInView = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (term) {
+      return allPDFs.length;
+    } else {
+      if (!currentSection) return 0;
+      let result = allPDFs.filter(pdf => pdf.section === currentSection.title);
+      if (activeSubTab !== "all") {
+        if (activeSubTab === "root") {
+          result = result.filter(pdf => pdf.subsectionId === "root");
+        } else {
+          result = result.filter(pdf => pdf.subsectionId === activeSubTab);
+        }
+      }
+      return result.length;
+    }
+  }, [allPDFs, currentSection, activeSubTab, searchTerm]);
 
   // Deep search inside PDFs (commented out)
   /*
@@ -721,7 +754,7 @@ const KnowledgeCenter = () => {
       {/* Stats Bar */}
       <StatsBar>
         <span>
-          Showing <strong>{filteredPDFs.length}</strong> of <strong>{allPDFs.length}</strong> documents
+          Showing <strong>{filteredPDFs.length}</strong> of <strong>{totalPDFsInView}</strong> documents
         </span>
         {searchTerm && (
           <span>
