@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Cookies from "js-cookie";
 import "./CDR.css";
-import { opaqueServices } from "../utils/endpoints";
+import { application, opaqueServices } from "../utils/endpoints";
 import { getCookieData } from "../utils/helpers";
 import ExtensionDialog from "../components/ExtensionDialog";
 import variables from "../utils/variables";
@@ -136,7 +136,7 @@ const CDR = () => {
   const [playingUuid, setPlayingUuid] = useState(null);
 
   const reqCounterRef = useRef(0);
-  const apiUrl = useMemo(() => "agentCDR/list", []);
+  const apiUrl = useMemo(() => "agentCDR/listFilter", []);
 
   // Load extension
   useEffect(() => {
@@ -161,7 +161,7 @@ const CDR = () => {
         sortDataType: "string",
         advancedFilters: [],
       };
-      const resp = await opaqueServices.post(apiUrl, payload);
+      const resp = await application.post(apiUrl, payload);
       if (thisReq !== reqCounterRef.current) return;
       const normalized = normalizeResponse(resp);
       const normalizedItems = normalized.items.map(normalizeItem);
