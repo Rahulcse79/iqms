@@ -15,9 +15,47 @@ import {
 ----------------------------------- */
 
 const parseRankDate = (r) => {
-  const d = r?.hp_date || r?.wef;
-  if (!d) return null;
-  return new Date(d);
+  const raw = r?.hp_date || r?.wef;
+  if (!raw || typeof raw !== "string") return null;
+
+  const trimmed = raw.trim();
+
+  // 1️⃣ ISO / browser-safe formats
+  const isoTime = Date.parse(trimmed);
+  if (!isNaN(isoTime)) {
+    return new Date(isoTime);
+  }
+
+  // 2️⃣ Handle "11 Aug 2001", "11 AUG 2001", "11 aug 2001"
+  const match = trimmed.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
+  if (!match) return null;
+
+  const [, dayStr, monStr, yearStr] = match;
+
+  const monthMap = {
+    jan: 0,
+    feb: 1,
+    mar: 2,
+    apr: 3,
+    may: 4,
+    jun: 5,
+    jul: 6,
+    aug: 7,
+    sep: 8,
+    oct: 9,
+    nov: 10,
+    dec: 11,
+  };
+
+  const month = monthMap[monStr.toLowerCase()];
+  if (month === undefined) return null;
+
+  const day = Number(dayStr);
+  const year = Number(yearStr);
+
+  if (day < 1 || day > 31 || year < 1900) return null;
+
+  return new Date(year, month, day);
 };
 
 const sortRankList = (list, dir) => {
