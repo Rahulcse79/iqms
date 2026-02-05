@@ -3,16 +3,97 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import jsPDF from "jspdf";
-import "./QueriesTable.css";
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  TextField,
+  Stack,
+} from "@mui/material";
+import { styled, useTheme } from "@mui/material/styles";
 import { getUserRoleLabel } from "../constants/Enum";
 
+// Styled components
+const QueriesContainer = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(2.5),
+  margin: theme.spacing(2.5, 'auto'),
+  borderRadius: theme.shape.borderRadius * 1.5,
+  boxShadow: theme.shadows[2],
+  maxWidth: 1200,
+  color: theme.palette.text.primary,
+  border: `1px solid ${theme.palette.divider}`,
+}));
+
+const QueriesHeader = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(2.5),
+}));
+
+const QueriesToolbar = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: theme.spacing(2),
+  flexWrap: 'wrap',
+  gap: theme.spacing(1.25),
+}));
+
+const ExportButton = styled(Button)(({ theme }) => ({
+  backgroundColor: theme.palette.primary.main,
+  color: theme.palette.primary.contrastText,
+  padding: theme.spacing(1, 1.75),
+  borderRadius: theme.shape.borderRadius,
+  fontSize: 14,
+  fontWeight: 500,
+  textTransform: 'none',
+  '&:hover': {
+    backgroundColor: theme.palette.primary.dark,
+  },
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  backgroundColor: theme.palette.success.main,
+  color: theme.palette.success.contrastText,
+  padding: theme.spacing(0.75, 1.5),
+  fontSize: 13,
+  borderRadius: theme.shape.borderRadius,
+  textTransform: 'none',
+  minWidth: 'auto',
+  '&:hover': {
+    backgroundColor: theme.palette.success.dark,
+  },
+}));
+
+const SearchField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? theme.palette.background.default 
+      : theme.palette.grey[50],
+    borderRadius: theme.shape.borderRadius,
+    '& fieldset': {
+      borderColor: theme.palette.divider,
+    },
+    '&:hover fieldset': {
+      borderColor: theme.palette.primary.main,
+    },
+  },
+  '& .MuiInputBase-input': {
+    fontSize: 14,
+    padding: theme.spacing(1, 1.75),
+    minWidth: 250,
+  },
+}));
+
 const QueriesTable = ({ title, data = [] }) => {
-  // Put this near your component (or in a helpers file)
+  const theme = useTheme();
+  
+  // Custom styles for react-data-table-component using MUI theme
   const customStyles = {
     table: {
       style: {
-        backgroundColor: "var(--surface)",
-        borderRadius: "12px",
+        backgroundColor: theme.palette.background.paper,
+        borderRadius: theme.shape.borderRadius * 1.5,
         overflow: "hidden",
       },
     },
@@ -25,14 +106,16 @@ const QueriesTable = ({ title, data = [] }) => {
     },
     headRow: {
       style: {
-        backgroundColor: "var(--surface-accent)",
-        borderBottom: "1px solid var(--border)",
+        backgroundColor: theme.palette.mode === 'dark' 
+          ? theme.palette.background.default 
+          : theme.palette.grey[50],
+        borderBottom: `1px solid ${theme.palette.divider}`,
         minHeight: "48px",
       },
     },
     headCells: {
       style: {
-        color: "var(--text)",
+        color: theme.palette.text.primary,
         fontSize: "14px",
         fontWeight: "600",
         paddingLeft: "12px",
@@ -41,22 +124,29 @@ const QueriesTable = ({ title, data = [] }) => {
     },
     rows: {
       style: {
-        backgroundColor: "var(--surface)",
-        minHeight: "52px", // overrides row height
+        backgroundColor: theme.palette.background.paper,
+        minHeight: "52px",
+        '&:hover': {
+          backgroundColor: theme.palette.action.hover,
+        },
+      },
+      highlightOnHoverStyle: {
+        backgroundColor: theme.palette.action.hover,
+        color: theme.palette.text.primary,
       },
     },
     cells: {
       style: {
         paddingLeft: "12px",
         paddingRight: "12px",
-        color: "var(--text)",
+        color: theme.palette.text.primary,
         fontSize: "14px",
       },
     },
     pagination: {
       style: {
         padding: "8px",
-        color: "var(--text)",
+        color: theme.palette.text.primary,
         backgroundColor: "transparent",
       },
       pageButtonsStyle: {
@@ -67,7 +157,13 @@ const QueriesTable = ({ title, data = [] }) => {
         margin: "0 4px",
         cursor: "pointer",
         transition: "all 0.2s ease",
-        color: "var(--text)",
+        color: theme.palette.text.primary,
+        fill: theme.palette.text.primary,
+        '&:disabled': {
+          cursor: 'default',
+          color: theme.palette.text.disabled,
+          fill: theme.palette.text.disabled,
+        },
       },
     },
   };
@@ -126,11 +222,9 @@ const QueriesTable = ({ title, data = [] }) => {
     {
       name: "Action",
       cell: (row) => (
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="action-btn" onClick={() => handleView(row)}>
-            View
-          </button>
-        </div>
+        <ActionButton onClick={() => handleView(row)} size="small">
+          View
+        </ActionButton>
       ),
       ignoreRowClick: true,
       allowOverflow: true,
@@ -216,37 +310,36 @@ const QueriesTable = ({ title, data = [] }) => {
   };
 
   return (
-    <div className="queries-container">
-      <div className="queries-header">
-        <h2>{title}</h2>
-      </div>
+    <QueriesContainer elevation={2}>
+      <QueriesHeader>
+        <Typography variant="h5" fontWeight={600}>
+          {title}
+        </Typography>
+      </QueriesHeader>
 
-      <div className="queries-toolbar">
-        <div className="export-buttons">
-          <button onClick={CopyAction} className="btn export-btn">
+      <QueriesToolbar>
+        <Stack direction="row" spacing={1.25}>
+          <ExportButton onClick={CopyAction} size="small">
             Copy
-          </button>
-          <button onClick={CSVAction} className="btn export-btn">
+          </ExportButton>
+          <ExportButton onClick={CSVAction} size="small">
             CSV
-          </button>
-          <button onClick={PrintAction} className="btn export-btn">
+          </ExportButton>
+          <ExportButton onClick={PrintAction} size="small">
             Print
-          </button>
-          <button onClick={PDFAction} className="btn export-btn">
+          </ExportButton>
+          <ExportButton onClick={PDFAction} size="small">
             PDF
-          </button>
-        </div>
+          </ExportButton>
+        </Stack>
 
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="search-bar"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
+        <SearchField
+          size="small"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </QueriesToolbar>
 
       <DataTable
         columns={columns}
@@ -255,9 +348,8 @@ const QueriesTable = ({ title, data = [] }) => {
         highlightOnHover
         responsive
         customStyles={customStyles}
-        className="themed-data-table"
       />
-    </div>
+    </QueriesContainer>
   );
 };
 

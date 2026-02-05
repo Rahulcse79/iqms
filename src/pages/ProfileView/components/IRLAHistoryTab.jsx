@@ -39,7 +39,7 @@ export default function IRLAHistoryTab({ selSno, selCat }) {
       const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
 
       const response = await axios.post(
-        `http://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${fullMonth}&section=FULL&request=PANKH`,
+        `http://localhost/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${fullMonth}&section=FULL&request=PANKH`,
         body,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },

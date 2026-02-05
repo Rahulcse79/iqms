@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Form16.css";
 
-const DEFAULT_API_BASE = "http://175.25.5.7/API/controller.php";
+const DEFAULT_API_BASE = "http://localhost/API/controller.php";
 const Form_API_TOKEN =
   process.env.REACT_APP_IRLA_API_TOKEN ||
   "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";

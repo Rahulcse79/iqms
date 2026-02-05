@@ -1,40 +1,60 @@
-import "./App.css";
+// React and Router
+import { useContext } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+// State Management
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./context/AuthContext";
+
+// Theme Provider (MUI-based centralized theming)
+import { ThemeProvider } from "./theme/ThemeProvider";
+
+// Context Providers
+import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { CallProvider } from "./context/CallContext";
+
+// Layout
+import DashboardLayout from "./layouts/DashboardLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DashboardOfficer from "./pages/DashboardOfficer";
+import NotFound from "./pages/NotFound";
+import SearchQuery from "./pages/SearchQuery";
+import Comparision from "./pages/Comparison";
+import Iqmsmsi from "./pages/IQMSMSI";
+import FreqQuery from "./pages/FreqQuery";
+import CDR from "./pages/CDR";
+import FAQPage from "./pages/FAQ";
+import KnowledgeCenter from "./pages/KnowledgeCenter";
+import Inauguration from "./pages/Inauguration";
+
+// Query Pages
 import IncomingQueries from "./pages/Queries/IncomingQueries";
 import RepliedQueries from "./pages/Queries/RepliedQueries";
 import TransferredQueries from "./pages/Queries/TransferredQueries";
 import QueryView from "./pages/Queries/QueryView";
-import NotFound from "./pages/NotFound";
-import ProtectedRoute from "./components/ProtectedRoute";
-import SearchQuery from "./pages/SearchQuery";
-import Comparision from "./pages/Comparison";
-import Iqmsmsi from "./pages/IQMSMSI";
-import ProfileView from "./pages/ProfileView/ProfileView";
-import FreqQuery from "./pages/FreqQuery";
-import DashboardLayout from "./layouts/DashboardLayout";
-import { useContext } from "react";
-import { AuthContext } from "./context/AuthContext";
 import SearchResults from "./pages/Queries/SearchResults";
-import DavHome from "./Dav/QueryRegistration";
-import { CallProvider } from "./context/CallContext";
 import QueryComparision from "./pages/Queries/QueryComparison";
-import CDR from "./pages/CDR";
-import NewQuery from "./Dav/NewQuery";
-import DavQuery from "./Dav/QueryView";
-import FAQPage from "./pages/FAQ";
-import Inauguration from "./pages/Inauguration";
+
+// Profile Pages
+import ProfileView from "./pages/ProfileView/ProfileView";
+
+// Task Management Pages
 import TaskDetails from "./pages/TaskManagement/TaskList";
 import FeedbackList from "./pages/TaskManagement/FeedbackList";
 import CreateTask from "./pages/TaskManagement/TaskCreate";
-import KnowledgeCenter from "./pages/KnowledgeCenter";
 
-const queryClient = new QueryClient();
+// DAV Pages
+import DavHome from "./Dav/QueryRegistration";
+import DavQuery from "./Dav/QueryView";
+import NewQuery from "./Dav/NewQuery";
 
+/**
+ * App Routes Component
+ * Defines all application routes
+ */
 function AppRoutes() {
   const { auth } = useContext(AuthContext);
   return (
@@ -90,19 +110,38 @@ function AppRoutes() {
   );
 }
 
-function App() {
-  document.body.style.backgroundColor = "#f4f6f9";
+// Query client configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
+/**
+ * Main App Component
+ * Wraps the entire application with providers:
+ * - ThemeProvider: MUI theming (light/dark mode)
+ * - AuthProvider: Authentication context
+ * - CallProvider: Call/dialpad context
+ * - QueryClientProvider: React Query for data fetching
+ */
+function App() {
   return (
-    <AuthProvider>
-      <CallProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter basename="/app2">
-            <AppRoutes />
-          </BrowserRouter>
-        </QueryClientProvider>
-      </CallProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CallProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter basename="/app2">
+              <AppRoutes />
+            </BrowserRouter>
+          </QueryClientProvider>
+        </CallProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

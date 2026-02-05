@@ -1,19 +1,161 @@
-import React, { useState, useEffect, useRef } from "react";
-import { RiMenuFill } from "react-icons/ri";
+import React, { useState, useEffect } from "react";
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Box,
+  Select,
+  MenuItem,
+  FormControl,
+  TextField,
+  Button,
+  Typography,
+  Popover,
+  Divider,
+  Avatar,
+  CircularProgress,
+  Tooltip,
+} from "@mui/material";
+import { styled, alpha } from "@mui/material/styles";
+import { RiMenuFill, RiLogoutBoxRLine } from "react-icons/ri";
 import { FaUserCircle } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom";
 import { GrRefresh } from "react-icons/gr";
-import useTheme from "../hooks/useTheme";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+
+// Hooks & Utils
+import { useThemeContext } from "../theme/ThemeProvider";
 import { useActiveRole } from "../hooks/useActiveRole";
-import "./Topbar.css";
 import { getUserRoleLabel } from "../constants/Enum";
 import { getDesignationFlags, fetchQueriesForRoleNew } from "../utils/helpers";
-import { useDispatch } from "react-redux";
-import Loader from "./Loader";
-import { AuthContext } from "../context/AuthContext";
-import { RiLogoutBoxRLine } from "react-icons/ri";
-import ChangePasswordDialog from "./ChangePasswordDialog";
 import { logoutAPI } from "../utils/endpoints";
+
+// Components
+import Loader from "./Loader";
+import ChangePasswordDialog from "./ChangePasswordDialog";
+
+// Layout constants
+const SIDEBAR_WIDTH = 220;
+const SIDEBAR_COLLAPSED_WIDTH = 80;
+const TOPBAR_HEIGHT = 94;
+
+// Styled Components
+const StyledAppBar = styled(AppBar, {
+  shouldForwardProp: (prop) => !['isCollapsed', 'isMobile'].includes(prop),
+})(({ theme, isCollapsed, isMobile }) => ({
+  position: 'fixed',
+  top: 0,
+  left: isMobile ? 0 : (isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH),
+  width: isMobile ? '100%' : `calc(100% - ${isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH}px)`,
+  height: TOPBAR_HEIGHT,
+  backgroundColor: theme.palette.background.paper,
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  boxShadow: '0 1px 6px rgba(0, 0, 0, 0.04)',
+  transition: `left 0.28s ease, width 0.28s ease, background 0.18s ease`,
+  zIndex: 1200,
+}));
+
+const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+  minHeight: `${TOPBAR_HEIGHT}px !important`,
+  padding: '12px 20px',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 12,
+  [theme.breakpoints.down('sm')]: {
+    padding: '0 12px',
+  },
+}));
+
+const ControlGroup = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  flex: 1,
+}));
+
+const StyledSelect = styled(Select)(({ theme }) => ({
+  minWidth: 120,
+  '& .MuiSelect-select': {
+    padding: '8px 10px',
+    fontSize: '0.875rem',
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.divider,
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.primary.main,
+  },
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    '& input': {
+      padding: '8px 10px',
+      fontSize: '0.875rem',
+    },
+  },
+  minWidth: 180,
+  [theme.breakpoints.down('md')]: {
+    minWidth: 120,
+  },
+}));
+
+const RefreshIcon = styled(GrRefresh, {
+  shouldForwardProp: (prop) => prop !== 'spinning',
+})(({ theme, spinning }) => ({
+  fontSize: 22,
+  fontWeight: 700,
+  cursor: spinning ? 'not-allowed' : 'pointer',
+  color: theme.palette.text.primary,
+  opacity: spinning ? 0.6 : 1,
+  animation: spinning ? 'spin 1s linear infinite' : 'none',
+  '@keyframes spin': {
+    from: { transform: 'rotate(0deg)' },
+    to: { transform: 'rotate(360deg)' },
+  },
+}));
+
+const UserCard = styled(Box)(({ theme }) => ({
+  padding: 16,
+  minWidth: 320,
+  maxWidth: 400,
+}));
+
+const ProfileRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  gap: 10,
+  alignItems: 'center',
+  fontSize: 13,
+  marginBottom: 6,
+}));
+
+const ProfileLabel = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  fontSize: 13,
+}));
+
+const ProfileValue = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  fontWeight: 600,
+  fontSize: 13,
+  textAlign: 'right',
+}));
+
+const ThemeToggle = styled(Box)(({ theme }) => ({
+  cursor: 'pointer',
+  userSelect: 'none',
+  padding: '8px 12px',
+  borderRadius: 8,
+  border: `1px solid ${theme.palette.divider}`,
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+  },
+}));
 
 /**
  * Topbar with Enhanced Active Role Management
@@ -22,7 +164,8 @@ import { logoutAPI } from "../utils/endpoints";
  * - Fetches queries whenever role changes
  * - Shows loading states during role switches
  */
-const Topbar = ({ toggleSidebar }) => {
+const Topbar = ({ toggleSidebar, isCollapsed = false, isMobile = false }) => {
+  const { mode, toggleTheme } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -57,11 +200,6 @@ const Topbar = ({ toggleSidebar }) => {
 
   const [airForceProfile, setAirForceProfile] = useState(null);
 
-  // Profile popup state & refs
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const profileButtonRef = useRef(null);
-  const profilePopupRef = useRef(null);
-
   useEffect(() => {
     try {
       const storedAFUser = localStorage.getItem("airForceUserDetails");
@@ -70,40 +208,6 @@ const Topbar = ({ toggleSidebar }) => {
       console.warn("Failed to load air force user profile:", err);
     }
   }, []);
-
-  // Close profile popup when route changes
-  useEffect(() => {
-    setIsProfileOpen(false);
-  }, [location.pathname, location.search]);
-
-  // Outside click closes the popup
-  useEffect(() => {
-    function handleClickOutside(e) {
-      const target = e.target;
-      if (
-        isProfileOpen &&
-        profilePopupRef.current &&
-        profileButtonRef.current &&
-        !profilePopupRef.current.contains(target) &&
-        !profileButtonRef.current.contains(target)
-      ) {
-        setIsProfileOpen(false);
-      }
-    }
-    function handleKeyDown(e) {
-      if (e.key === "Escape" && isProfileOpen) {
-        setIsProfileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isProfileOpen]);
 
   const categories = airForceProfile?.categoryQuery || [
     "AIRMEN",
@@ -350,8 +454,22 @@ const Topbar = ({ toggleSidebar }) => {
     }
   };
 
-  /** 🌓 Theme */
-  const { theme, toggleTheme } = useTheme();
+  // Profile popup state
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
+  const isProfileOpen = Boolean(profileAnchorEl);
+
+  const handleProfileClick = (event) => {
+    setProfileAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileClose = () => {
+    setProfileAnchorEl(null);
+  };
+
+  // Close profile popup when route changes
+  useEffect(() => {
+    handleProfileClose();
+  }, [location.pathname, location.search]);
 
   // Get role switching status text
   const getRoleSwitchingText = () => {
@@ -372,47 +490,39 @@ const Topbar = ({ toggleSidebar }) => {
   };
 
   const handleChangePassword = () => {
-    setIsProfileOpen(false);
+    handleProfileClose();
     setIsChangePasswordOpen(true);
   };
 
   const handlePasswordChanged = () => {
     setIsChangePasswordOpen(false);
-    // After successful password change, log out the user
     handleLogout();
   };
 
-  // Small helper to render a profile row if value exists
-  const ProfileRow = ({ label, value }) =>
-    !value ? null : (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 10,
-          alignItems: "center",
-          fontSize: 13,
-        }}
-      >
-        <div style={{ color: "var(--muted)", marginRight: 8 }}>{label}</div>
-        <div
-          style={{ color: "var(--text)", fontWeight: 600, textAlign: "right" }}
-        >
-          {value}
-        </div>
-      </div>
+  // Render profile row helper
+  const renderProfileRow = (label, value) => {
+    if (!value) return null;
+    return (
+      <ProfileRow key={label}>
+        <ProfileLabel>{label}</ProfileLabel>
+        <ProfileValue>{value}</ProfileValue>
+      </ProfileRow>
     );
+  };
 
   // Show loading state if role is loading
   if (roleLoading) {
     return (
-      <header className="topbar">
-        <div className="topbar-content">
-          <div style={{ padding: "10px", textAlign: "center" }}>
-            Loading user roles...
-          </div>
-        </div>
-      </header>
+      <StyledAppBar isCollapsed={isCollapsed} isMobile={isMobile}>
+        <StyledToolbar>
+          <Box sx={{ p: 2, textAlign: 'center', width: '100%' }}>
+            <CircularProgress size={20} sx={{ mr: 1 }} />
+            <Typography component="span" variant="body2">
+              Loading user roles...
+            </Typography>
+          </Box>
+        </StyledToolbar>
+      </StyledAppBar>
     );
   }
 
@@ -422,409 +532,268 @@ const Topbar = ({ toggleSidebar }) => {
 
   return (
     <>
-      <header className="topbar">
-        <div className="topbar-content">
-          {/* Left: Sidebar + Portfolio */}
-          <div className="topbar-left controls-group">
-            <button
-              className="sidebar-toggle control"
+      <StyledAppBar isCollapsed={isCollapsed} isMobile={isMobile}>
+        <StyledToolbar>
+          {/* Left: Sidebar Toggle + Portfolio */}
+          <ControlGroup sx={{ justifyContent: 'flex-start' }}>
+            <IconButton
               onClick={toggleSidebar}
               title="Toggle sidebar"
+              size="small"
+              sx={{
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 2,
+              }}
             >
               <RiMenuFill />
-            </button>
+            </IconButton>
 
-            <label
-              htmlFor="portfolioDropdown"
-              className="control"
-              style={{ whiteSpace: "nowrap" }}
-            >
+            <Typography variant="body2" sx={{ whiteSpace: 'nowrap', fontWeight: 500 }}>
               Portfolio:
-            </label>
+            </Typography>
 
-            <select
-              id="portfolioDropdown"
-              className={`control portfolio-dropdown ${
-                switchingRole ? "switching" : ""
-              }`}
-              value={activeRole?.PORTFOLIO_NAME || ""}
-              onChange={handlePortfolioChange}
-              disabled={portfolios.length === 0 || switchingRole}
-              title={
-                switchingRole ? getRoleSwitchingText() : "Select portfolio"
-              }
-            >
-              {portfolios.length > 0 ? (
-                portfolios.map((p, idx) => (
-                  <option key={idx} value={p.PORTFOLIO_NAME}>
-                    {p.PORTFOLIO_NAME} ({p.USER_ROLE})
-                  </option>
-                ))
-              ) : (
-                <option disabled>No portfolios available</option>
-              )}
-            </select>
+            <FormControl size="small">
+              <StyledSelect
+                value={activeRole?.PORTFOLIO_NAME || ""}
+                onChange={handlePortfolioChange}
+                disabled={portfolios.length === 0 || switchingRole}
+                title={switchingRole ? getRoleSwitchingText() : "Select portfolio"}
+                sx={{ 
+                  opacity: switchingRole ? 0.7 : 1,
+                  minWidth: 140,
+                }}
+              >
+                {portfolios.length > 0 ? (
+                  portfolios.map((p, idx) => (
+                    <MenuItem key={idx} value={p.PORTFOLIO_NAME}>
+                      {p.PORTFOLIO_NAME} ({p.USER_ROLE})
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No portfolios available</MenuItem>
+                )}
+              </StyledSelect>
+            </FormControl>
 
-            {/* Role switching indicator */}
             {switchingRole && (
-              <div
-                className="role-switch-indicator"
-                style={{
-                  fontSize: "11px",
-                  color: "var(--primary)",
-                  marginLeft: "8px",
-                  maxWidth: "200px",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'primary.main',
+                  maxWidth: 200,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  animation: 'pulse 1.5s ease-in-out infinite',
                 }}
                 title={getRoleSwitchingText()}
               >
-                {switchProgress.step === "fetching" && "🔄"}{" "}
+                {switchProgress.step === "fetching" && "🔄 "}
                 {getRoleSwitchingText()}
-              </div>
+              </Typography>
             )}
 
-            {/* Show error if role error exists */}
             {roleError && (
-              <div
-                style={{
-                  color: "var(--error)",
-                  fontSize: "12px",
-                  marginLeft: "8px",
-                }}
-                title={roleError}
-              >
-                ⚠️
-              </div>
+              <Tooltip title={roleError}>
+                <Typography sx={{ color: 'error.main', fontSize: 12 }}>⚠️</Typography>
+              </Tooltip>
             )}
-          </div>
+          </ControlGroup>
 
           {/* Refresh Button */}
-          <div className="refresh-container controls-group">
-            <GrRefresh
-              className={`refresh-button-api control ${
-                isManualRefreshing || switchingRole ? "spinning" : ""
-              }`}
-              onClick={handleRefreshScreen}
-              title={
-                switchingRole
-                  ? "Role switching in progress..."
-                  : isManualRefreshing
-                  ? getRefreshIndicatorText()
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Tooltip title={
+              switchingRole 
+                ? "Role switching in progress..." 
+                : isManualRefreshing 
+                  ? getRefreshIndicatorText() 
                   : "Refresh data"
-              }
-              aria-label="Refresh"
-              style={{
-                opacity: switchingRole || isManualRefreshing ? 0.6 : 1,
-                cursor:
-                  switchingRole || isManualRefreshing
-                    ? "not-allowed"
-                    : "pointer",
-              }}
-            />
-            {isManualRefreshing && (
-              <div
-                className="refresh-indicator"
-                style={{
-                  fontSize: "11px",
-                  color: "var(--primary)",
-                  marginLeft: "8px",
-                  whiteSpace: "nowrap",
-                }}
-                title={getRefreshIndicatorText()}
+            }>
+              <IconButton
+                onClick={handleRefreshScreen}
+                disabled={switchingRole || isManualRefreshing}
+                size="small"
               >
-                {getRefreshIndicatorText()}
-              </div>
-            )}
-          </div>
+                <RefreshIcon spinning={isManualRefreshing || switchingRole} />
+              </IconButton>
+            </Tooltip>
+          </Box>
 
           {/* Center: Category + Search */}
-          <div className="topbar-center controls-group">
-            <select
-              value={searchCategory}
-              className="control"
-              onChange={(e) => setSearchCategory(e.target.value)}
-              disabled={categories.length === 0}
-            >
-              {categories.length > 0 ? (
-                categories.map((cat, idx) => (
-                  <option key={idx} value={cat}>
-                    {cat}
-                  </option>
-                ))
-              ) : (
-                <option disabled>No categories available</option>
-              )}
-            </select>
+          <ControlGroup sx={{ justifyContent: 'center', flexGrow: 1 }}>
+            <FormControl size="small">
+              <StyledSelect
+                value={searchCategory}
+                onChange={(e) => setSearchCategory(e.target.value)}
+                disabled={categories.length === 0}
+                sx={{ minWidth: 100 }}
+              >
+                {categories.length > 0 ? (
+                  categories.map((cat, idx) => (
+                    <MenuItem key={idx} value={cat}>{cat}</MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No categories</MenuItem>
+                )}
+              </StyledSelect>
+            </FormControl>
 
-            <select
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
-              className="control"
-            >
-              <option value="Service">Service No.</option>
-              <option value="Query">Query</option>
-            </select>
+            <FormControl size="small">
+              <StyledSelect
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+                sx={{ minWidth: 100 }}
+              >
+                <MenuItem value="Service">Service No.</MenuItem>
+                <MenuItem value="Query">Query</MenuItem>
+              </StyledSelect>
+            </FormControl>
 
-            <input
-              type="text"
-              className={`control control--grow ${
-                isError ? "input-error" : ""
-              }`}
+            <StyledTextField
+              size="small"
               placeholder={
                 errorPlaceholder ||
-                (searchType === "Query"
-                  ? "Enter Query ID"
-                  : "Enter Service No.")
+                (searchType === "Query" ? "Enter Query ID" : "Enter Service No.")
               }
               value={searchValue}
               onChange={handleSearchInputChange}
+              error={isError}
+              sx={{ flex: 1, maxWidth: 220 }}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
 
-            <button className="control" onClick={handleSearch}>
+            <Button
+              variant="contained"
+              onClick={handleSearch}
+              size="small"
+              sx={{ minWidth: 80 }}
+            >
               Search
-            </button>
-          </div>
+            </Button>
+          </ControlGroup>
 
-          {/* Right: Theme + Profile Icon */}
-          <div
-            className="topbar-right controls-group"
-            style={{ alignItems: "center" }}
-          >
-            <div
-              className="theme-toggle control"
-              onClick={toggleTheme}
-              role="button"
-              aria-label="Toggle theme"
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-              style={{ cursor: "pointer", userSelect: "none" }}
+          {/* Right: Theme + Profile */}
+          <ControlGroup sx={{ justifyContent: 'flex-end' }}>
+            <ThemeToggle onClick={toggleTheme} title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`}>
+              {mode === 'dark' ? '🌙 Dark' : '🌤 Light'}
+            </ThemeToggle>
+
+            <IconButton
+              onClick={handleProfileClick}
+              aria-haspopup="true"
+              aria-expanded={isProfileOpen}
+              title="Open profile"
+              sx={{
+                p: 0.75,
+                border: 1,
+                borderColor: 'divider',
+              }}
             >
-              {theme === "dark" ? "🌙 Dark" : "🌤 Light"}
-            </div>
+              <FaUserCircle style={{ fontSize: 28 }} />
+            </IconButton>
 
-            {/* Profile icon + popup */}
-            <div
-              className="profile-wrapper control"
-              style={{ position: "relative", display: "inline-block" }}
-              ref={profileButtonRef}
+            {/* Profile Popover */}
+            <Popover
+              open={isProfileOpen}
+              anchorEl={profileAnchorEl}
+              onClose={handleProfileClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              PaperProps={{
+                sx: {
+                  mt: 1,
+                  borderRadius: 2.5,
+                  boxShadow: (theme) => theme.shadows[8],
+                  border: 1,
+                  borderColor: 'divider',
+                }
+              }}
             >
-              <button
-                className="profile-button"
-                onClick={() => setIsProfileOpen((s) => !s)}
-                aria-haspopup="dialog"
-                aria-expanded={isProfileOpen}
-                title="Open profile"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 6,
-                  borderRadius: "50%",
-                  border: "1px solid var(--border)",
-                  background: "transparent",
-                  cursor: "pointer",
-                }}
-              >
-                <FaUserCircle style={{ fontSize: 28, color: "var(--text)" }} />
-              </button>
-
-              {isProfileOpen && (
-                <div
-                  ref={profilePopupRef}
-                  role="dialog"
-                  aria-label="User profile"
-                  className="user-popup user-card"
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: "calc(100% + 8px)",
-                    background: "var(--surface)",
-                    color: "var(--text)",
-                    border: "1px solid var(--border)",
-                    boxShadow: "var(--shadow)",
-                    padding: 12,
-                    borderRadius: 10,
-                    minWidth: 320,
-                    zIndex: 2000,
-                  }}
-                >
-                  {/* Popup header */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 12,
-                    }}
-                  >
-                    <div
-                      style={{ display: "flex", gap: 8, alignItems: "center" }}
-                    >
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: "100%",
-                          background:
-                            "color-mix(in srgb, var(--primary) 10%, transparent)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "var(--primary)",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {(fullProfile?.LOGIN_NAME &&
-                          fullProfile.LOGIN_NAME[0]) ||
-                          "U"}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <div
-                          style={{
-                            fontSize: 14,
-                            fontWeight: 700,
-                            color: "var(--text)",
-                          }}
-                        >
-                          {fullProfile?.LOGIN_NAME || "No Name"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Small close button */}
-                    <button
-                      onClick={() => setIsProfileOpen(false)}
-                      aria-label="Close profile"
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        color: "var(--muted)",
-                        padding: 6,
+              <UserCard>
+                {/* Profile Header */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                        color: 'primary.main',
+                        fontWeight: 700,
                       }}
-                      title="Close"
                     >
-                      ✕
-                    </button>
-                  </div>
+                      {(fullProfile?.LOGIN_NAME && fullProfile.LOGIN_NAME[0]) || 'U'}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle2" fontWeight={700}>
+                        {fullProfile?.LOGIN_NAME || "No Name"}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <IconButton size="small" onClick={handleProfileClose} title="Close">
+                    <Typography>✕</Typography>
+                  </IconButton>
+                </Box>
 
-                  {/* User Details */}
-                  <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
-                    <ProfileRow
-                      label="Service No."
-                      value={fullProfile?.LOGIN_SNO}
-                    />
-                    <ProfileRow
-                      label="Rank"
-                      value={
-                        fullProfile?.RANK ||
-                        fullProfile?.RANK_NAME ||
-                        fullProfile?.RANK_AND_NAME ||
-                        ""
+                {/* User Details */}
+                <Box sx={{ mb: 2 }}>
+                  {renderProfileRow("Service No.", fullProfile?.LOGIN_SNO)}
+                  {renderProfileRow("Rank", fullProfile?.RANK || fullProfile?.RANK_NAME || fullProfile?.RANK_AND_NAME)}
+                  {renderProfileRow("Dept.", fullProfile?.MODULE)}
+                  {renderProfileRow("Category", getUserRoleLabel(fullProfile?.LOGIN_CAT))}
+                </Box>
+
+                {/* Active Role Details */}
+                {activeRole && (
+                  <>
+                    <Divider sx={{ my: 1.5 }} />
+                    <Box>
+                      <Typography variant="caption" color="primary.main" fontWeight={600} sx={{ mb: 1, display: 'block' }}>
+                        Active Role {switchingRole && <span>🔄</span>}
+                      </Typography>
+                      {renderProfileRow("Portfolio", activeRole.PORTFOLIO_NAME)}
+                      {renderProfileRow("Role", activeRole.USER_ROLE)}
+                      {renderProfileRow("Sub Section", activeRole.SUB_SECTION)}
+                      {renderProfileRow("Module", activeRole.MODULE)}
+                      {renderProfileRow("Level", activeRole.PORTFOLIO_LEVEL)}
+                      {roleInfo?.cellsAlloted?.length > 0 && 
+                        renderProfileRow("Cells", `${roleInfo.cellsAlloted.length} assigned`)
                       }
-                    />
-                    <ProfileRow
-                      label="Dept."
-                      value={fullProfile?.MODULE || ""}
-                    />
-                    <ProfileRow
-                      label="Category"
-                      value={getUserRoleLabel(fullProfile?.LOGIN_CAT)}
-                    />
-                  </div>
+                    </Box>
+                  </>
+                )}
 
-                  {/* Active Role Details */}
-                  {activeRole && (
-                    <div
-                      style={{
-                        borderTop: "1px solid var(--border)",
-                        paddingTop: 8,
-                        marginTop: 8,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "var(--primary)",
-                          marginBottom: 8,
-                        }}
-                      >
-                        Active Role{" "}
-                        {switchingRole && (
-                          <span style={{ color: "var(--warning)" }}>🔄</span>
-                        )}
-                      </div>
-                      <div style={{ display: "grid", gap: 6 }}>
-                        <ProfileRow
-                          label="Portfolio"
-                          value={activeRole.PORTFOLIO_NAME}
-                        />
-                        <ProfileRow label="Role" value={activeRole.USER_ROLE} />
-                        <ProfileRow
-                          label="Sub Section"
-                          value={activeRole.SUB_SECTION}
-                        />
-                        <ProfileRow label="Module" value={activeRole.MODULE} />
-                        <ProfileRow
-                          label="Level"
-                          value={activeRole.PORTFOLIO_LEVEL}
-                        />
-                        {roleInfo?.cellsAlloted &&
-                          roleInfo.cellsAlloted.length > 0 && (
-                            <ProfileRow
-                              label="Cells"
-                              value={`${roleInfo.cellsAlloted.length} assigned`}
-                            />
-                          )}
-                      </div>
-                    </div>
-                  )}
+                {/* Action Buttons */}
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={handleChangePassword}
+                  sx={{ mt: 2, bgcolor: '#292fe4', '&:hover': { bgcolor: '#1e22b8' } }}
+                >
+                  Change password
+                </Button>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={handleLogout}
+                  startIcon={<RiLogoutBoxRLine />}
+                  sx={{ mt: 1.5, bgcolor: '#ff4d4f', '&:hover': { bgcolor: '#d9363e' } }}
+                >
+                  Logout
+                </Button>
+              </UserCard>
+            </Popover>
+          </ControlGroup>
+        </StyledToolbar>
+      </StyledAppBar>
 
-                  {/* 🔴 Logout Button (added at bottom) */}
-                  <button
-                    style={{
-                      marginTop: 16,
-                      width: "100%",
-                      background: "#292fe4ff",
-                      color: "#fff",
-                      border: "none",
-                      padding: "10px 0",
-                      borderRadius: 8,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                    onClick={handleChangePassword}
-                  >
-                    Change password
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    style={{
-                      marginTop: 16,
-                      width: "100%",
-                      background: "#ff4d4f",
-                      color: "#fff",
-                      border: "none",
-                      padding: "10px 0",
-                      borderRadius: 8,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <RiLogoutBoxRLine
-                      style={{ marginRight: 6, verticalAlign: "middle" }}
-                    />
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
       {isChangePasswordOpen && (
         <ChangePasswordDialog
           onClose={() => setIsChangePasswordOpen(false)}

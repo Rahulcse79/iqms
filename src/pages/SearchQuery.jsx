@@ -1,7 +1,116 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./SearchQuery.css";
+import { styled } from "@mui/material/styles";
+import { Box, Typography, Button, Select, MenuItem, TextField, FormControl, InputLabel } from "@mui/material";
 import { AuthContext } from "../context/AuthContext";
+
+// Styled Components
+const TabButtons = styled(Box)(({ theme }) => ({
+  display: "flex",
+  marginBottom: "20px",
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  gap: "8px",
+}));
+
+const TabButton = styled(Button, {
+  shouldForwardProp: (prop) => prop !== "isActive",
+})(({ theme, isActive }) => ({
+  flex: 1,
+  padding: "12px",
+  backgroundColor: isActive ? theme.palette.primary.main : theme.palette.background.paper,
+  color: isActive ? "#fff" : theme.palette.text.primary,
+  border: `1px solid ${isActive ? theme.palette.primary.main : theme.palette.divider}`,
+  cursor: "pointer",
+  fontSize: "16px",
+  fontWeight: 500,
+  transition: "all 0.3s ease",
+  borderRadius: "6px 6px 0 0",
+  textTransform: "none",
+  "&:hover": {
+    backgroundColor: isActive ? theme.palette.primary.main : theme.palette.action.hover,
+  },
+}));
+
+const TabContent = styled(Box)(({ theme }) => ({
+  background: theme.palette.background.paper,
+  padding: "20px",
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: "6px",
+  boxShadow: theme.shadows[1],
+}));
+
+const SearchForm = styled("form")({
+  display: "flex",
+  flexDirection: "column",
+  gap: "15px",
+});
+
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  "& .MuiInputLabel-root": {
+    fontWeight: 500,
+    color: theme.palette.text.primary,
+  },
+}));
+
+const StyledSelect = styled(Select)(({ theme }) => ({
+  marginTop: "6px",
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: theme.palette.divider,
+    borderRadius: "6px",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: theme.palette.primary.main,
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: theme.palette.primary.main,
+  },
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.primary,
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  marginTop: "6px",
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "6px",
+    backgroundColor: theme.palette.background.paper,
+    "& fieldset": {
+      borderColor: theme.palette.divider,
+    },
+    "&:hover fieldset": {
+      borderColor: theme.palette.primary.main,
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: theme.palette.primary.main,
+    },
+  },
+  "& .MuiInputBase-input": {
+    color: theme.palette.text.primary,
+  },
+}));
+
+const SearchButton = styled(Button)(({ theme }) => ({
+  padding: "12px",
+  backgroundColor: theme.palette.primary.main,
+  color: "#fff",
+  fontSize: "15px",
+  fontWeight: "bold",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  transition: "background 0.3s ease",
+  "&:hover": {
+    backgroundColor: theme.palette.primary.dark,
+  },
+}));
+
+const ErrorMessage = styled(Typography)(({ theme }) => ({
+  display: "block",
+  color: theme.palette.error.main,
+  fontSize: "0.85rem",
+  marginTop: "4px",
+}));
 
 const SearchQuery = () => {
   const [activeTab, setActiveTab] = useState("serviceNumber");
@@ -53,90 +162,95 @@ const SearchQuery = () => {
   };
 
   return (
-    <div className="search-query-container">
-      <div className="tab-buttons">
-        <button
+    <Box>
+      <TabButtons>
+        <TabButton
           onClick={() => {
             setActiveTab("serviceNumber");
             setError("");
           }}
-          className={`tab-button ${
-            activeTab === "serviceNumber" ? "active" : ""
-          }`}
+          isActive={activeTab === "serviceNumber"}
         >
           Search by Service Number
-        </button>
-        <button
+        </TabButton>
+        <TabButton
           onClick={() => {
             setActiveTab("queryID");
             setError("");
           }}
-          className={`tab-button ${activeTab === "queryID" ? "active" : ""}`}
+          isActive={activeTab === "queryID"}
         >
           Search by Query ID
-        </button>
-      </div>
+        </TabButton>
+      </TabButtons>
 
       {activeTab === "serviceNumber" && (
-        <div className="tab-content">
-          <h3 style={{ color: "var(--text)" }}>Search by Service Number</h3>
-          <form className="search-form" onSubmit={handleSearch}>
-            <label>
-              Category:
-              <select
+        <TabContent>
+          <Typography variant="h6" sx={{ color: "text.primary", mb: 2 }}>
+            Search by Service Number
+          </Typography>
+          <SearchForm onSubmit={handleSearch}>
+            <StyledFormControl fullWidth>
+              <InputLabel shrink>Category</InputLabel>
+              <StyledSelect
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 disabled={categories.length === 0}
+                label="Category"
               >
                 {categories.length > 0 ? (
                   categories.map((cat, idx) => (
-                    <option key={idx} value={cat}>
+                    <MenuItem key={idx} value={cat}>
                       {cat}
-                    </option>
+                    </MenuItem>
                   ))
                 ) : (
-                  <option disabled>No categories available</option>
+                  <MenuItem disabled>No categories available</MenuItem>
                 )}
-              </select>
-            </label>
-            <label>
-              Service Number:
-              <input
+              </StyledSelect>
+            </StyledFormControl>
+            <StyledFormControl fullWidth>
+              <InputLabel shrink>Service Number</InputLabel>
+              <StyledTextField
                 type="text"
                 placeholder="Enter Service Number"
                 value={serviceNumber}
                 onChange={(e) => setServiceNumber(e.target.value)}
+                size="small"
               />
-            </label>
-            {error && <span className="error-message">{error}</span>}
-            <button type="submit" className="search-btn">
+            </StyledFormControl>
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            <SearchButton type="submit" variant="contained">
               Search
-            </button>
-          </form>
-        </div>
+            </SearchButton>
+          </SearchForm>
+        </TabContent>
       )}
 
       {activeTab === "queryID" && (
-        <div className="tab-content">
-          <h3 style={{ color: "var(--text)" }}>Search by Query ID</h3>
-          <form className="search-form" onSubmit={handleSearch}>
-            <label>
-              Query ID:
-              <input
+        <TabContent>
+          <Typography variant="h6" sx={{ color: "text.primary", mb: 2 }}>
+            Search by Query ID
+          </Typography>
+          <SearchForm onSubmit={handleSearch}>
+            <StyledFormControl fullWidth>
+              <InputLabel shrink>Query ID</InputLabel>
+              <StyledTextField
                 type="text"
                 placeholder="Enter Query ID"
                 value={queryID}
                 onChange={(e) => setQueryID(e.target.value)}
+                size="small"
               />
-            </label>
-            {error && <span className="error-message">{error}</span>}
-            <button type="submit" className="search-btn">
+            </StyledFormControl>
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            <SearchButton type="submit" variant="contained">
               Search
-            </button>
-          </form>
-        </div>
+            </SearchButton>
+          </SearchForm>
+        </TabContent>
       )}
-    </div>
+    </Box>
   );
 };
 

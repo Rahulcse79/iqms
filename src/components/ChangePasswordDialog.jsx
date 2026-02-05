@@ -1,7 +1,60 @@
 import React, { useState } from "react";
-import "./ChangePasswordDialog.css";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Box,
+  Typography,
+  IconButton,
+  Alert,
+  CircularProgress,
+} from "@mui/material";
+import { styled, alpha } from "@mui/material/styles";
 import { application } from "../utils/endpoints";
-import Loader from "./Loader";
+
+// Styled components
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.shadows[8],
+    borderRadius: theme.shape.borderRadius * 2,
+    minWidth: 400,
+    maxWidth: 500,
+  },
+  '& .MuiBackdrop-root': {
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backdropFilter: 'blur(4px)',
+  },
+}));
+
+const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: theme.spacing(2, 3),
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  backgroundColor: alpha(theme.palette.background.default, 0.5),
+}));
+
+const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
+  padding: theme.spacing(3),
+  backgroundColor: theme.palette.background.paper,
+}));
+
+const StyledDialogActions = styled(DialogActions)(({ theme }) => ({
+  padding: theme.spacing(2, 3),
+  gap: theme.spacing(1.5),
+  borderTop: `1px solid ${theme.palette.divider}`,
+  backgroundColor: alpha(theme.palette.background.default, 0.5),
+}));
+
+const FormGroup = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(2.5),
+}));
 
 const ChangePasswordDialog = ({ onClose, onPasswordChanged }) => {
   const [oldPassword, setOldPassword] = useState("");
@@ -59,79 +112,94 @@ const ChangePasswordDialog = ({ onClose, onPasswordChanged }) => {
   };
 
   return (
-    <div className="cpd-dialog-overlay">
-      <div className="cpd-dialog-card">
-        <div className="cpd-dialog-header">
-          <h2>Change Password</h2>
-          <button onClick={onClose} className="cpd-close-button" title="Close">
-            ✕
-          </button>
-        </div>
-        <div className="cpd-dialog-body">
-          {loading && <Loader text="Updating password..." />}
-          {!loading && (
-            <form onSubmit={handleSubmit}>
-              {error && <div className="cpd-dialog-error">{error}</div>}
-              {successMessage && (
-                <div className="cpd-dialog-success">{successMessage}</div>
-              )}
+    <StyledDialog open onClose={onClose}>
+      <StyledDialogTitle>
+        <Typography variant="h6" fontWeight={600}>
+          Change Password
+        </Typography>
+        <IconButton onClick={onClose} size="small" title="Close">
+          <Typography>✕</Typography>
+        </IconButton>
+      </StyledDialogTitle>
 
-              <div className="cpd-form-group">
-                <label htmlFor="oldPassword">Old Password</label>
-                <input
-                  type="password"
-                  id="oldPassword"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  disabled={loading || successMessage}
-                  required
-                />
-              </div>
-              <div className="cpd-form-group">
-                <label htmlFor="newPassword">New Password</label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={loading || successMessage}
-                  required
-                />
-              </div>
-              <div className="cpd-form-group">
-                <label htmlFor="confirmPassword">Confirm New Password</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={loading || successMessage}
-                  required
-                />
-              </div>
+      <StyledDialogContent>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4, gap: 2 }}>
+            <CircularProgress size={24} />
+            <Typography>Updating password...</Typography>
+          </Box>
+        ) : (
+          <Box component="form" onSubmit={handleSubmit}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {successMessage && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {successMessage}
+              </Alert>
+            )}
 
-              <div className="cpd-dialog-actions">
-                <button
-                  type="button"
-                  className="cpd-btn cpd-btn-secondary"
-                  onClick={onClose}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="cpd-btn cpd-btn-primary"
-                  disabled={loading || successMessage}
-                >
-                  Change Password
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
+            <FormGroup>
+              <TextField
+                fullWidth
+                type="password"
+                label="Old Password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                disabled={loading || !!successMessage}
+                required
+                size="small"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <TextField
+                fullWidth
+                type="password"
+                label="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                disabled={loading || !!successMessage}
+                required
+                size="small"
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <TextField
+                fullWidth
+                type="password"
+                label="Confirm New Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={loading || !!successMessage}
+                required
+                size="small"
+              />
+            </FormGroup>
+
+            <StyledDialogActions sx={{ px: 0, borderTop: 'none', bgcolor: 'transparent' }}>
+              <Button
+                variant="outlined"
+                onClick={onClose}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading || !!successMessage}
+              >
+                Change Password
+              </Button>
+            </StyledDialogActions>
+          </Box>
+        )}
+      </StyledDialogContent>
+    </StyledDialog>
   );
 };
 

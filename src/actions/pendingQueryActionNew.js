@@ -6,7 +6,7 @@ import {
 } from "../constants/appConstants";
 
 const PENDING_STORAGE_KEY_NEW = "pendingQueries_v2_new";
-const API_ENDPOINT = "http://175.25.5.7/API/controller.php?ivrsIqmsListing";
+const API_ENDPOINT = "http://localhost/API/controller.php?ivrsIqmsListing";
 const API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
 
 // Safe storage operations

@@ -1,13 +1,198 @@
 // src/components/CDR.jsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Cookies from "js-cookie";
-import "./CDR.css";
+import { styled } from "@mui/material/styles";
+import { Box, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import { application, opaqueServices } from "../utils/endpoints";
 import { getCookieData } from "../utils/helpers";
 import ExtensionDialog from "../components/ExtensionDialog";
 import variables from "../utils/variables";
 import { Dialog, DialogContent, DialogTitle, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+
+// Styled Components
+const CdrContainer = styled(Box)(({ theme }) => ({
+  minHeight: "100vh",
+  width: "100%",
+  padding: "1.5rem",
+  background: theme.palette.background.default,
+  fontFamily: '"Inter", system-ui, sans-serif',
+  color: theme.palette.text.primary,
+  borderRadius: "8px",
+  boxShadow: "0 6px 18px rgba(0, 0, 0, 0.06)",
+}));
+
+const CdrTitle = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  textAlign: "center",
+  fontSize: "1.6rem",
+  fontWeight: 700,
+  letterSpacing: "0.02em",
+  marginBottom: "1.25rem",
+}));
+
+const CdrFilters = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "1rem",
+  alignItems: "flex-end",
+  justifyContent: "center",
+  background: theme.palette.background.default,
+  border: `1px solid ${theme.palette.divider}`,
+  padding: "1rem 1.25rem",
+  borderRadius: "10px",
+  boxShadow: "0 3px 10px rgba(0, 0, 0, 0.05)",
+  marginBottom: "1.5rem",
+  "& label": {
+    display: "flex",
+    flexDirection: "column",
+    fontSize: "0.9rem",
+    color: theme.palette.text.primary,
+    fontWeight: 500,
+  },
+  "& input": {
+    marginTop: "0.35rem",
+    padding: "0.45rem 0.6rem",
+    borderRadius: "6px",
+    border: "1px solid #d1d5db",
+    background: theme.palette.background.default,
+    fontSize: "0.9rem",
+    minWidth: "200px",
+    color: theme.palette.text.primary,
+    transition: "all 0.2s ease",
+    "&:focus": {
+      borderColor: "#0ea5a4",
+      boxShadow: "0 0 0 3px rgba(14, 165, 164, 0.15)",
+      outline: "none",
+    },
+  },
+  "& button": {
+    background: "#0ea5a4",
+    color: "#fff",
+    fontWeight: 600,
+    border: "none",
+    borderRadius: "6px",
+    padding: "0.55rem 1rem",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    transition: "background 0.25s ease, transform 0.1s ease",
+    "&:hover:not(:disabled)": {
+      background: "#0b8b8b",
+      transform: "translateY(-1px)",
+    },
+    "&:disabled": {
+      opacity: 0.6,
+      cursor: "not-allowed",
+    },
+  },
+  [theme.breakpoints.down("sm")]: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    "& label": { width: "100%" },
+    "& input": { width: "100%" },
+    "& button": { width: "100%" },
+  },
+}));
+
+const CdrTabs = styled(Box)(({ theme }) => ({
+  color: theme.palette.text.primary,
+  display: "flex",
+  justifyContent: "center",
+  flexWrap: "wrap",
+  gap: "0.5rem",
+  marginBottom: "1.5rem",
+}));
+
+const CdrTab = styled(Button, {
+  shouldForwardProp: (prop) => prop !== "isActive",
+})(({ theme, isActive }) => ({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "0.5rem",
+  padding: "0.45rem 0.65rem",
+  borderRadius: "999px",
+  border: "1px solid transparent",
+  background: isActive ? "#0ea5a4" : theme.palette.background.default,
+  cursor: "pointer",
+  fontWeight: 600,
+  fontSize: "0.9rem",
+  transition: "all 0.25s ease",
+  color: isActive ? "#fff" : theme.palette.text.primary,
+  boxShadow: isActive ? "0 2px 8px rgba(0, 0, 0, 0.04)" : "none",
+  textTransform: "none",
+}));
+
+const CdrBadge = styled("span")({
+  display: "inline-block",
+  minWidth: "28px",
+  padding: "0.15rem 0.4rem",
+  borderRadius: "12px",
+  fontSize: "0.85rem",
+  fontWeight: 600,
+  textAlign: "center",
+  marginLeft: "0.35rem",
+  color: "#fff",
+});
+
+const CdrTableWrapper = styled(TableContainer)(({ theme }) => ({
+  overflowX: "auto",
+  background: theme.palette.background.default,
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: "0.75rem",
+  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.04)",
+}));
+
+const StyledTable = styled(Table)(({ theme }) => ({
+  width: "100%",
+  borderCollapse: "collapse",
+  fontSize: "0.92rem",
+  minWidth: "700px",
+  "& th, & td": {
+    padding: "0.55rem 0.6rem",
+    borderBottom: "1px solid #f0f0f0",
+    textAlign: "left",
+    color: theme.palette.text.primary,
+  },
+  "& thead th": {
+    background: theme.palette.background.default,
+    fontWeight: 700,
+    position: "sticky",
+    top: 0,
+    zIndex: 2,
+    textTransform: "uppercase",
+    fontSize: "0.85rem",
+    letterSpacing: "0.02em",
+  },
+  "& tbody tr:nth-of-type(even)": {
+    background: theme.palette.background.default,
+  },
+  "& tbody tr:hover": {
+    background: theme.palette.action.hover,
+    cursor: "pointer",
+    transition: "background 0.2s ease",
+  },
+}));
+
+const CdrPagination = styled(Box)({
+  display: "flex",
+  gap: "0.75rem",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "0.8rem 0",
+  "& button": {
+    padding: "0.45rem 0.7rem",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    background: "#f6f6f6",
+    cursor: "pointer",
+    fontWeight: 600,
+    color: "black",
+    "&:disabled": {
+      opacity: 0.5,
+      cursor: "not-allowed",
+    },
+  },
+});
 
 const TABS = [
   { key: "received", label: "Received", color: "#16a34a" },
@@ -312,8 +497,8 @@ const CDR = () => {
   };
 
   return (
-    <div className="cdr-container">
-      <h1 className="cdr-title">Call Detail Records</h1>
+    <CdrContainer>
+      <CdrTitle variant="h1">Call Detail Records</CdrTitle>
 
       {showExtensionDialog && (
         <ExtensionDialog
@@ -323,7 +508,7 @@ const CDR = () => {
       )}
 
       {/* Filters */}
-      <div className="cdr-filters">
+      <CdrFilters>
         <label>
           From:
           <input
@@ -353,14 +538,14 @@ const CDR = () => {
           />
         </label>
         <button onClick={applyFilters}>Apply</button>
-      </div>
+      </CdrFilters>
 
       {/* Tabs */}
-      <div className="cdr-tabs">
+      <CdrTabs>
         {TABS.map((t) => (
-          <button
+          <CdrTab
             key={t.key}
-            className={`cdr-tab ${activeTab === t.key ? "active" : ""}`}
+            isActive={activeTab === t.key}
             onClick={() => onTabClick(t.key)}
             style={{
               borderBottom:
@@ -368,8 +553,7 @@ const CDR = () => {
             }}
           >
             {t.label}
-            <span
-              className="cdr-badge"
+            <CdrBadge
               style={{ backgroundColor: t.color, marginLeft: "8px" }}
             >
               {t.key === "all"
@@ -379,62 +563,62 @@ const CDR = () => {
                   : t.key === "dialed"
                     ? summaryTotals.totalDialed
                     : summaryTotals.totalNoAnswered}
-            </span>
-          </button>
+            </CdrBadge>
+          </CdrTab>
         ))}
-      </div>
+      </CdrTabs>
 
       {/* Table */}
-      <div className="cdr-table-wrapper">
-        <table className="cdr-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Agent Name</th>
-              <th>Number</th>
-              <th>Start Time</th>
-              <th>Duration</th>
-              <th>Direction</th>
-              <th>Agent Talked To</th>
-              <th>Status</th>
-              <th>Recording</th>
-            </tr>
-          </thead>
-          <tbody>
+      <CdrTableWrapper component={Paper}>
+        <StyledTable>
+          <TableHead>
+            <TableRow>
+              <TableCell>#</TableCell>
+              <TableCell>Agent Name</TableCell>
+              <TableCell>Number</TableCell>
+              <TableCell>Start Time</TableCell>
+              <TableCell>Duration</TableCell>
+              <TableCell>Direction</TableCell>
+              <TableCell>Agent Talked To</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Recording</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {loading ? (
-              <tr>
-                <td colSpan="9">Loading...</td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={9}>Loading...</TableCell>
+              </TableRow>
             ) : items.length === 0 ? (
-              <tr>
-                <td colSpan="9">No records found</td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={9}>No records found</TableCell>
+              </TableRow>
             ) : (
               items.map((item, i) => (
-                <tr key={item.uuid || i}>
-                  <td>{page * PAGE_SIZE + i + 1}</td>
-                  <td>{item.agentName}</td>
-                  <td>{item.customerNumber}</td>
-                  <td>{formatDate(item.startTime)}</td>
-                  <td>{item.talkDuration}</td>
-                  <td>{item.direction}</td>
-                  <td>{item.agentTalkedTo}</td>
-                  <td>{item.isMissed}</td>
-                  <td>
+                <TableRow key={item.uuid || i}>
+                  <TableCell>{page * PAGE_SIZE + i + 1}</TableCell>
+                  <TableCell>{item.agentName}</TableCell>
+                  <TableCell>{item.customerNumber}</TableCell>
+                  <TableCell>{formatDate(item.startTime)}</TableCell>
+                  <TableCell>{item.talkDuration}</TableCell>
+                  <TableCell>{item.direction}</TableCell>
+                  <TableCell>{item.agentTalkedTo}</TableCell>
+                  <TableCell>{item.isMissed}</TableCell>
+                  <TableCell>
                     {item.recordingFile ? (
-                      <button onClick={() => setPlayingUuid(item.uuid)}>
+                      <Button size="small" onClick={() => setPlayingUuid(item.uuid)}>
                         ▶ Play
-                      </button>
+                      </Button>
                     ) : (
                       "-"
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </StyledTable>
+      </CdrTableWrapper>
 
       {/* Audio Player Dialog */}
       {playingUuid && (
@@ -466,7 +650,7 @@ const CDR = () => {
       )}
 
       {/* Pagination */}
-      <div className="cdr-pagination">
+      <CdrPagination>
         <button
           onClick={() => setPage((p) => Math.max(0, p - 1))}
           disabled={page === 0}
@@ -479,8 +663,8 @@ const CDR = () => {
         <button onClick={() => setPage((p) => p + 1)} disabled={!hasNext}>
           Next
         </button>
-      </div>
-    </div>
+      </CdrPagination>
+    </CdrContainer>
   );
 };
 

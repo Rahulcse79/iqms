@@ -358,7 +358,7 @@ export const fetchIrlaView =
       const body = toFormData({ api_token: IRLA_API_TOKEN });
 
       const response = await axios.post(
-        `http://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=IVRS`,
+        `http://localhost/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=IVRS`,
         body,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -390,7 +390,7 @@ export const fetchPorData =
     try {
       const body = toFormDataPOR({ api_token: IRLA_API_TOKEN });
 
-      const url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=IVRS`;
+      const url = `http://localhost/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=IVRS`;
 
       const response = await axios.post(url, body, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },

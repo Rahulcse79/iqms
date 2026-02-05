@@ -5,7 +5,7 @@ const Form_API_TOKEN =
   process.env.REACT_APP_IRLA_API_TOKEN ||
   'IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS';
 
-const API_URL = 'http://175.25.5.7/API/controller.php?ivrsIqmsActionDet';
+const API_URL = 'http://localhost/API/controller.php?ivrsIqmsActionDet';
 
 export default function QueryHistorytab({ docId, isActive }) {
   const [rows, setRows] = React.useState([]);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./Comparison.css";
+import { styled } from "@mui/material/styles";
+import { Box, Typography, Button, Select, MenuItem, TextField, Table, TableBody, TableCell, TableHead, TableRow, Paper } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchOfficerBasicPayReason,
@@ -9,6 +10,279 @@ import {
   fetchAirmanRankHistory,
   fetchAirmanPersmast,
 } from "../actions/allAction";
+
+// Styled Components
+const ComparisonContainer = styled(Box)(({ theme }) => ({
+  padding: "40px 20px",
+  fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  background: theme.palette.background.default,
+  color: theme.palette.text.primary,
+  [theme.breakpoints.down("md")]: {
+    padding: "20px 10px",
+  },
+}));
+
+const PageTitle = styled(Typography)(({ theme }) => ({
+  marginBottom: "18px",
+  fontSize: "22px",
+  color: theme.palette.text.primary,
+  fontWeight: 700,
+  textAlign: "center",
+  [theme.breakpoints.down("sm")]: {
+    fontSize: "18px",
+  },
+}));
+
+const ComparisonForm = styled("form")(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: "14px",
+  background: theme.palette.background.paper,
+  padding: "20px 22px",
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: "10px",
+  boxShadow: theme.shadows[1],
+  width: "100%",
+  maxWidth: "920px",
+  "& label": {
+    display: "flex",
+    flexDirection: "column",
+    fontWeight: 600,
+    color: theme.palette.text.primary,
+    fontSize: "14px",
+  },
+  [theme.breakpoints.down("md")]: {
+    maxWidth: "90%",
+  },
+  [theme.breakpoints.down("sm")]: {
+    maxWidth: "100%",
+    padding: "16px",
+  },
+}));
+
+const StyledInput = styled(TextField)(({ theme }) => ({
+  marginTop: "8px",
+  "& .MuiOutlinedInput-root": {
+    fontSize: "14px",
+    borderRadius: "6px",
+    background: theme.palette.background.paper,
+    "& fieldset": {
+      borderColor: theme.palette.divider,
+    },
+    "&:hover fieldset": {
+      borderColor: theme.palette.primary.main,
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: theme.palette.primary.main,
+      boxShadow: `0 0 6px ${theme.palette.primary.light}`,
+    },
+  },
+  "& .MuiInputBase-input": {
+    color: theme.palette.text.primary,
+    padding: "10px 12px",
+  },
+  [theme.breakpoints.down("sm")]: {
+    "& .MuiInputBase-input": {
+      fontSize: "13px",
+      padding: "8px 10px",
+    },
+  },
+}));
+
+const StyledSelect = styled(Select)(({ theme }) => ({
+  marginTop: "8px",
+  fontSize: "14px",
+  borderRadius: "6px",
+  background: theme.palette.background.paper,
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: theme.palette.divider,
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: theme.palette.primary.main,
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: theme.palette.primary.main,
+    boxShadow: `0 0 6px ${theme.palette.primary.light}`,
+  },
+  "& .MuiSelect-select": {
+    color: theme.palette.text.primary,
+    padding: "10px 12px",
+  },
+}));
+
+const SearchButton = styled(Button)(({ theme }) => ({
+  padding: "12px",
+  backgroundColor: theme.palette.primary.main,
+  color: "#fff",
+  fontSize: "15px",
+  fontWeight: 700,
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  transition: "all 0.18s ease",
+  "&:hover": {
+    backgroundColor: theme.palette.primary.dark,
+    transform: "translateY(-2px)",
+    boxShadow: theme.shadows[2],
+  },
+  [theme.breakpoints.down("sm")]: {
+    fontSize: "14px",
+    padding: "10px",
+  },
+}));
+
+const ComparisonResults = styled(Box)({
+  width: "auto",
+  maxWidth: "1200px",
+  marginTop: "26px",
+});
+
+const ResultsHeader = styled(Box)(({ theme }) => ({
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "12px",
+  flexWrap: "wrap",
+  gap: "10px",
+  "& h3": {
+    margin: 0,
+    fontSize: "15px",
+    color: theme.palette.text.primary,
+    background: theme.palette.background.paper,
+    padding: "8px 12px",
+    borderRadius: "6px",
+  },
+  [theme.breakpoints.down("sm")]: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+}));
+
+const PrintButton = styled(Button)(({ theme }) => ({
+  padding: "8px 12px",
+  background: theme.palette.text.primary,
+  color: theme.palette.background.default,
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  fontWeight: 600,
+  transition: "background 0.2s ease",
+  "&:hover": {
+    background: theme.palette.primary.main,
+    color: "#fff",
+  },
+}));
+
+const CardsContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  gap: "18px",
+  padding: "20px",
+  alignItems: "flex-start",
+  background: theme.palette.background.paper,
+  flexWrap: "wrap",
+  [theme.breakpoints.down("md")]: {
+    gap: "14px",
+    padding: "16px",
+  },
+  [theme.breakpoints.down("sm")]: {
+    flexDirection: "column",
+    padding: "12px",
+  },
+}));
+
+const LabelSearchBox = styled(Box)({
+  display: "flex",
+  width: "100%",
+  alignItems: "center",
+  justifyContent: "space-evenly",
+  "& input": {
+    width: "auto",
+  },
+});
+
+const CardComparison = styled(Box)(({ theme }) => ({
+  flex: 1,
+  borderRadius: "6px",
+  overflow: "hidden",
+  backgroundColor: theme.palette.background.paper,
+  boxShadow: theme.shadows[1],
+  minWidth: "280px",
+}));
+
+const CardTop = styled(Box)(({ theme }) => ({
+  background: theme.palette.background.default,
+  padding: "10px 14px",
+  fontWeight: 700,
+  color: theme.palette.text.primary,
+  borderBottom: `1px solid ${theme.palette.divider}`,
+}));
+
+const CardBody = styled(Box)(({ theme }) => ({
+  padding: "12px 14px 18px",
+  color: theme.palette.text.primary,
+}));
+
+const CardTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: 800,
+  fontSize: "16px",
+  marginBottom: "10px",
+  color: theme.palette.text.primary,
+  [theme.breakpoints.down("sm")]: {
+    fontSize: "14px",
+  },
+}));
+
+const InfoTable = styled(Table)(({ theme }) => ({
+  width: "100%",
+  borderCollapse: "collapse",
+  marginBottom: "12px",
+  "& td": {
+    padding: "8px 10px",
+    border: `1px solid ${theme.palette.divider}`,
+    fontSize: "13px",
+    color: theme.palette.text.primary,
+    background: theme.palette.background.default,
+  },
+  [theme.breakpoints.down("sm")]: {
+    "& td": {
+      fontSize: "12px",
+      padding: "6px 8px",
+    },
+  },
+}));
+
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  marginTop: "8px",
+  fontWeight: 700,
+  color: theme.palette.text.primary,
+  fontSize: "13px",
+}));
+
+const RankTable = styled(Table)(({ theme }) => ({
+  width: "100%",
+  borderCollapse: "collapse",
+  marginTop: "8px",
+  "& th, & td": {
+    padding: "8px 10px",
+    border: `1px solid ${theme.palette.divider}`,
+    fontSize: "13px",
+    background: theme.palette.background.default,
+    color: theme.palette.text.primary,
+  },
+  "& thead": {
+    background: theme.palette.background.paper,
+    fontWeight: 700,
+  },
+  [theme.breakpoints.down("sm")]: {
+    "& th, & td": {
+      fontSize: "12px",
+      padding: "6px 8px",
+    },
+  },
+}));
 
 const Comparison = () => {
   const dispatch = useDispatch();
@@ -219,128 +493,128 @@ const Comparison = () => {
       payList.length === 0 &&
       rankList.length === 0
     ) {
-      return <div className="card-comparision">{label}: Loading...</div>;
+      return <CardComparison>{label}: Loading...</CardComparison>;
     }
 
     if (!person && payList.length === 0 && rankList.length === 0) {
-      return <div className="card-comparision">{label}: No Data Found</div>;
+      return <CardComparison>{label}: No Data Found</CardComparison>;
     }
 
     return (
-      <div className="">
-        <div className="card-top">
+      <CardComparison>
+        <CardTop>
           {label} • {person?.sno || "-"}
-        </div>
+        </CardTop>
 
-        <div className="card-body">
+        <CardBody>
           {/* PERSMAST */}
-          <div className="card-title">PERSMAST</div>
-          <table className="info-table">
-            <tbody>
-              <tr>
-                <td>Cell</td>
-                <td>{person?.cell ?? "-"}</td>
-                <td>Unit</td>
-                <td>{person?.unit_name ?? person?.unitname ?? "-"}</td>
-              </tr>
-              <tr>
-                <td>Service No</td>
-                <td>{person?.sno ?? "-"}</td>
-                <td>Rank</td>
-                <td>{person?.rank ?? person?.rankname ?? "-"}</td>
-              </tr>
-              <tr>
-                <td>Trade / Branch</td>
-                <td>{person?.tradename ?? person?.branch_name ?? "-"}</td>
-                <td>DOE</td>
-                <td>
+          <CardTitle>PERSMAST</CardTitle>
+          <InfoTable>
+            <TableBody>
+              <TableRow>
+                <TableCell>Cell</TableCell>
+                <TableCell>{person?.cell ?? "-"}</TableCell>
+                <TableCell>Unit</TableCell>
+                <TableCell>{person?.unit_name ?? person?.unitname ?? "-"}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Service No</TableCell>
+                <TableCell>{person?.sno ?? "-"}</TableCell>
+                <TableCell>Rank</TableCell>
+                <TableCell>{person?.rank ?? person?.rankname ?? "-"}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Trade / Branch</TableCell>
+                <TableCell>{person?.tradename ?? person?.branch_name ?? "-"}</TableCell>
+                <TableCell>DOE</TableCell>
+                <TableCell>
                   {person?.enrldt
                     ? person.enrldt
                     : "-"}
-                </td>
-              </tr>
-              <tr>
-                <td>Name</td>
-                <td colSpan="3">{person?.p_name ?? "-"}</td>
-              </tr>
-              <tr>
-                <td>CS</td>
-                <td>{person?.cs ?? "-"}</td>
-                <td>Unit Code</td>
-                <td>{person?.unitcd ?? "-"}</td>
-              </tr>
-            </tbody>
-          </table>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell colSpan={3}>{person?.p_name ?? "-"}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>CS</TableCell>
+                <TableCell>{person?.cs ?? "-"}</TableCell>
+                <TableCell>Unit Code</TableCell>
+                <TableCell>{person?.unitcd ?? "-"}</TableCell>
+              </TableRow>
+            </TableBody>
+          </InfoTable>
 
           {/* RANK HISTORY */}
-          <div className="section-title">Rank History</div>
+          <SectionTitle>Rank History</SectionTitle>
           {rankList.length === 0 ? (
-            <p>No rank history.</p>
+            <Typography>No rank history.</Typography>
           ) : (
-            <table className="rank-table">
-              <thead>
-                <tr>
-                  <th>S No.</th>
-                  <th>Rank</th>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Opt</th>
-                </tr>
-              </thead>
-              <tbody>
+            <RankTable>
+              <TableHead>
+                <TableRow>
+                  <TableCell>S No.</TableCell>
+                  <TableCell>Rank</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Opt</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {rankList.map((r, i) => (
-                  <tr key={i}>
-                    <td>{i + 1}</td>
-                    <td>{r.rank ?? "-"}</td>
-                    <td>
+                  <TableRow key={i}>
+                    <TableCell>{i + 1}</TableCell>
+                    <TableCell>{r.rank ?? "-"}</TableCell>
+                    <TableCell>
                       {r.hp_date
                         ? r.hp_date
                         : r.wef
                         ? r.wef
                         : "-"}
-                    </td>
-                    <td>{r.type ?? "-"}</td>
-                    <td>{r.opt ?? "-"}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell>{r.type ?? "-"}</TableCell>
+                    <TableCell>{r.opt ?? "-"}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </RankTable>
           )}
 
           {/* BASIC PAY REASON */}
-          <div className="section-title">Basic Pay Reason</div>
+          <SectionTitle>Basic Pay Reason</SectionTitle>
           {payList.length === 0 ? (
-            <p>No pay entries.</p>
+            <Typography>No pay entries.</Typography>
           ) : (
-            <table className="info-table">
-              <thead>
-                <tr>
-                  <th>S No.</th>
-                  <th>Description</th>
-                  <th>Rate</th>
-                  <th>WEF</th>
-                </tr>
-              </thead>
-              <tbody>
+            <InfoTable>
+              <TableHead>
+                <TableRow>
+                  <TableCell>S No.</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Rate</TableCell>
+                  <TableCell>WEF</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {payList.map((p, i) => (
-                  <tr key={i}>
-                    <td>{i + 1}</td>
-                    <td>{p.description ?? p.desc ?? "-"}</td>
-                    <td>{p.rate ?? p.amount ?? "-"}</td>
-                    <td>
+                  <TableRow key={i}>
+                    <TableCell>{i + 1}</TableCell>
+                    <TableCell>{p.description ?? p.desc ?? "-"}</TableCell>
+                    <TableCell>{p.rate ?? p.amount ?? "-"}</TableCell>
+                    <TableCell>
                       {p.wef
                         ? p.wef
                         : p.hp_date
                         ? p.hp_date
                         : "-"}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </InfoTable>
           )}
-        </div>
-      </div>
+        </CardBody>
+      </CardComparison>
     );
   };
 
@@ -364,57 +638,60 @@ const Comparison = () => {
         airmanRankSlice?.error;
 
   return (
-    <div className="comparison-container">
-      <h2>Comparative Statement</h2>
+    <ComparisonContainer>
+      <PageTitle variant="h2">Comparative Statement</PageTitle>
 
-      <form className="comparison-form" onSubmit={handleSearch}>
+      <ComparisonForm onSubmit={handleSearch}>
         <label>
           Select Category
-          <select
+          <StyledSelect
             value={selectCategory}
             onChange={(e) => setSelectCategory(e.target.value)}
+            size="small"
           >
-            <option value="Airmen">Airmen</option>
-            <option value="Officer">Officer</option>
-          </select>
+            <MenuItem value="Airmen">Airmen</MenuItem>
+            <MenuItem value="Officer">Officer</MenuItem>
+          </StyledSelect>
         </label>
 
-        <div className="label-searchbox">
+        <LabelSearchBox>
           <label>
             Senior Service Number
-            <input
+            <StyledInput
               type="text"
               placeholder="Enter Senior Service No"
               value={seniorServiceNumber}
               onChange={(e) => setSeniorServiceNumber(e.target.value.trim())}
+              size="small"
             />
           </label>
 
           <label>
             Junior Service Number
-            <input
+            <StyledInput
               type="text"
               placeholder="Enter Junior Service No"
               value={juniorServiceNumber}
               onChange={(e) => setJuniorServiceNumber(e.target.value.trim())}
+              size="small"
             />
           </label>
-        </div>
+        </LabelSearchBox>
 
-        <button type="submit" className="search-btn">
+        <SearchButton type="submit" variant="contained">
           Create Comparative Statement
-        </button>
-      </form>
+        </SearchButton>
+      </ComparisonForm>
 
       {result && (
-        <div className="comparison-results">
-          <div className="results-header">
-            <button className="print-btn" onClick={printReport}>
+        <ComparisonResults>
+          <ResultsHeader>
+            <PrintButton onClick={printReport}>
               Print Report
-            </button>
-          </div>
+            </PrintButton>
+          </ResultsHeader>
 
-          <div className="cards">
+          <CardsContainer>
             {renderCard(
               seniorPerson,
               seniorPayList,
@@ -431,10 +708,10 @@ const Comparison = () => {
               sliceLoading,
               sliceError
             )}
-          </div>
-        </div>
+          </CardsContainer>
+        </ComparisonResults>
       )}
-    </div>
+    </ComparisonContainer>
   );
 };
 

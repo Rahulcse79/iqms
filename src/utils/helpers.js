@@ -446,7 +446,7 @@ export const fetchTransferToVerifierOption = async (pendingWith) => {
     console.log("🔄 Fetching transfer to verifier option:", requestBody);
 
     const response = await fetch(
-      "http://175.25.5.7/API/controller.php?ivrsIqmsDropFirst",
+      "http://localhost/API/controller.php?ivrsIqmsDropFirst",
       {
         method: "POST",
         headers: {
@@ -497,7 +497,7 @@ export const fetchTransferToSubsectionOptions = async (docId) => {
     console.log("🔄 Fetching transfer to subsection options:", requestBody);
 
     const response = await fetch(
-      "http://175.25.5.7/API/controller.php?ivrsIqmsDropSecond",
+      "http://localhost/API/controller.php?ivrsIqmsDropSecond",
       {
         method: "POST",
         headers: {
@@ -599,7 +599,7 @@ export const getSystemIPAddress = () => {
               if (isValidIP) {
                 // Filter out invalid/unwanted IPs
                 if (
-                  !ip.startsWith("127.") && // Not 175.25.5.7
+                  !ip.startsWith("127.") && // Not localhost
                   !ip.startsWith("169.254.") && // Not APIPA
                   !ip.startsWith("0.") && // Not invalid
                   ip !== "0.0.0.0" && // Not invalid
@@ -800,7 +800,7 @@ export const submitIqmsReply = async (submitData) => {
 
     // Step 6: Make API call
     const response = await fetch(
-      "http://175.25.5.7/API/controller.php?ivrsIqmsAction",
+      "http://localhost/API/controller.php?ivrsIqmsAction",
       {
         method: "POST",
         headers: {
@@ -1091,7 +1091,7 @@ export const getNewAPIParamsFromActiveRole = (activeRole) => {
  * @returns {Promise} - API response
  */
 export const callNewIqmsListingAPI = async (requestBody) => {
-  const API_URL = "http://175.25.5.7/API/controller.php?ivrsIqmsListing";
+  const API_URL = "http://localhost/API/controller.php?ivrsIqmsListing";
   const API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
 
   try {

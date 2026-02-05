@@ -50,7 +50,7 @@ export default function useIdleLogout(onLogout, timeout = 5 * 60 * 1000) {
       try {
         navigate("/login", { replace: true });
       } catch (err) {
-        window.location.href = "/login";
+        window.location.href = "/app2/login";
       }
     } finally {
       isLoggingOutRef.current = false;

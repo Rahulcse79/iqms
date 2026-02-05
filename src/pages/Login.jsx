@@ -1,7 +1,16 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import "./login.css";
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  Container,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import Cookies from "js-cookie";
 import logo from "../assets/Images/login-logo.png";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,6 +20,118 @@ import { loginAPI } from "../utils/endpoints";
 import ExtensionDialog from "../components/ExtensionDialog";
 import { fetchAllUserQueriesNew, getDesignationFlags } from "../utils/helpers";
 import { encryptData } from "../utils/helpers";
+
+// Styled components
+const PageHeader = styled(Box)(({ theme }) => ({
+  textAlign: 'center',
+  backgroundColor: '#1a4d8f',
+  color: '#ffffff',
+  padding: theme.spacing(1.5, 0),
+  fontSize: 24,
+  fontWeight: 'bold',
+  borderBottom: '3px solid #0c3570',
+  margin: 0,
+}));
+
+const LoginContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  minHeight: 'calc(100vh - 70px)',
+  padding: theme.spacing(2.5),
+  boxSizing: 'border-box',
+  backgroundColor: '#e9edf3',
+}));
+
+const LoginBox = styled(Paper)(({ theme }) => ({
+  width: '100%',
+  maxWidth: 400,
+  backgroundColor: '#ffffff',
+  border: '1px solid #c5c9cf',
+  borderTop: '5px solid #1a4d8f',
+  boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
+  borderRadius: theme.shape.borderRadius,
+  padding: theme.spacing(3),
+}));
+
+const LoginHeader = styled(Box)({
+  textAlign: 'center',
+  marginBottom: 10,
+});
+
+const LoginLogo = styled('img')({
+  width: 80,
+  height: 80,
+  objectFit: 'contain',
+});
+
+const LoginTitle = styled(Typography)({
+  textAlign: 'center',
+  fontSize: 18,
+  color: '#1a4d8f',
+  fontWeight: 'bold',
+  margin: '10px 0 20px 0',
+});
+
+const FormGroup = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+}));
+
+const FormLabel = styled(Typography)({
+  display: 'block',
+  fontSize: 14,
+  color: '#222',
+  fontWeight: 'bold',
+  marginBottom: 4,
+});
+
+const LoginInput = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    backgroundColor: '#fdfdfd',
+    '& fieldset': {
+      borderColor: '#b8b8b8',
+    },
+    '&:hover fieldset': {
+      borderColor: '#1a4d8f',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#1a4d8f',
+    },
+    '&.Mui-focused': {
+      backgroundColor: '#ffffff',
+    },
+  },
+  '& .MuiInputBase-input': {
+    padding: '9px',
+    fontSize: 15,
+  },
+}));
+
+const LoginActions = styled(Box)({
+  textAlign: 'right',
+  marginTop: 5,
+});
+
+const LoginButton = styled(Button)({
+  backgroundColor: '#1a4d8f',
+  color: '#ffffff',
+  padding: '10px 18px',
+  fontSize: 15,
+  fontWeight: 'bold',
+  textTransform: 'none',
+  '&:hover': {
+    backgroundColor: '#143e73',
+  },
+});
+
+const LoginFooter = styled(Typography)(({ theme }) => ({
+  textAlign: 'center',
+  marginTop: theme.spacing(2.5),
+  fontSize: 13,
+  color: '#555',
+  borderTop: '1px solid #ddd',
+  paddingTop: theme.spacing(1.25),
+}));
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -259,65 +380,70 @@ const Login = () => {
 
   return (
     <>
-      <div className="login-container-outer" aria-hidden="true"></div>
+      <Box sx={{ position: 'fixed', inset: 0, zIndex: -1 }} aria-hidden="true" />
 
-      <h1 className="ivrs-head" aria-hidden="true">
+      <PageHeader component="h1" aria-hidden="true">
         INTERACTIVE VOICE RESPONSE SYSTEM (IVRS)
-      </h1>
+      </PageHeader>
 
-      <div className="login-container" role="main">
-        <div className="login-box" role="region" aria-label="Login form">
-          <div className="login-header">
-            <img src={logo} alt="CRM Logo" className="login-logo" />
-          </div>
-          <h2 className="login-title">User Login</h2>
+      <LoginContainer role="main">
+        <LoginBox role="region" aria-label="Login form">
+          <LoginHeader>
+            <LoginLogo src={logo} alt="CRM Logo" />
+          </LoginHeader>
+          <LoginTitle variant="h2">User Login</LoginTitle>
 
           {error && (
-            <p className="error-text" role="alert" aria-live="assertive">
+            <Alert severity="error" sx={{ mb: 2 }} role="alert" aria-live="assertive">
               {error}
-            </p>
+            </Alert>
           )}
 
-          <form className="login-form" onSubmit={handleSubmit} noValidate>
-            <div className="form-group">
-              <label htmlFor="username">Username</label>
-              <input
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <FormGroup>
+              <FormLabel component="label" htmlFor="username">
+                Username
+              </FormLabel>
+              <LoginInput
+                fullWidth
                 type="text"
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="login-input"
                 autoComplete="username"
                 required
+                size="small"
               />
-            </div>
+            </FormGroup>
 
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
+            <FormGroup>
+              <FormLabel component="label" htmlFor="password">
+                Password
+              </FormLabel>
+              <LoginInput
+                fullWidth
                 type="password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="login-input"
                 autoComplete="current-password"
                 required
+                size="small"
               />
-            </div>
+            </FormGroup>
 
-            <div className="login-actions">
-              <button type="submit" className="login-btn" aria-label="Login">
+            <LoginActions>
+              <LoginButton type="submit" variant="contained" aria-label="Login">
                 Login
-              </button>
-            </div>
+              </LoginButton>
+            </LoginActions>
 
-            <div className="login-footer" aria-hidden="true">
-              © {new Date().getFullYear()} IVRS — Secure access - Coral Telecom
-              Ltd.
-            </div>
-          </form>
-        </div>
-      </div>
+            <LoginFooter aria-hidden="true">
+              © {new Date().getFullYear()} IVRS — Secure access - Coral Telecom Ltd.
+            </LoginFooter>
+          </Box>
+        </LoginBox>
+      </LoginContainer>
       {showExtensionDialog && (
         <ExtensionDialog
           onSubmit={(extension) => {

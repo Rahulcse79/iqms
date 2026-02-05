@@ -49,8 +49,8 @@ export default function PORDataTable({ sno, cat }) {
     try {
       const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
 
-      let url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
-      // let url = `http://175.25.5.7:80/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
+      let url = `http://localhost/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
+      // let url = `http://localhost:80/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
 
       
       if (selectedYear !== "ALL") {
@@ -105,8 +105,8 @@ export default function PORDataTable({ sno, cat }) {
       try {
         const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
 
-        const url = `http://175.25.5.7/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
-        // const url = `http://175.25.5.7:80/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
+        const url = `http://localhost/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
+        // const url = `http://localhost:80/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
 
 
         const response = await axios.post(url, body, {

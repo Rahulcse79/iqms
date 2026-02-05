@@ -1,7 +1,41 @@
 // src/components/ExtensionDialog.jsx
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import "./ExtensionDialog.css";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Button,
+  TextField,
+  Typography,
+  Box,
+  Alert,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.shadows[8],
+    borderRadius: theme.shape.borderRadius * 2,
+    minWidth: 380,
+    maxWidth: 450,
+  },
+  '& .MuiBackdrop-root': {
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backdropFilter: 'blur(4px)',
+  },
+}));
+
+const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
+  padding: theme.spacing(3, 3, 1),
+  textAlign: 'center',
+}));
+
+const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
+  padding: theme.spacing(2, 3, 3),
+}));
 
 const ExtensionDialog = ({ onSubmit }) => {
   const [extension, setExtension] = useState("");
@@ -25,32 +59,55 @@ const ExtensionDialog = ({ onSubmit }) => {
   };
 
   return (
-    <div className="extension-dialog-overlay" role="dialog" aria-modal="true">
-      <div className="extension-dialog-box">
-        <h2 className="extension-dialog-title">Enter Your Extension Number</h2>
-        <p className="extension-dialog-desc">
+    <StyledDialog open aria-modal="true">
+      <StyledDialogTitle>
+        <Typography variant="h6" fontWeight={600}>
+          Enter Your Extension Number
+        </Typography>
+      </StyledDialogTitle>
+      
+      <StyledDialogContent>
+        <Typography 
+          variant="body2" 
+          color="text.secondary" 
+          textAlign="center"
+          sx={{ mb: 3 }}
+        >
           Please enter the extension number you are currently working on.
-        </p>
+        </Typography>
 
-        <form onSubmit={handleSubmit} className="extension-dialog-form">
-          <input
-            type="text"
+        <Box component="form" onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
             value={extension}
             onChange={(e) => setExtension(e.target.value)}
-            className="extension-dialog-input"
             placeholder="e.g. 1023"
             inputMode="numeric"
-            pattern="[0-9]*"
             required
+            size="small"
+            sx={{ mb: 2 }}
+            inputProps={{
+              pattern: "[0-9]*"
+            }}
           />
-          {error && <p className="extension-dialog-error">{error}</p>}
+          
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-          <button type="submit" className="extension-dialog-btn">
+          <Button 
+            type="submit" 
+            variant="contained" 
+            fullWidth
+            size="large"
+          >
             Continue
-          </button>
-        </form>
-      </div>
-    </div>
+          </Button>
+        </Box>
+      </StyledDialogContent>
+    </StyledDialog>
   );
 };
 

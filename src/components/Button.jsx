@@ -1,11 +1,20 @@
 import React from 'react';
-import './Button.css';
+import { Button as MuiButton } from '@mui/material';
 
 const Button = ({ children, onClick, variant = 'primary', ...props }) => {
+  // Map custom variant names to MUI variants
+  const muiVariant = variant === 'secondary' ? 'outlined' : 'contained';
+  const color = variant === 'secondary' ? 'inherit' : 'primary';
+
   return (
-    <button className={`btn ${variant}`} onClick={onClick} {...props}>
+    <MuiButton
+      variant={muiVariant}
+      color={color}
+      onClick={onClick}
+      {...props}
+    >
       {children}
-    </button>
+    </MuiButton>
   );
 };
 

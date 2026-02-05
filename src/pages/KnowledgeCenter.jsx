@@ -14,7 +14,49 @@ import {
   FaTimes,
   FaSortAlphaDown,
 } from "react-icons/fa";
-import "./KnowledgeCenter.css";
+
+// PDF Modal Styles (converted from CSS)
+const PDFModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const PDFModalContent = styled.div`
+  background: white;
+  width: 90%;
+  height: 90%;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+`;
+
+const PDFModalHeader = styled.div`
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const PDFModalBody = styled.div`
+  flex: 1;
+  overflow: auto;
+`;
+
+const PDFModalIframe = styled.iframe`
+  width: 100%;
+  height: 100%;
+  border: none;
+`;
 
 // ============ STYLED COMPONENTS ============
 const Container = styled.div`

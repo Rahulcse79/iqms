@@ -1,9 +1,74 @@
-// ConfirmDialog.jsx - Theme Compatible with Screen Center & Full App Blocking
+// ConfirmDialog.jsx - MUI Theme Compatible
 
 import React from "react";
-import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
-import "./ConfirmDialog.css";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Box,
+  Typography,
+  CircularProgress,
+  LinearProgress,
+  Alert,
+} from "@mui/material";
+import { styled, alpha } from "@mui/material/styles";
+
+// Styled components
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.shadows[8],
+    borderRadius: theme.shape.borderRadius * 2,
+    color: theme.palette.text.primary,
+    minWidth: 420,
+    maxWidth: '90vw',
+    maxHeight: '90vh',
+    overflow: 'hidden',
+  },
+  '& .MuiBackdrop-root': {
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backdropFilter: 'blur(4px)',
+  },
+}));
+
+const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
+  padding: theme.spacing(2.5, 3, 2),
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  backgroundColor: alpha(theme.palette.background.default, 0.5),
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  '& .MuiTypography-root': {
+    fontSize: '1.125rem',
+    fontWeight: 600,
+    color: theme.palette.text.primary,
+  },
+}));
+
+const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
+  padding: theme.spacing(3),
+  minHeight: 80,
+  display: 'flex',
+  alignItems: 'center',
+  backgroundColor: theme.palette.background.paper,
+}));
+
+const StyledDialogActions = styled(DialogActions)(({ theme }) => ({
+  padding: theme.spacing(2, 3, 3),
+  gap: theme.spacing(1.5),
+  borderTop: `1px solid ${theme.palette.divider}`,
+  backgroundColor: alpha(theme.palette.background.default, 0.5),
+}));
+
+const ProgressSection = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2, 3),
+  borderTop: `1px solid ${theme.palette.divider}`,
+  backgroundColor: alpha(theme.palette.background.default, 0.3),
+}));
 
 const ConfirmDialog = ({ 
   open, 
@@ -16,95 +81,88 @@ const ConfirmDialog = ({
   disabled = false,
   hideActions = false
 }) => {
-  // Don't render if not open
-  if (!open) return null;
+  const handleClose = (event, reason) => {
+    // Don't close on backdrop click when loading
+    if (loading && reason === 'backdropClick') return;
+    onCancel?.();
+  };
 
-  // Create portal to render at body level (ensures screen center positioning)
-  const dialogContent = (
-    <div className="dialog-overlay" onClick={(e) => {
-      // Only close if clicking the overlay itself, not the dialog
-      if (e.target === e.currentTarget && !loading) {
-        onCancel?.();
-      }
-    }}>
-      <div 
-        className={`dialog-container ${loading ? 'dialog-loading' : ''}`}
-        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside dialog
-      >
-        {/* Header */}
-        <div className="dialog-header">
-          <h3 className="dialog-title">
-            {loading && (
-              <span className="loading-spinner" style={{ marginRight: '8px' }}></span>
-            )}
-            {title}
-          </h3>
-        </div>
-        
-        {/* Content */}
-        <div className="dialog-content">
-          {error ? (
-            <div className="dialog-error">
-              <div className="error-icon">⚠️</div>
-              <div className="error-message">{error}</div>
-            </div>
-          ) : (
-            <div className="dialog-message">
-              {children || "Do you want to submit the query?"}
-            </div>
-          )}
-        </div>
-        
-        {/* Actions */}
-        {!hideActions && (
-          <div className="dialog-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onCancel}
-              disabled={loading}
+  return (
+    <StyledDialog
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="confirm-dialog-title"
+      aria-describedby="confirm-dialog-description"
+    >
+      {/* Header */}
+      <StyledDialogTitle id="confirm-dialog-title">
+        {loading && <CircularProgress size={20} sx={{ mr: 1 }} />}
+        <Typography component="span">{title}</Typography>
+      </StyledDialogTitle>
+      
+      {/* Content */}
+      <StyledDialogContent>
+        {error ? (
+          <Alert 
+            severity="error" 
+            icon={<span style={{ fontSize: '1.25rem' }}>⚠️</span>}
+            sx={{ width: '100%' }}
+          >
+            {error}
+          </Alert>
+        ) : (
+          <Typography 
+            id="confirm-dialog-description"
+            variant="body1" 
+            sx={{ width: '100%', lineHeight: 1.5 }}
+          >
+            {children || "Do you want to submit the query?"}
+          </Typography>
+        )}
+      </StyledDialogContent>
+      
+      {/* Actions */}
+      {!hideActions && (
+        <StyledDialogActions>
+          <Button
+            variant="outlined"
+            onClick={onCancel}
+            disabled={loading}
+            sx={{ minWidth: 100 }}
+          >
+            {loading ? "Please wait..." : "Cancel"}
+          </Button>
+          
+          {!error && onConfirm && (
+            <Button
+              variant="contained"
+              onClick={onConfirm}
+              disabled={loading || disabled}
+              sx={{ minWidth: 100 }}
+              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
             >
-              {loading ? "Please wait..." : "Cancel"}
-            </button>
-            
-            {!error && onConfirm && (
-              <button
-                type="button"
-                className={`btn btn-primary ${loading ? 'btn-loading' : ''}`}
-                onClick={onConfirm}
-                disabled={loading || disabled}
-              >
-                {loading ? (
-                  <>
-                    <span className="loading-spinner"></span>
-                    Submitting...
-                  </>
-                ) : (
-                  "Confirm"
-                )}
-              </button>
-            )}
-          </div>
-        )}
-        
-        {/* Progress indicator when loading */}
-        {loading && (
-          <div className="dialog-progress">
-            <div className="progress-bar">
-              <div className="progress-fill"></div>
-            </div>
-            <small className="progress-text">Processing your request...</small>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // Use React Portal to render at document.body level
-  // This ensures the dialog appears at screen center, not relative to parent container
-  return ReactDOM.createPortal(
-    dialogContent,
-    document.body
+              {loading ? "Submitting..." : "Confirm"}
+            </Button>
+          )}
+        </StyledDialogActions>
+      )}
+      
+      {/* Progress indicator when loading */}
+      {loading && (
+        <ProgressSection>
+          <LinearProgress 
+            sx={{ 
+              mb: 1,
+              height: 4,
+              borderRadius: 1,
+            }} 
+          />
+          <Typography variant="caption" color="text.secondary">
+            Processing your request...
+          </Typography>
+        </ProgressSection>
+      )}
+    </StyledDialog>
   );
 };
 
