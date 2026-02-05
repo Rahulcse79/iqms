@@ -98,9 +98,9 @@ const QueriesTable = ({ title, data = [] }) => {
     });
     navigate(
       `/view/query/${encodeURIComponent(
-        row.queryId
+        row.queryId,
       )}?${queryParams.toString()}`,
-      { state: { row, from: location.pathname + location.search } }
+      { state: { row, from: location.pathname + location.search } },
     );
   };
 
@@ -115,11 +115,12 @@ const QueriesTable = ({ title, data = [] }) => {
       name: "Service No (Pers)",
       selector: (row) => row.serviceNo ?? "",
       sortable: true,
+      width: "150px",
     },
     { name: "Query Type", selector: (row) => row.type ?? "", sortable: true },
-    { name: "Query ID", selector: (row) => row.queryId ?? "", sortable: true },
+    { name: "Query ID", selector: (row) => row.queryId ?? "", sortable: true, width: "150px" },
     {
-      name: "Query Received (AFCAAD Date)",
+      name: "Query Received",
       selector: (row) => getDisplayDate(row),
       sortable: true,
     },
@@ -154,7 +155,7 @@ const QueriesTable = ({ title, data = [] }) => {
         (row, i) =>
           `${i + 1}\t${row.serviceNo}\t${row.type}\t${
             row.queryId
-          }\t${getDisplayDate(row)}`
+          }\t${getDisplayDate(row)}`,
       )
       .join("\n");
     navigator.clipboard.writeText(text);
@@ -193,7 +194,7 @@ const QueriesTable = ({ title, data = [] }) => {
           row.queryId
         } | ${getDisplayDate(row)}`,
         20,
-        y
+        y,
       );
     });
 
@@ -206,7 +207,7 @@ const QueriesTable = ({ title, data = [] }) => {
         (row, i) =>
           `${i + 1} | ${row.serviceNo} | ${row.type} | ${
             row.queryId
-          } | ${getDisplayDate(row)}`
+          } | ${getDisplayDate(row)}`,
       )
       .join("\n");
     const printWindow = window.open("", "", "width=800,height=600");
@@ -216,8 +217,8 @@ const QueriesTable = ({ title, data = [] }) => {
   };
 
   return (
-    <div className="queries-container">
-      <div className="queries-header">
+    <div className="qt-queries-container">
+      <div className="qt-queries-header">
         <h2>{title}</h2>
       </div>
 

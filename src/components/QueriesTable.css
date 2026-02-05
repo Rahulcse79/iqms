@@ -1,4 +1,4 @@
-.queries-container {
+.qt-queries-container {
   background: var(--surface);
   padding: 20px;
   margin: 20px auto;
@@ -9,7 +9,7 @@
   border: 1px solid var(--border);
 }
 
-.queries-header h2 {
+.qt-queries-header h2 {
   font-size: 22px;
   font-weight: 600;
   color: var(--text);
@@ -71,7 +71,7 @@
   transition: background-color 0.3s ease;
 }
 
-.queries-container button {
+.qt-queries-container button {
   color: var(--text);
 }
 

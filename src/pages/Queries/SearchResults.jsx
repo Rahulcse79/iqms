@@ -321,9 +321,7 @@ export default function SearchResults() {
                   <td>{row.doc_id}</td>
                   <td>{row.querytype}</td>
                   <td>
-                    {row.submit_date
-                      ? new Date(row.submit_date).toLocaleDateString()
-                      : "N/A"}
+                    {row.submit_date}
                   </td>
                   <td>
                     <span

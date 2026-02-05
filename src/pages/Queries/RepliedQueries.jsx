@@ -95,7 +95,7 @@ const RepliedQueries = () => {
         it.DOC_TYPE ||
         "N/A",
       queryId: String(it.DOC_ID || it.IMPRNO || idx),
-      date: formatIso(it.SUBMIT_DATE || it.ACTION_DT),
+      date: it.ACTION_DT,
       subject: it.SUBJECT || "No Subject",
       personnel: it.PERS || "N/A",
       raw: it,

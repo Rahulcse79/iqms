@@ -121,7 +121,7 @@ const IncomingQueries = () => {
         : it.IMPRNO
         ? String(it.IMPRNO)
         : `${it.SNO}-${idx}`,
-      date: formatIso(it.SUBMIT_DATE ?? it.ACTION_DT),
+      date: it.ACTION_DT,
       cat: it.CAT ?? null,
       raw: it,
     }));

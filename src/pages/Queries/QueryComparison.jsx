@@ -223,7 +223,7 @@ const customStyles = {
               type: item.querytype,
               serviceNo,
               pendingWith: item.pending_with_dec,
-              date: new Date(item.submit_date).toLocaleDateString(),
+              date: item.submit_date,
             }));
 
             nextData[index] = items;

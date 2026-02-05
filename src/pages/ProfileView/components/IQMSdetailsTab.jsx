@@ -7,8 +7,8 @@ export default function IQMSdetailsTab({
   serviceNumber,
   serviceNo,
   category,
-  type = "Service", 
-  queryValue = "", 
+  type = "Service",
+  queryValue = "",
 }) {
   const svc = serviceNumber ?? serviceNo;
   const [data, setData] = useState([]);
@@ -27,7 +27,7 @@ export default function IQMSdetailsTab({
 
       try {
         const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${encodeURIComponent(
-          svc
+          svc,
         )}/${encodeURIComponent(category)}`;
 
         const res = await fetch(url);
@@ -178,8 +178,7 @@ export default function IQMSdetailsTab({
     },
     {
       name: "Submit Date",
-      selector: (row) =>
-        row.submit_date ? new Date(row.submit_date).toLocaleString() : "",
+      selector: (row) => row.submit_date,
       sortable: true,
       width: "200px",
     },
@@ -193,11 +192,11 @@ export default function IQMSdetailsTab({
           onClick={() =>
             navigate(
               `/view/query/${encodeURIComponent(
-                row.doc_id
+                row.doc_id,
               )}?category=${encodeURIComponent(
-                category
+                category,
               )}&type=${encodeURIComponent(type)}&q=${encodeURIComponent(
-                queryValue || svc
+                queryValue || svc,
               )}`,
               {
                 state: {
@@ -207,7 +206,7 @@ export default function IQMSdetailsTab({
                   category,
                   from: location.pathname + location.search,
                 },
-              }
+              },
             )
           }
         >

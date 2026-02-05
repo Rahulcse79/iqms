@@ -102,7 +102,7 @@ const TransferredQueries = () => {
       window.removeEventListener("storage", handleStorageUpdate);
       window.removeEventListener(
         "transferredQueriesUpdated",
-        handleStorageUpdate
+        handleStorageUpdate,
       );
     };
   }, [loadDataFromStorage]);
@@ -113,7 +113,7 @@ const TransferredQueries = () => {
     setError(null);
     try {
       await dispatch(
-        refreshAllTransferredQueriesForRole(activeRole, [designationFlag])
+        refreshAllTransferredQueriesForRole(activeRole, [designationFlag]),
       );
     } catch (err) {
       setError("Failed to refresh queries.");
@@ -134,9 +134,9 @@ const TransferredQueries = () => {
       queryId: it.DOC_ID
         ? String(it.DOC_ID)
         : it.IMPRNO
-        ? String(it.IMPRNO)
-        : `${it.SNO}-${idx}`,
-      date: formatIso(it.SUBMIT_DATE ?? it.ACTION_DT),
+          ? String(it.IMPRNO)
+          : `${it.SNO}-${idx}`,
+      date: it.ACTION_DT,
       cat: it.CAT ?? null,
       raw: it,
     }));
