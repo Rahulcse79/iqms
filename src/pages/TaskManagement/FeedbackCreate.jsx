@@ -153,7 +153,7 @@ export default function FeedbackCreate({ onClose, onTaskCreated }) {
 
   return (
     <div className="create-task-overlay">
-      <div className="create-task-modal">
+      <div className="create-task-modal" onKeyDown={(e) => e.stopPropagation()}>
         <div className="create-task-header">
           <h2>Create Feedback</h2>
           <button onClick={onClose} type="button" className="close-button" aria-label="Close">×</button>

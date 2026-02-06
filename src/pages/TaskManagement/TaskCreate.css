@@ -13,7 +13,6 @@
   align-items: center;
   z-index: 1100;
   padding: 16px;
-  backdrop-filter: saturate(120%) blur(8px);
 }
 
 /* Modal container */
