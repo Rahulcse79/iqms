@@ -96,6 +96,23 @@ export const versionData = {
       fullNotes:
         "This build introduces the Knowledge Center, A centralized, searchable repository for all important documents, policies, and manuals. Users can browse by section, sub-section, or use the global search and sort tools to instantly find any PDF. The UI is fully responsive and accessible, with a modern tabbed layout and sidebar integration. All document metadata is managed via a JSON config, ensuring reliability in both dev and production environments. The architecture is future-proofed for advanced features like deep PDF content search. This major update greatly enhances discoverability and access to institutional knowledge for all users.",
     },
+    {
+      version: "Build 7",
+      date: "06 Feb, 2026",
+      tag: "Bug Fix",
+      highlights: [
+        "Fixed space input issue in feedback creation form",
+        "Improved POR details popup brightness and animation",
+        "Enabled text selection in POR popup",
+        "Added Print POR button for individual POR details printing",
+        "Table Allignment and Spacing fixes in Queries Section",
+        "Invalid Date issue fixed ",
+        "Provided Date vise Sorting in Rank Details in Sr. Jr. Comparison fixed ",
+      ],
+      author: "Team IVRS",
+      fullNotes:
+        "This build addresses several UI and functionality bugs. Fixed an issue where spaces could not be typed in the feedback form inputs by removing interfering CSS filters and adding proper event handling. Enhanced the POR details modal by removing backdrop blur that was dimming the content, added smooth animation for better UX, enabled text selection within the popup, and introduced a dedicated Print POR button that opens the POR content in a new window for clean, individual printing without affecting the main page.",
+    },
   ],
 };
 
