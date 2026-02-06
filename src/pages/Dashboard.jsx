@@ -93,7 +93,7 @@ const fetchPerformanceSummary = async (extension) => {
       advancedFilters: [],
     };
 
-    const resp = await application.post("agentCDR/listFilter", payload);
+    const resp = await opaqueServices.post("agentCDR/list", payload);
     const data = resp?.data?.data?.currentPageData || [];
 
     if (!Array.isArray(data) || data.length === 0) {

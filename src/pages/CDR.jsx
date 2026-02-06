@@ -136,7 +136,7 @@ const CDR = () => {
   const [playingUuid, setPlayingUuid] = useState(null);
 
   const reqCounterRef = useRef(0);
-  const apiUrl = useMemo(() => "agentCDR/listFilter", []);
+  const apiUrl = useMemo(() => "agentCDR/list", []);
 
   // Load extension
   useEffect(() => {
@@ -161,7 +161,7 @@ const CDR = () => {
         sortDataType: "string",
         advancedFilters: [],
       };
-      const resp = await application.post(apiUrl, payload);
+      const resp = await opaqueServices.post(apiUrl, payload);
       if (thisReq !== reqCounterRef.current) return;
       const normalized = normalizeResponse(resp);
       const normalizedItems = normalized.items.map(normalizeItem);
