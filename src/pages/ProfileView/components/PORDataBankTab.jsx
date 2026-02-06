@@ -105,7 +105,7 @@ export default function PORDataTable({ sno, cat }) {
       try {
         const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
 
-        const url = `http://175.25.5.7/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
+        const url = `http://175.25.5.7/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=${row.PROM_TYPE}&sno=${sno}&cat=${cat}&print=true`;
         // const url = `http://175.25.5.7:80/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
 
 
@@ -127,6 +127,30 @@ export default function PORDataTable({ sno, cat }) {
     },
     [sno, cat]
   );
+
+  const handlePrint = useCallback(() => {
+    if (!popupContent) return;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>POR Details</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .panel { margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+            th { background-color: #f0f0f0; }
+          </style>
+        </head>
+        <body>
+          ${popupContent}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  }, [popupContent]);
 
   // Focus trap + Escape + scroll lock + inert background
   useEffect(() => {
@@ -377,6 +401,14 @@ export default function PORDataTable({ sno, cat }) {
                 )}
               </div>
               <div className="por-dt-modal__footer">
+                <button
+                  type="button"
+                  className="por-dt-btn por-dt-btn--secondary"
+                  onClick={handlePrint}
+                  disabled={!popupContent}
+                >
+                  Print POR
+                </button>
                 <button
                   type="button"
                   className="por-dt-btn por-dt-btn--secondary"

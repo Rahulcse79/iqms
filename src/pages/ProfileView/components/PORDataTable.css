@@ -186,6 +186,11 @@
   margin-top: 16px;
 }
 
+.por-dt-popup-content {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 .por-dt-select {
   padding: 8px 10px;
   border-radius: 8px;
@@ -233,11 +238,14 @@ body.por-dt-modal-open { overflow: hidden; }
   background: rgba(2, 6, 23, 0.35);
   animation: por-dt-backdrop-in 180ms ease-out forwards;
 }
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .por-dt-modal__backdrop {
-    -webkit-backdrop-filter: blur(8px) saturate(120%);
-    backdrop-filter: blur(8px) saturate(120%);
-  }
+
+@keyframes por-dt-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes por-dt-panel-in {
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Panel */
@@ -253,6 +261,7 @@ body.por-dt-modal-open { overflow: hidden; }
   overflow: hidden;
   transform: translateY(8px) scale(0.985);
   opacity: 0;
+  animation: por-dt-panel-in 180ms ease-out forwards;
 }
 
 /* Header / Body / Footer */
@@ -307,7 +316,7 @@ body.por-dt-modal-open { overflow: hidden; }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .por-dt-modal__backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .por-dt-modal__backdrop { animation: none; }
   .por-dt-modal__panel { animation: none; transform: none; opacity: 1; }
 }
 
