@@ -1,6 +1,8 @@
 {
   "name": "devicemanager",
   "version": "0.1.0",
+  "author": "Rahul Singh",
+  "license": "MIT",
   "private": true,
   "homepage": "/app2",
   "dependencies": {
