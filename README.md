@@ -29,7 +29,7 @@
 
 <div align="center">
 
-<img src="docs/images/team.jpg" alt="IQMS team & IAF officers — system handover" width="640" />
+<img src="docs/Images/team_pic.jpeg" alt="IQMS team & IAF officers — system handover" width="640" />
 
 <sub><i>IQMS rollout / handover with Indian Air Force officers and the engineering team.</i></sub>
 
