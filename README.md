@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/iaf-crest.png" alt="Indian Air Force Crest" width="140" />
+<img src="docs/Images/logo.png" alt="Indian Air Force Crest" width="140" />
 
 # 🛡️ IQMS — Integrated Query Management System
 ### *Air Force CRM · IVRS · Knowledge Center · MIS*
@@ -677,7 +677,7 @@ Full-Stack / Frontend Engineer · IQMS Maintainer
 
 <div align="center">
 
-<img src="docs/images/iaf-crest.png" alt="भारतीय वायु सेना" width="90" />
+<img src="docs/Images/logo.png" alt="भारतीय वायु सेना" width="90" />
 
 **नभः स्पृशं दीप्तम्** — *Touch the Sky with Glory*
 
