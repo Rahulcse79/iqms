@@ -1,4 +1,5 @@
 import { fetchPagedIncremental } from "../utils/fetchPagedIncremental";
+import { sampoornaUrl } from "../utils/iqmsConfig";
 import {
   REPLIED_QUERY_REQUEST,
   REPLIED_QUERY_SUCCESS,
@@ -37,7 +38,7 @@ export const fetchRepliedQueries = () => async (dispatch) => {
     let firstPageResolved = false;
 
     fetchPagedIncremental(
-      "https://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
+      sampoornaUrl("repliedQuery"),
       {
         onPage: (items, all) => {
           safeSaveToStorage(all);
@@ -76,7 +77,7 @@ export const refreshRepliedQueries = () => async (dispatch) => {
 
   try {
     await fetchPagedIncremental(
-      "https://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
+      sampoornaUrl("repliedQuery"),
       {
         onPage: (items, all) => {
           safeSaveToStorage(all);

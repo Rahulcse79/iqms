@@ -1,8 +1,12 @@
 // src/utils/axiosInstance.js
 import axios from "axios";
+import { sampoornaUrl } from "./iqmsConfig";
 
-const api = axios.create({
-  baseURL: "https://sampoorna.cao.local/afcao/ipas/ivrs",
+const api = axios.create();
+
+api.interceptors.request.use((config) => {
+  config.baseURL = sampoornaUrl();
+  return config;
 });
 
 // Optional: intercept requests/responses

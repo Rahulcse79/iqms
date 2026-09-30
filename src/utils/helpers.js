@@ -1,6 +1,7 @@
 // Helper functions can be placed here
 import CryptoJS from "crypto-js";
 import Cookies from "js-cookie";
+import { getApiToken, ivrsUrl, sampoornaUrl } from "./iqmsConfig";
 
 export const formatDate = (date) => {
   return new Date(date).toLocaleDateString();
@@ -440,13 +441,13 @@ export const fetchTransferToVerifierOption = async (pendingWith) => {
       loginPortfolioSection: activeRole.SUB_SECTION,
       loginPortfolioLevel: String(activeRole.PORTFOLIO_LEVEL),
       pendingWith: pendingWith,
-      api_token: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS",
+      api_token: getApiToken(),
     };
 
     console.log("🔄 Fetching transfer to verifier option:", requestBody);
 
     const response = await fetch(
-      "https://175.25.5.7/API/controller.php?ivrsIqmsDropFirst",
+      ivrsUrl("ivrsIqmsDropFirst"),
       {
         method: "POST",
         headers: {
@@ -491,13 +492,13 @@ export const fetchTransferToSubsectionOptions = async (docId) => {
       loginPortfolioSection: activeRole.SUB_SECTION,
       loginPortfolioLevel: String(activeRole.PORTFOLIO_LEVEL),
       docId: String(docId),
-      api_token: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS",
+      api_token: getApiToken(),
     };
 
     console.log("🔄 Fetching transfer to subsection options:", requestBody);
 
     const response = await fetch(
-      "https://175.25.5.7/API/controller.php?ivrsIqmsDropSecond",
+      ivrsUrl("ivrsIqmsDropSecond"),
       {
         method: "POST",
         headers: {
@@ -789,7 +790,7 @@ export const submitIqmsReply = async (submitData) => {
       sourceDesig: pendingWith,
       iqmsReply: replyText.trim(),
       remarks: "", // Always empty as per requirements
-      api_token: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS",
+      api_token: getApiToken(),
       requestForm: "", // Always empty as per requirements
     };
 
@@ -800,7 +801,7 @@ export const submitIqmsReply = async (submitData) => {
 
     // Step 6: Make API call
     const response = await fetch(
-      "https://175.25.5.7/API/controller.php?ivrsIqmsAction",
+      ivrsUrl("ivrsIqmsAction"),
       {
         method: "POST",
         headers: {
@@ -1091,8 +1092,8 @@ export const getNewAPIParamsFromActiveRole = (activeRole) => {
  * @returns {Promise} - API response
  */
 export const callNewIqmsListingAPI = async (requestBody) => {
-  const API_URL = "https://175.25.5.7/API/controller.php?ivrsIqmsListing";
-  const API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
+  const API_URL = ivrsUrl("ivrsIqmsListing");
+  const API_TOKEN = getApiToken();
 
   try {
     console.log("🔄 Calling NEW IQMS Listing API:", requestBody);
@@ -1149,7 +1150,9 @@ export const getDesignationFlags = async (activeRole) => {
   }
 
   const { ROLE_ID, PORTFOLIO_LEVEL, SUB_SECTION } = activeRole;
-  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/getDesignationFlagUser/${ROLE_ID}/${PORTFOLIO_LEVEL}/${SUB_SECTION}`;
+  const url = sampoornaUrl(
+    `getDesignationFlagUser/${ROLE_ID}/${PORTFOLIO_LEVEL}/${SUB_SECTION}`
+  );
 
   console.log("🚀 Fetching designation flags from:", url);
 

@@ -6,6 +6,7 @@ import {
   REPLIED_QUERY_HYDRATE, // Make sure this constant exists in appConstants.js
 } from "../constants/appConstants";
 import { loadRepliedQueries, saveRepliedQueries } from "../utils/storage"; // Import from storage.js
+import { getApiToken, ivrsUrl } from "../utils/iqmsConfig";
 
 /**
  * Format cell allocation for API
@@ -72,11 +73,11 @@ export const fetchRepliedQueriesNew =
         MODULE_CAT: moduleCat,
         SUB_SECTION: subSection,
         CELL: formatCellAllocation(activeRole?.CELL_ALLOTED || cell),
-        api_token: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS",
+        api_token: getApiToken(),
       };
 
       const response = await fetch(
-        "https://175.25.5.7/API/controller.php?ivrsIqmsListing",
+        ivrsUrl("ivrsIqmsListing"),
         {
           method: "POST",
           headers: {

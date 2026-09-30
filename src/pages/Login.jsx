@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Loader from "../components/Loader";
 import { UserRole, DepartmentMapping } from "../constants/Enum";
 import { loginAPI } from "../utils/endpoints";
+import { sampoornaUrl } from "../utils/iqmsConfig";
 import ExtensionDialog from "../components/ExtensionDialog";
 import { fetchAllUserQueriesNew, getDesignationFlags } from "../utils/helpers";
 import { encryptData } from "../utils/helpers";
@@ -89,7 +90,7 @@ const Login = () => {
       let userDetails = null;
       try {
         const res = await fetch(
-          `https://sampoorna.cao.local/afcao/ipas/ivrs/getUserDetails/${serviceNo}/${categoryCode}`
+          sampoornaUrl(`getUserDetails/${serviceNo}/${categoryCode}`)
         );
 
         if (!res.ok) throw new Error(`API failed with ${res.status}`);

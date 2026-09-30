@@ -31,8 +31,6 @@ export const POR_REQUEST = "POR_REQUEST";
 export const POR_SUCCESS = "POR_SUCCESS";
 export const POR_FAIL = "POR_FAIL";
 
-export const IRLA_API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
-
 export const GCI_HISTORY_REQUEST = "GCI_HISTORY_REQUEST";
 export const GCI_HISTORY_SUCCESS = "GCI_HISTORY_SUCCESS";
 export const GCI_HISTORY_FAIL = "GCI_HISTORY_FAIL";

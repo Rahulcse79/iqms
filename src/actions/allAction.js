@@ -1,4 +1,5 @@
 import axios from "axios";
+import { sampoornaUrl } from "../utils/iqmsConfig";
 import {
   LOGIN_USER_REQUEST,
   LOGIN_USER_SUCCESS,
@@ -86,7 +87,7 @@ export const fetchOfficerBasicPayReason = (sno) => async (dispatch) => {
     });
 
     const { data } = await axios.get(
-      `https://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/basicPayReason/officer/${sno}`
+      sampoornaUrl(`srJrComparison/basicPayReason/officer/${sno}`)
     );
 
     dispatch({
@@ -112,7 +113,7 @@ export const fetchOfficerRankHistory = (sno) => async (dispatch) => {
     });
 
     const { data } = await axios.get(
-      `https://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/rankHistory/officer/${sno}`
+      sampoornaUrl(`srJrComparison/rankHistory/officer/${sno}`)
     );
 
     dispatch({
@@ -138,7 +139,7 @@ export const fetchOfficerPersmast = (sno) => async (dispatch) => {
     });
 
     const { data } = await axios.get(
-      `https://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/persmast/officer/${sno}`
+      sampoornaUrl(`srJrComparison/persmast/officer/${sno}`)
     );
 
     dispatch({
@@ -164,7 +165,7 @@ export const fetchAirmanBasicPayReason = (sno) => async (dispatch) => {
     });
 
     const { data } = await axios.get(
-      `https://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/basicPayReason/airmen/${sno}`
+      sampoornaUrl(`srJrComparison/basicPayReason/airmen/${sno}`)
     );
 
     dispatch({
@@ -190,7 +191,7 @@ export const fetchAirmanRankHistory = (sno) => async (dispatch) => {
     });
 
     const { data } = await axios.get(
-      `https://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/rankHistory/airmen/${sno}`
+      sampoornaUrl(`srJrComparison/rankHistory/airmen/${sno}`)
     );
 
     dispatch({
@@ -216,7 +217,7 @@ export const fetchAirmanPersmast = (sno) => async (dispatch) => {
     });
 
     const { data } = await axios.get(
-      `https://sampoorna.cao.local/afcao/ipas/ivrs/srJrComparison/persmast/airmen/${sno}`
+      sampoornaUrl(`srJrComparison/persmast/airmen/${sno}`)
     );
 
     dispatch({
@@ -239,7 +240,7 @@ export const searchQueryById = (docId) => async (dispatch) => {
     dispatch({ type: SEARCH_QUERY_BY_ID_REQUEST });
 
     const { data } = await axios.get(
-      `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${docId}`
+      sampoornaUrl(`searchQuery_docId/${docId}`)
     );
 
     dispatch({
@@ -261,7 +262,7 @@ export const searchQueryBySnoAndCategory =
       dispatch({ type: SEARCH_QUERY_REQUEST });
 
       const { data } = await axios.get(
-        `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${serviceNo}/${category}`
+        sampoornaUrl(`searchQuery_SNO_CAT/${serviceNo}/${category}`)
       );
 
       dispatch({
@@ -284,7 +285,7 @@ export const fetchRepliedQueries =
       dispatch({ type: REPLIED_QUERY_REQUEST });
 
       const { data } = await axios.get(
-        `https://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery`
+        sampoornaUrl("repliedQuery")
       );
 
       const items = data.items || [];
@@ -308,7 +309,7 @@ export const refreshRepliedQueries =
   async (dispatch) => {
     try {
       const { data } = await axios.get(
-        `https://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery?offset=${offset}`
+        sampoornaUrl(`repliedQuery?offset=${offset}`)
       );
 
       const items = data.items || [];

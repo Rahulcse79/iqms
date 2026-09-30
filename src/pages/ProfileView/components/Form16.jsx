@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Form16.css";
-
-const DEFAULT_API_BASE = "https://175.25.5.7/API/controller.php";
-const Form_API_TOKEN =
-  process.env.REACT_APP_IRLA_API_TOKEN ||
-  "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
+import { getApiToken, ivrsUrl } from "../../../utils/iqmsConfig";
 
 function generateYears(start = 2015, end = 2024) {
   const arr = [];
@@ -21,8 +17,8 @@ function finYearLabel(start) {
 export default function Form16({
   selSno,
   selCat,
-  baseUrl = DEFAULT_API_BASE,
-  apiToken = Form_API_TOKEN,
+  baseUrl,
+  apiToken,
 }) {
   const years = generateYears(2015, 2024); // 2015-16 .. 2024-25
   const defaultStart = Math.max(...years);
@@ -67,13 +63,15 @@ export default function Form16({
       objectUrlRef.current = null;
     }
 
-    const url = `${baseUrl}?apexApiForm16B=1&selSno=${encodeURIComponent(
+    const resolvedBase = baseUrl || ivrsUrl();
+    const resolvedToken = apiToken || getApiToken();
+    const url = `${resolvedBase}?apexApiForm16B=1&selSno=${encodeURIComponent(
       selSno
     )}&selCat=${encodeURIComponent(selCat)}&finYear=${encodeURIComponent(
       finYear
     )}&requestForm=PANKH`;
 
-    const body = new URLSearchParams({ api_token: apiToken }).toString();
+    const body = new URLSearchParams({ api_token: resolvedToken }).toString();
 
     fetch(url, {
       method: "POST",

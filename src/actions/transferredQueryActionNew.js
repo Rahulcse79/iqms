@@ -4,10 +4,9 @@ import {
   TRANSFERRED_SUCCESS,
   TRANSFERRED_FAIL,
 } from "../constants/appConstants";
+import { getApiToken, ivrsUrl } from "../utils/iqmsConfig";
 
 const TRANSFERRED_STORAGE_KEY_NEW = "transferredQueries_v2_new";
-const API_ENDPOINT = "https://175.25.5.7/API/controller.php?ivrsIqmsListing";
-const API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
 
 // Safe storage operations
 function safeLoadTransferredStorageNew() {
@@ -123,12 +122,12 @@ export const fetchTransferredQueriesNew =
         MODULE_CAT: String(activeRole.MODULE_CAT),
         PEN_WITH: penWith,
         CELL: formatCellAllocation(activeRole.CELL_ALLOTED),
-        api_token: API_TOKEN,
+        api_token: getApiToken(),
       };
 
       console.log("📤 Transferred API Request body:", requestBody);
 
-      const response = await fetch(API_ENDPOINT, {
+      const response = await fetch(ivrsUrl("ivrsIqmsListing"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

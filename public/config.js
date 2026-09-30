@@ -26,3 +26,13 @@ var disablePhone = true;
 
 // Knowledge Center Configuration
 var KNOWLEDGE_CENTER_BASE_PATH = "static/KNOWLEDGE-CENTER-PDFS"; // relative so it works with basename
+
+// IQMS external APIs. Edit this file on the deployed server, then refresh.
+// No new build is required. Do not add a trailing slash.
+// sampoornaBase includes scheme, host, optional port, and the path through /ivrs.
+// ivrsApiBase is controller.php with no query string.
+var IQMS_CONFIG = {
+  sampoornaBase: "https://sampoorna.cao.local/afcao/ipas/ivrs",
+  ivrsApiBase: "https://175.25.5.7/API/controller.php",
+  apiToken: "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS"
+};

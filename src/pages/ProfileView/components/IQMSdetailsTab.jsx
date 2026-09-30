@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { FaEye } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
+import { sampoornaUrl } from "../../../utils/iqmsConfig";
 
 export default function IQMSdetailsTab({
   serviceNumber,
@@ -26,9 +27,9 @@ export default function IQMSdetailsTab({
       setError(null);
 
       try {
-        const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${encodeURIComponent(
-          svc,
-        )}/${encodeURIComponent(category)}`;
+        const url = sampoornaUrl(
+          `searchQuery_SNO_CAT/${encodeURIComponent(svc)}/${encodeURIComponent(category)}`
+        );
 
         const res = await fetch(url);
 

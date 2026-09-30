@@ -3,9 +3,7 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import { createPortal } from "react-dom";
 import "./PORDataTable.css";
-
-const IRLA_API_TOKEN =
-  process.env.REACT_APP_IRLA_API_TOKEN || "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
+import { getApiToken, ivrsUrl } from "../../../utils/iqmsConfig";
 
 export default function PORDataTable({ sno, cat }) {
   const [loading, setLoading] = useState(false);
@@ -47,10 +45,9 @@ export default function PORDataTable({ sno, cat }) {
     setPorList([]);
 
     try {
-      const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
+      const body = new URLSearchParams({ api_token: getApiToken() });
 
-      let url = `https://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
-      // let url = `https://175.25.5.7:80/API/controller.php?viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`;
+      let url = ivrsUrl(`viewPor&sno=${sno}&cat=${cat}&requestFrom=PANKH`);
 
       
       if (selectedYear !== "ALL") {
@@ -103,10 +100,11 @@ export default function PORDataTable({ sno, cat }) {
       setPopupContent("");
 
       try {
-        const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
+        const body = new URLSearchParams({ api_token: getApiToken() });
 
-        const url = `https://175.25.5.7/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=${row.PROM_TYPE}&sno=${sno}&cat=${cat}&print=true`;
-        // const url = `https://175.25.5.7:80/API/controller.php?viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=ONLINE&sno=${sno}&cat=${cat}&print=true`;
+        const url = ivrsUrl(
+          `viewPorDet&requestFrom=IVRS&occ_det=${row.OCC_ID}&promType=${row.PROM_TYPE}&sno=${sno}&cat=${cat}&print=true`
+        );
 
 
         const response = await axios.post(url, body, {

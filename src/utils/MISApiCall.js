@@ -1,7 +1,6 @@
 // utils/MISApiCall.js
 import axios from "axios";
-
-const API_BASE = "https://sampoorna.cao.local/afcao/ipas/ivrs"; 
+import { sampoornaUrl } from "./iqmsConfig";
 
 export default async function API_CALL(type, section, id, offset = 0) {
   try {
@@ -9,7 +8,7 @@ export default async function API_CALL(type, section, id, offset = 0) {
       throw new Error("Missing required parameters: type, section or id");
     }
     const encodedSection = encodeURIComponent(section);
-    const url = `${API_BASE}/${type}/${encodedSection}/${id}`;
+    const url = sampoornaUrl(`${type}/${encodedSection}/${id}`);
     const res = await axios.get(url, { params: { offset } });
     return res.data;
   } catch (error) {

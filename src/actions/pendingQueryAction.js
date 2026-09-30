@@ -1,5 +1,6 @@
 // src/actions/pendingQueryAction.js
 import { fetchPagedIncremental } from "../utils/fetchPagedIncremental";
+import { sampoornaUrl } from "../utils/iqmsConfig";
 import {
   PENDING_QUERY_REQUEST,
   PENDING_QUERY_SUCCESS,
@@ -38,9 +39,9 @@ function safeSavePendingToStorage(pendingWith, items) {
 export const fetchPendingQueries = ({ cat = 1, pendingWith }) => async (dispatch) => {
   dispatch({ type: PENDING_QUERY_REQUEST, meta: { pendingWith } });
 
-  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(
-    pendingWith
-  )}`;
+  const url = sampoornaUrl(
+    `pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(pendingWith)}`
+  );
 
   return new Promise((resolve, reject) => {
     let firstPageResolved = false;
@@ -79,9 +80,9 @@ export const fetchPendingQueries = ({ cat = 1, pendingWith }) => async (dispatch
  */
 export const refreshPendingQueries = ({ cat = 1, pendingWith }) => async (dispatch) => {
   dispatch({ type: PENDING_QUERY_REQUEST, meta: { pendingWith } });
-  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(
-    pendingWith
-  )}`;
+  const url = sampoornaUrl(
+    `pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(pendingWith)}`
+  );
 
   try {
     await fetchPagedIncremental(url, {

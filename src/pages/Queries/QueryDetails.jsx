@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { sampoornaUrl } from "../../utils/iqmsConfig";
 import { useNavigate } from "react-router-dom";
 import "./QueryDetails.css";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -55,7 +56,7 @@ const formatDateFlexible = (dateStr) => {
  * Fetch query details
  */
 const fetchQueryDetails = async (queryId) => {
-  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/queryDetails/${queryId}`;
+  const url = sampoornaUrl(`queryDetails/${queryId}`);
   const { data } = await axios.get(url);
 
   if (!data || !Array.isArray(data.items) || data.items.length === 0) {

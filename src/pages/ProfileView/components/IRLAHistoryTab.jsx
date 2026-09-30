@@ -3,8 +3,7 @@ import PropTypes from "prop-types";
 import MonthYearPicker from "./MonthYearPicker";
 import axios from "axios";
 import "./IRLAHistoryTab.css";
-
-const IRLA_API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
+import { getApiToken, ivrsUrl } from "../../../utils/iqmsConfig";
 
 export default function IRLAHistoryTab({ selSno, selCat }) {
   const [selected, setSelected] = useState({ month: "", year: "" });
@@ -36,10 +35,12 @@ export default function IRLAHistoryTab({ selSno, selCat }) {
     setPdfSrc(null);
 
     try {
-      const body = new URLSearchParams({ api_token: IRLA_API_TOKEN });
+      const body = new URLSearchParams({ api_token: getApiToken() });
 
       const response = await axios.post(
-        `https://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${fullMonth}&section=FULL&request=PANKH`,
+        ivrsUrl(
+          `apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${fullMonth}&section=FULL&request=PANKH`
+        ),
         body,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },

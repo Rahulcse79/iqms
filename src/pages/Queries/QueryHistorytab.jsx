@@ -1,11 +1,6 @@
 import React from 'react';
 import "./queriesHistory.css"
-
-const Form_API_TOKEN =
-  process.env.REACT_APP_IRLA_API_TOKEN ||
-  'IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS';
-
-const API_URL = 'https://175.25.5.7/API/controller.php?ivrsIqmsActionDet';
+import { getApiToken, ivrsUrl } from "../../utils/iqmsConfig";
 
 export default function QueryHistorytab({ docId, isActive }) {
   const [rows, setRows] = React.useState([]);
@@ -29,12 +24,12 @@ export default function QueryHistorytab({ docId, isActive }) {
 
     const params = new URLSearchParams();
     params.set('docId', String(docId));
-    params.set('api_token', String(Form_API_TOKEN));
+    params.set('api_token', getApiToken());
 
     setLoading(true);
     setError('');
 
-    fetch(API_URL, {
+    fetch(ivrsUrl('ivrsIqmsActionDet'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',

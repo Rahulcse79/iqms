@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './MVRHistoryTab.css';
+import { sampoornaUrl } from '../../../utils/iqmsConfig';
 
 const PAGE_SIZE = 10;
 
@@ -30,7 +31,7 @@ const MvrHistoryTable = ({ sno }) => {
 
     try {
       // 1) Fetch the first page (10 records) and show immediately
-      const firstUrl = `https://sampoorna.cao.local/afcao/ipas/ivrs/mvrHistory/${sno}?offset=${offset}&limit=${PAGE_SIZE}`;
+      const firstUrl = sampoornaUrl(`mvrHistory/${sno}?offset=${offset}&limit=${PAGE_SIZE}`);
       const firstRes = await fetch(firstUrl);
       if (!firstRes.ok) {
         throw new Error(`HTTP error! status: ${firstRes.status}`);
@@ -51,7 +52,7 @@ const MvrHistoryTable = ({ sno }) => {
                (typeof firstJson.limit === 'number' ? firstJson.limit : PAGE_SIZE);
 
       while (hasMore) {
-        const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/mvrHistory/${sno}?offset=${offset}&limit=${PAGE_SIZE}`;
+        const url = sampoornaUrl(`mvrHistory/${sno}?offset=${offset}&limit=${PAGE_SIZE}`);
         const res = await fetch(url);
         if (!res.ok) {
           // Background error: do not disrupt shown data; break streaming

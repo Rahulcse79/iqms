@@ -4,10 +4,9 @@ import {
   PENDING_QUERY_SUCCESS,
   PENDING_QUERY_FAIL,
 } from "../constants/appConstants";
+import { getApiToken, ivrsUrl } from "../utils/iqmsConfig";
 
 const PENDING_STORAGE_KEY_NEW = "pendingQueries_v2_new";
-const API_ENDPOINT = "https://175.25.5.7/API/controller.php?ivrsIqmsListing";
-const API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
 
 // Safe storage operations
 function safeLoadPendingStorageNew() {
@@ -124,12 +123,12 @@ export const fetchPendingQueriesNew =
         PEN_WITH: penWith,
         SUB_SECTION: activeRole.SUB_SECTION,
         CELL: formatCellAllocation(activeRole.CELL_ALLOTED),
-        api_token: API_TOKEN,
+        api_token: getApiToken(),
       };
 
       console.log("📤 API Request body:", requestBody);
 
-      const response = await fetch(API_ENDPOINT, {
+      const response = await fetch(ivrsUrl("ivrsIqmsListing"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

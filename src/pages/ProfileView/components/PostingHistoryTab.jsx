@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import "./PostingHistoryTab.css";
+import { sampoornaUrl } from "../../../utils/iqmsConfig";
 
 const SORT_ICONS = {
   asc: "▲",
@@ -95,7 +96,7 @@ export default function PostingHistoryTab({ serviceNo, category, baseUrl }) {
   const [sortColumn, setSortColumn] = useState("sors_prev_unit");
   const [sortDir, setSortDir] = useState("desc"); // 'asc' | 'desc' | null (none)
 
-  const apiBase = baseUrl || "https://sampoorna.cao.local/afcao/ipas/ivrs/profileView/postingHist";
+  const apiBase = baseUrl || sampoornaUrl("profileView/postingHist");
 
   useEffect(() => {
     if (!serviceNo || !category) return;

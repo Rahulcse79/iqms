@@ -1,5 +1,6 @@
 // src/actions/transferredQueryAction.js
 import { fetchPagedIncremental } from "../utils/fetchPagedIncremental";
+import { sampoornaUrl } from "../utils/iqmsConfig";
 import {
   TRANSFERRED_QUERY_REQUEST,
   TRANSFERRED_SUCCESS,
@@ -40,9 +41,9 @@ export const fetchTransferredQueries =
   async (dispatch) => {
     dispatch({ type: TRANSFERRED_QUERY_REQUEST, meta: { pendingWith } });
 
-    const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/transferredQuery/${encodeURIComponent(
-      cat
-    )}/${encodeURIComponent(pendingWith)}`;
+    const url = sampoornaUrl(
+      `transferredQuery/${encodeURIComponent(cat)}/${encodeURIComponent(pendingWith)}`
+    );
 
     return new Promise((resolve, reject) => {
       let firstPageResolved = false;
@@ -95,9 +96,9 @@ export const refreshTransferredQueries =
   ({ cat = 1, pendingWith }) =>
   async (dispatch) => {
     dispatch({ type: TRANSFERRED_QUERY_REQUEST, meta: { pendingWith } });
-    const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/transferredQuery/${encodeURIComponent(
-      cat
-    )}/${encodeURIComponent(pendingWith)}`;
+    const url = sampoornaUrl(
+      `transferredQuery/${encodeURIComponent(cat)}/${encodeURIComponent(pendingWith)}`
+    );
 
     try {
       await fetchPagedIncremental(url, {

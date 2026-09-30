@@ -9,6 +9,7 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import "./SearchResults.css";
 import { UserRoleLabel } from "../../constants/Enum";
+import { sampoornaUrl } from "../../utils/iqmsConfig";
 
 export default function SearchResults() {
   const navigate = useNavigate();
@@ -56,11 +57,9 @@ export default function SearchResults() {
                 UserRoleLabel[key].toLowerCase() === category.toLowerCase()
             );
 
-            url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${
-              roleCode
-            }`;
+            url = sampoornaUrl(`searchQuery_SNO_CAT/${queryValue}/${roleCode}`);
           } else {
-            url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
+            url = sampoornaUrl(`searchQuery_docId/${queryValue}`);
           }
           const res = await axios.get(url, { signal: controller.signal });
           if (fetchIdRef.current === backgroundId) {
@@ -98,9 +97,9 @@ export default function SearchResults() {
             (key) => 
               UserRoleLabel[key].toLowerCase() === category.toLowerCase()
           )
-          url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${roleCode}`;
+          url = sampoornaUrl(`searchQuery_SNO_CAT/${queryValue}/${roleCode}`);
         } else {
-          url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
+          url = sampoornaUrl(`searchQuery_docId/${queryValue}`);
         }
         const res = await axios.get(url, { signal: controller.signal });
 

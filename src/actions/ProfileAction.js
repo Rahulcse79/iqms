@@ -23,16 +23,11 @@ import {
   IRLA_REQUEST,
   IRLA_SUCCESS,
   IRLA_FAIL,
-  IRLA_API_TOKEN,
   POR_REQUEST,
   POR_SUCCESS,
   POR_FAIL,
 } from "../constants/ProfileConstants";
-
-// Base paths
-const BASE_PROFILEVIEW = `https://sampoorna.cao.local/afcao/ipas/ivrs/profileView`;
-const BASE_ABCS = `https://sampoorna.cao.local/afcao/ipas/ivrs/`;
-const BASE_PERSONAL = `https://sampoorna.cao.local/afcao/ipas/ivrs`;
+import { getApiToken, ivrsUrl, sampoornaUrl } from "../utils/iqmsConfig";
 
 /** Small logger */
 const log = {
@@ -82,9 +77,9 @@ const safeErrorMessage = (err) => {
    --------------------------- */
 export const fetchPersonalData = (serviceNo, category) => async (dispatch) => {
   dispatch({ type: FETCH_PERSONAL_DATA_REQUEST });
-  const url = `${BASE_PERSONAL}/fetch_pers_data/${encodeURIComponent(
-    serviceNo
-  )}/${encodeURIComponent(category)}`;
+  const url = sampoornaUrl(
+    `fetch_pers_data/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`
+  );
 
   log.group("fetchPersonalData");
   log.debug("GET", url, { serviceNo, category });
@@ -121,9 +116,9 @@ export const getRankHistory =
   (serviceNo, category, page = 1) =>
   async (dispatch) => {
     dispatch({ type: RANK_HISTORY_REQUEST });
-    const url = `${BASE_PROFILEVIEW}/rankHist/${encodeURIComponent(
-      serviceNo
-    )}/${encodeURIComponent(category)}`;
+    const url = sampoornaUrl(
+      `profileView/rankHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`
+    );
 
     log.group("getRankHistory");
     log.debug("GET", url, { serviceNo, category, page });
@@ -152,9 +147,9 @@ export const getTradeHistory =
   (serviceNo, category, page = 1) =>
   async (dispatch) => {
     dispatch({ type: TRADE_HISTORY_REQUEST });
-    const url = `${BASE_PROFILEVIEW}/tradeHist/${encodeURIComponent(
-      serviceNo
-    )}/${encodeURIComponent(category)}`;
+    const url = sampoornaUrl(
+      `profileView/tradeHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`
+    );
 
     log.group("getTradeHistory");
     log.debug("GET", url, { serviceNo, category, page });
@@ -183,9 +178,9 @@ export const getPostingHistory =
   (serviceNo, category, page = 1) =>
   async (dispatch) => {
     dispatch({ type: POSTING_HISTORY_REQUEST });
-    const url = `${BASE_PROFILEVIEW}/postingHist/${encodeURIComponent(
-      serviceNo
-    )}/${encodeURIComponent(category)}`;
+    const url = sampoornaUrl(
+      `profileView/postingHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(category)}`
+    );
 
     log.group("getPostingHistory");
     log.debug("GET", url, { serviceNo, category, page });
@@ -214,7 +209,7 @@ export const fetchABCCodes = () => async (dispatch) => {
   console.log("[Action] fetchABCCodes triggered");
   dispatch({ type: FETCH_ABC_REQUEST });
 
-  const url = `${BASE_ABCS}fetch_abc_codes`;
+  const url = sampoornaUrl("fetch_abc_codes");
 
   try {
     const res = await axios.get(url);
@@ -237,7 +232,7 @@ export const fetchABCCodesNew = (serviceNo) => async (dispatch) => {
   console.log("[Action] fetchABCCodes triggered");
   dispatch({ type: FETCH_ABC_REQUEST });
 
-  const url = `${BASE_ABCS}FETCH_ABC_CODES_NEW`;
+  const url = sampoornaUrl("FETCH_ABC_CODES_NEW");
 
   try {
     if (!serviceNo) {
@@ -298,9 +293,9 @@ export const getGCIHistory = (serviceNo, abc) => async (dispatch, getState) => {
   }
 
   dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey } });
-  const url = `${BASE_PROFILEVIEW}/gciHist/${encodeURIComponent(
-    serviceNo
-  )}/${encodeURIComponent(abc)}`;
+  const url = sampoornaUrl(
+    `profileView/gciHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(abc)}`
+  );
   log.group("getGCIHistory");
   log.debug("GET", url, { serviceNo, abc });
 
@@ -355,10 +350,12 @@ export const fetchIrlaView =
     dispatch({ type: IRLA_REQUEST });
 
     try {
-      const body = toFormData({ api_token: IRLA_API_TOKEN });
+      const body = toFormData({ api_token: getApiToken() });
 
       const response = await axios.post(
-        `https://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=IVRS`,
+        ivrsUrl(
+          `apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=IVRS`
+        ),
         body,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -388,9 +385,11 @@ export const fetchPorData =
     dispatch({ type: POR_REQUEST });
 
     try {
-      const body = toFormDataPOR({ api_token: IRLA_API_TOKEN });
+      const body = toFormDataPOR({ api_token: getApiToken() });
 
-      const url = `https://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=IVRS`;
+      const url = ivrsUrl(
+        `viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=IVRS`
+      );
 
       const response = await axios.post(url, body, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -412,9 +411,9 @@ export const fetchPorData =
   export const getGCIHistoryNew = (serviceNo, abcCode) => async (dispatch, getState) => {
   dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey: `${serviceNo}_${abcCode}` } });
 
-  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/profileView/gciHist/${encodeURIComponent(
-    serviceNo
-  )}/${encodeURIComponent(abcCode)}`;
+  const url = sampoornaUrl(
+    `profileView/gciHist/${encodeURIComponent(serviceNo)}/${encodeURIComponent(abcCode)}`
+  );
 
   try {
     const { data } = await axios.get(url, { timeout: 15000 });

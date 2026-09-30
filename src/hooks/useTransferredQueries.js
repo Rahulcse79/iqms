@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const API_BASE = "https://sampoorna.cao.local/afcao/ipas/ivrs/transferredQuery";
+import { sampoornaUrl } from "../utils/iqmsConfig";
 
 /**
  * useTransferredQueries(cat, pendingWith)
@@ -70,9 +69,11 @@ export default function useTransferredQueries(cat = 1, pendingWith = null) {
           url = nextHrefRef.current;
         } else {
           const o = Number.isFinite(requestedOffset) ? requestedOffset : 0;
-          url = `${API_BASE}/${encodeURIComponent(cat)}/${encodeURIComponent(
-            pendingWith
-          )}?offset=${o}`;
+          url = sampoornaUrl(
+            `transferredQuery/${encodeURIComponent(cat)}/${encodeURIComponent(
+              pendingWith
+            )}?offset=${o}`
+          );
         }
 
         const resp = await fetch(url, { signal });

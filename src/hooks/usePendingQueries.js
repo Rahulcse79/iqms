@@ -1,7 +1,6 @@
 // src/hooks/usePendingQueries.js
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const API_BASE = "https://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery";
+import { sampoornaUrl } from "../utils/iqmsConfig";
 
 /**
  * usePendingQueries(cat, pendingWith)
@@ -86,9 +85,11 @@ export default function usePendingQueries(cat = 1, pendingWith = null) {
         } else {
           // ensure offset is numeric
           const o = Number.isFinite(requestedOffset) ? requestedOffset : 0;
-          url = `${API_BASE}/${encodeURIComponent(cat)}/${encodeURIComponent(
-            pendingWith
-          )}?offset=${o}`;
+          url = sampoornaUrl(
+            `pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(
+              pendingWith
+            )}?offset=${o}`
+          );
         }
 
         const resp = await fetch(url, { signal });
