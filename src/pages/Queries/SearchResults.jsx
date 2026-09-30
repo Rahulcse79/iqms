@@ -56,11 +56,11 @@ export default function SearchResults() {
                 UserRoleLabel[key].toLowerCase() === category.toLowerCase()
             );
 
-            url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${
+            url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${
               roleCode
             }`;
           } else {
-            url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
+            url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
           }
           const res = await axios.get(url, { signal: controller.signal });
           if (fetchIdRef.current === backgroundId) {
@@ -98,9 +98,9 @@ export default function SearchResults() {
             (key) => 
               UserRoleLabel[key].toLowerCase() === category.toLowerCase()
           )
-          url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${roleCode}`;
+          url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${queryValue}/${roleCode}`;
         } else {
-          url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
+          url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_docId/${queryValue}`;
         }
         const res = await axios.get(url, { signal: controller.signal });
 

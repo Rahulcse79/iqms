@@ -30,9 +30,9 @@ import {
 } from "../constants/ProfileConstants";
 
 // Base paths
-const BASE_PROFILEVIEW = `http://sampoorna.cao.local/afcao/ipas/ivrs/profileView`;
-const BASE_ABCS = `http://sampoorna.cao.local/afcao/ipas/ivrs/`;
-const BASE_PERSONAL = `http://sampoorna.cao.local/afcao/ipas/ivrs`;
+const BASE_PROFILEVIEW = `https://sampoorna.cao.local/afcao/ipas/ivrs/profileView`;
+const BASE_ABCS = `https://sampoorna.cao.local/afcao/ipas/ivrs/`;
+const BASE_PERSONAL = `https://sampoorna.cao.local/afcao/ipas/ivrs`;
 
 /** Small logger */
 const log = {
@@ -358,7 +358,7 @@ export const fetchIrlaView =
       const body = toFormData({ api_token: IRLA_API_TOKEN });
 
       const response = await axios.post(
-        `http://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=IVRS`,
+        `https://175.25.5.7/API/controller.php?apexApiPaySlip&selSno=${selSno}&selCat=${selCat}&selYr=${selYr}&selMon=${selMon}&month=${month}&section=FULL&request=IVRS`,
         body,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -390,7 +390,7 @@ export const fetchPorData =
     try {
       const body = toFormDataPOR({ api_token: IRLA_API_TOKEN });
 
-      const url = `http://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=IVRS`;
+      const url = `https://175.25.5.7/API/controller.php?viewPor&sno=${sno}&cat=${cat}&porYear=${porYear}&requestFrom=IVRS`;
 
       const response = await axios.post(url, body, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -412,7 +412,7 @@ export const fetchPorData =
   export const getGCIHistoryNew = (serviceNo, abcCode) => async (dispatch, getState) => {
   dispatch({ type: GCI_HISTORY_REQUEST, meta: { cacheKey: `${serviceNo}_${abcCode}` } });
 
-  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/profileView/gciHist/${encodeURIComponent(
+  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/profileView/gciHist/${encodeURIComponent(
     serviceNo
   )}/${encodeURIComponent(abcCode)}`;
 

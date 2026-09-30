@@ -26,7 +26,7 @@ export default function IQMSdetailsTab({
       setError(null);
 
       try {
-        const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${encodeURIComponent(
+        const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/searchQuery_SNO_CAT/${encodeURIComponent(
           svc,
         )}/${encodeURIComponent(category)}`;
 

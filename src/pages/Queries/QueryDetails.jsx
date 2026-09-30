@@ -55,7 +55,7 @@ const formatDateFlexible = (dateStr) => {
  * Fetch query details
  */
 const fetchQueryDetails = async (queryId) => {
-  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/queryDetails/${queryId}`;
+  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/queryDetails/${queryId}`;
   const { data } = await axios.get(url);
 
   if (!data || !Array.isArray(data.items) || data.items.length === 0) {

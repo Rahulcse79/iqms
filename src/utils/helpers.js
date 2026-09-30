@@ -446,7 +446,7 @@ export const fetchTransferToVerifierOption = async (pendingWith) => {
     console.log("🔄 Fetching transfer to verifier option:", requestBody);
 
     const response = await fetch(
-      "http://175.25.5.7/API/controller.php?ivrsIqmsDropFirst",
+      "https://175.25.5.7/API/controller.php?ivrsIqmsDropFirst",
       {
         method: "POST",
         headers: {
@@ -497,7 +497,7 @@ export const fetchTransferToSubsectionOptions = async (docId) => {
     console.log("🔄 Fetching transfer to subsection options:", requestBody);
 
     const response = await fetch(
-      "http://175.25.5.7/API/controller.php?ivrsIqmsDropSecond",
+      "https://175.25.5.7/API/controller.php?ivrsIqmsDropSecond",
       {
         method: "POST",
         headers: {
@@ -800,7 +800,7 @@ export const submitIqmsReply = async (submitData) => {
 
     // Step 6: Make API call
     const response = await fetch(
-      "http://175.25.5.7/API/controller.php?ivrsIqmsAction",
+      "https://175.25.5.7/API/controller.php?ivrsIqmsAction",
       {
         method: "POST",
         headers: {
@@ -1091,7 +1091,7 @@ export const getNewAPIParamsFromActiveRole = (activeRole) => {
  * @returns {Promise} - API response
  */
 export const callNewIqmsListingAPI = async (requestBody) => {
-  const API_URL = "http://175.25.5.7/API/controller.php?ivrsIqmsListing";
+  const API_URL = "https://175.25.5.7/API/controller.php?ivrsIqmsListing";
   const API_TOKEN = "IVRSuiyeUnekIcnmEWxnmrostooUZxXYPibnvIVRS";
 
   try {
@@ -1149,7 +1149,7 @@ export const getDesignationFlags = async (activeRole) => {
   }
 
   const { ROLE_ID, PORTFOLIO_LEVEL, SUB_SECTION } = activeRole;
-  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/getDesignationFlagUser/${ROLE_ID}/${PORTFOLIO_LEVEL}/${SUB_SECTION}`;
+  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/getDesignationFlagUser/${ROLE_ID}/${PORTFOLIO_LEVEL}/${SUB_SECTION}`;
 
   console.log("🚀 Fetching designation flags from:", url);
 

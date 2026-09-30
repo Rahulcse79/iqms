@@ -1,7 +1,7 @@
 // utils/MISApiCall.js
 import axios from "axios";
 
-const API_BASE = "http://sampoorna.cao.local/afcao/ipas/ivrs"; 
+const API_BASE = "https://sampoorna.cao.local/afcao/ipas/ivrs"; 
 
 export default async function API_CALL(type, section, id, offset = 0) {
   try {

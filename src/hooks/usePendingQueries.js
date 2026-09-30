@@ -1,7 +1,7 @@
 // src/hooks/usePendingQueries.js
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const API_BASE = "http://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery";
+const API_BASE = "https://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery";
 
 /**
  * usePendingQueries(cat, pendingWith)

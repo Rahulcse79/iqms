@@ -40,7 +40,7 @@ export const fetchTransferredQueries =
   async (dispatch) => {
     dispatch({ type: TRANSFERRED_QUERY_REQUEST, meta: { pendingWith } });
 
-    const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/transferredQuery/${encodeURIComponent(
+    const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/transferredQuery/${encodeURIComponent(
       cat
     )}/${encodeURIComponent(pendingWith)}`;
 
@@ -95,7 +95,7 @@ export const refreshTransferredQueries =
   ({ cat = 1, pendingWith }) =>
   async (dispatch) => {
     dispatch({ type: TRANSFERRED_QUERY_REQUEST, meta: { pendingWith } });
-    const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/transferredQuery/${encodeURIComponent(
+    const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/transferredQuery/${encodeURIComponent(
       cat
     )}/${encodeURIComponent(pendingWith)}`;
 

@@ -89,7 +89,7 @@ const Login = () => {
       let userDetails = null;
       try {
         const res = await fetch(
-          `http://sampoorna.cao.local/afcao/ipas/ivrs/getUserDetails/${serviceNo}/${categoryCode}`
+          `https://sampoorna.cao.local/afcao/ipas/ivrs/getUserDetails/${serviceNo}/${categoryCode}`
         );
 
         if (!res.ok) throw new Error(`API failed with ${res.status}`);

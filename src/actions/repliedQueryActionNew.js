@@ -76,7 +76,7 @@ export const fetchRepliedQueriesNew =
       };
 
       const response = await fetch(
-        "http://175.25.5.7/API/controller.php?ivrsIqmsListing",
+        "https://175.25.5.7/API/controller.php?ivrsIqmsListing",
         {
           method: "POST",
           headers: {

@@ -37,7 +37,7 @@ export const fetchRepliedQueries = () => async (dispatch) => {
     let firstPageResolved = false;
 
     fetchPagedIncremental(
-      "http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
+      "https://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
       {
         onPage: (items, all) => {
           safeSaveToStorage(all);
@@ -76,7 +76,7 @@ export const refreshRepliedQueries = () => async (dispatch) => {
 
   try {
     await fetchPagedIncremental(
-      "http://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
+      "https://sampoorna.cao.local/afcao/ipas/ivrs/repliedQuery",
       {
         onPage: (items, all) => {
           safeSaveToStorage(all);

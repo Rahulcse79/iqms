@@ -38,7 +38,7 @@ function safeSavePendingToStorage(pendingWith, items) {
 export const fetchPendingQueries = ({ cat = 1, pendingWith }) => async (dispatch) => {
   dispatch({ type: PENDING_QUERY_REQUEST, meta: { pendingWith } });
 
-  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(
+  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(
     pendingWith
   )}`;
 
@@ -79,7 +79,7 @@ export const fetchPendingQueries = ({ cat = 1, pendingWith }) => async (dispatch
  */
 export const refreshPendingQueries = ({ cat = 1, pendingWith }) => async (dispatch) => {
   dispatch({ type: PENDING_QUERY_REQUEST, meta: { pendingWith } });
-  const url = `http://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(
+  const url = `https://sampoorna.cao.local/afcao/ipas/ivrs/pendingQuery/${encodeURIComponent(cat)}/${encodeURIComponent(
     pendingWith
   )}`;
 
